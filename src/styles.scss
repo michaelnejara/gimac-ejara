@@ -1,1 +1,566 @@
-/* You can add global styles to this file, and also import other style files */
+// ============================================
+// EJARA COMMAND CENTER - STYLES
+// Tailwind CSS v4+ Configuration
+// Updated with Ejara Brand Colors
+// ============================================
+
+// Import Custom Fonts
+@use './app/assets/scss/fonts/rebond-grotesque-font-face.scss';
+@use './app/assets/scss/fonts/aeonik-air.scss';
+
+// Tailwind Directives
+@use "tailwindcss";
+
+@use '@angular/material' as mat;
+@include mat.core();
+
+html,
+body {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+// ============================================
+// THEME CONFIGURATION
+// ============================================
+
+@theme {
+  // --------------------------------------------
+  // EJARA BRAND COLOR PALETTE
+  // --------------------------------------------
+  
+  // Primary Colors - Medium Slate Blue (#8758FF)
+  --color-primary-50: #f7f4ff;
+  --color-primary-100: #F0EBFF;   // Brand: 5%
+  --color-primary-200: #e1d7ff;
+  --color-primary-300: #c9b5ff;
+  --color-primary-400: #b194ff;
+  --color-primary-500: #8758FF;   // Brand: Main Primary
+  --color-primary-600: #7340e6;
+  --color-primary-700: #5f2bcc;
+  --color-primary-800: #4d1fb3;
+  --color-primary-900: #3d1899;
+  --color-primary-950: #2a0f66;
+  
+  // Secondary Colors - Orange (#FFA85C)
+  --color-secondary-50: #fff8f0;
+  --color-secondary-100: #ffeed9;
+  --color-secondary-200: #ffddb3;
+  --color-secondary-300: #ffc780;
+  --color-secondary-400: #FFA85C;  // Brand: Main Secondary
+  --color-secondary-500: #ff9030;
+  --color-secondary-600: #f57a1a;
+  --color-secondary-700: #d6640f;
+  --color-secondary-800: #b35010;
+  --color-secondary-900: #8f3f0c;
+  --color-secondary-950: #662b08;
+  
+  // Rich Black - Brand Dark Color (#00171F)
+  --color-dark-50: #f0f2f3;
+  --color-dark-100: #dde1e3;
+  --color-dark-200: #b8c0c5;
+  --color-dark-300: #8e9ba3;
+  --color-dark-400: #677783;
+  --color-dark-500: #4d5c68;
+  --color-dark-600: #3d4954;
+  --color-dark-700: #2f3a43;
+  --color-dark-800: #1a2428;
+  --color-dark-900: #0d1317;
+  --color-dark-950: #00171F;   // Brand: Rich Black
+  
+  // Imperial Red - Danger/Error Colors
+  --color-error-50: #fef2f3;
+  --color-error-100: #FCD9DC;   // Brand: Imperial Red 10%
+  --color-error-200: #f9c2c7;
+  --color-error-300: #f49ba5;
+  --color-error-400: #ed6a7b;
+  --color-error-500: #e03d56;
+  --color-error-600: #cc1f3b;
+  --color-error-700: #AC0C19;   // Brand: Imperial Red 80%
+  --color-error-800: #8f0e1a;
+  --color-error-900: #7a111d;
+  --color-error-950: #43060b;
+  
+  // Jade - Success Colors
+  --color-success-50: #f0fdf7;
+  --color-success-100: #D6FFED;  // Brand: Jade 10%
+  --color-success-200: #b3f7db;
+  --color-success-300: #7feec5;
+  --color-success-400: #44daaa;
+  --color-success-500: #1ac091;
+  --color-success-600: #0e9d76;
+  --color-success-700: #008F51;  // Brand: Jade 80%
+  --color-success-800: #0a6543;
+  --color-success-900: #095338;
+  --color-success-950: #042f1f;
+  
+  // Maize - Warning Colors
+  --color-warning-50: #fffef7;
+  --color-warning-100: #FFFAD6;  // Brand: Maize 10%
+  --color-warning-200: #fff5ad;
+  --color-warning-300: #ffec73;
+  --color-warning-400: #ffd93a;
+  --color-warning-500: #ffc212;
+  --color-warning-600: #e09a00;
+  --color-warning-700: #998400;  // Brand: Maize 80%
+  --color-warning-800: #7d6902;
+  --color-warning-900: #6a5506;
+  --color-warning-950: #3e2d00;
+  
+  // Info Colors - Light Purple (complement to primary)
+  --color-info-50: #faf7ff;
+  --color-info-100: #F0EBFF;   // Same as Primary 100
+  --color-info-200: #e3d8ff;
+  --color-info-300: #d0b8ff;
+  --color-info-400: #b88dff;
+  --color-info-500: #a05fff;
+  --color-info-600: #8f3eff;
+  --color-info-700: #7e26f7;
+  --color-info-800: #6a1ed0;
+  --color-info-900: #581aaa;
+  --color-info-950: #360d74;
+  
+  // Neutral/Gray Colors
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+  
+  // Semantic Colors
+  --color-background: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-tertiary: #f3f4f6;
+  --color-background-dark: #00171F;  // Brand: Rich Black
+  
+  --color-text-primary: #00171F;     // Brand: Rich Black
+  --color-text-secondary: #4d5c68;
+  --color-text-tertiary: #8e9ba3;
+  --color-text-inverse: #ffffff;
+  
+  --color-border-light: #e5e7eb;
+  --color-border: #d1d5db;
+  --color-border-dark: #9ca3af;
+  
+  // --------------------------------------------
+  // FONT FAMILIES
+  // --------------------------------------------
+  
+  --font-family-display: "Rebond Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-sans: "Aeonik", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-body: "Aeonik Air", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  
+  // --------------------------------------------
+  // SPACING SCALE
+  // --------------------------------------------
+  
+  --spacing-px: 1px;
+  --spacing-0: 0;
+  --spacing-0\.5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1\.5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-2\.5: 0.625rem;
+  --spacing-3: 0.75rem;
+  --spacing-3\.5: 0.875rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-7: 1.75rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --spacing-14: 3.5rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-28: 7rem;
+  --spacing-32: 8rem;
+  --spacing-36: 9rem;
+  --spacing-40: 10rem;
+  --spacing-44: 11rem;
+  --spacing-48: 12rem;
+  --spacing-52: 13rem;
+  --spacing-56: 14rem;
+  --spacing-60: 15rem;
+  --spacing-64: 16rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+  --spacing-96: 24rem;
+  
+  // --------------------------------------------
+  // BORDER RADIUS
+  // --------------------------------------------
+  
+  --radius-none: 0;
+  --radius-sm: 0.125rem;
+  --radius: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  // --------------------------------------------
+  // SHADOWS
+  // --------------------------------------------
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-none: 0 0 #0000;
+}
+
+// ============================================
+// BASE STYLES
+// ============================================
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+}
+
+// Headings - Using Rebond Grotesque
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  
+  @media (min-width: 768px) {
+    font-size: 3rem;
+    line-height: 1;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 3.75rem;
+    line-height: 1;
+  }
+}
+
+h2 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 3rem;
+    line-height: 1;
+  }
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  
+  @media (min-width: 768px) {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+}
+
+h4 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+h5 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  
+  @media (min-width: 768px) {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+h6 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  
+  @media (min-width: 768px) {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+// Paragraphs - Using Aeonik Air
+p {
+  font-family: var(--font-family-sans);// var(--font-family-body);
+  font-size: 1rem;
+  line-height: 1.625;
+  font-weight: 400;
+  color: var(--color-text-primary); // var(--color-text-secondary);
+}
+
+// Links
+a {
+  color: var(--color-primary-600);
+  transition-property: color;
+  transition-duration: 200ms;
+  
+  &:hover {
+    color: var(--color-primary-700);
+  }
+  
+  &:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-primary-500), 0 0 0 4px transparent;
+  }
+}
+
+// Code
+code {
+  font-family: var(--font-family-mono);
+  font-size: 0.875rem;
+  background-color: var(--color-neutral-100);
+  color: var(--color-primary-700);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+pre {
+  font-family: var(--font-family-mono);
+  font-size: 0.875rem;
+  background-color: var(--color-dark-950);
+  color: var(--color-neutral-50);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  
+  code {
+    background-color: transparent;
+    color: var(--color-neutral-50);
+    padding: 0;
+  }
+}
+
+// Lists
+ul, ol {
+  padding-left: 1.5rem;
+}
+
+ul li + li,
+ol li + li {
+  margin-top: 0.5rem;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+li {
+  color: var(--color-text-secondary);
+}
+
+// Blockquote
+blockquote {
+  border-left: 4px solid var(--color-primary-500);
+  padding-left: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+// HR
+hr {
+  border-color: var(--color-border);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+// Tables
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: var(--color-background-secondary);
+}
+
+th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+tbody tr:hover {
+  background-color: var(--color-background-secondary);
+}
+
+// ============================================
+// CUSTOM SCROLLBAR (Webkit)
+// ============================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-400);
+  border-radius: 9999px;
+  
+  &:hover {
+    background-color: var(--color-neutral-500);
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// PRINT STYLES
+// ============================================
+
+@media print {
+  * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  a {
+    color: black !important;
+    text-decoration: none !important;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+}

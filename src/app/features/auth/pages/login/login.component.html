@@ -1,1 +1,86 @@
-<p>login.component works!</p>
+<div class="login-container">
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="logo-section">
+      <img src="assets/images/ejara-logo.svg" alt="Ejara Logo" class="logo">
+    </div>
+
+    <!-- Login Header -->
+    <div class="login-header">
+      <h1>Login</h1>
+      <p>Enter your credentials to login</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      <!-- Username Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Username</mat-label>
+        <input
+          matInput
+          formControlName="usernameOrPhoneNumber"
+          placeholder="Ex: lolo543"
+          autocomplete="username">
+        <mat-error *ngIf="hasError('usernameOrPhoneNumber', 'required')">
+          {{ getErrorMessage('usernameOrPhoneNumber') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Password Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Type your password"
+          autocomplete="current-password">
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="togglePasswordVisibility()"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="!hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="hasError('password', 'required') || hasError('password', 'minlength')">
+          {{ getErrorMessage('password') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Remember Me Checkbox -->
+      <div class="remember-me">
+        <mat-checkbox formControlName="rememberMe">
+          <span class="remember-me-label">Remember me</span>
+          <span class="remember-me-description">Save my login details for next time.</span>
+        </mat-checkbox>
+      </div>
+
+      <!-- Error Message from Store -->
+      <div class="error-message" *ngIf="error$ | async as error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="login-button"
+        [disabled]="loading$ | async">
+        <span *ngIf="!(loading$ | async)">Login</span>
+        <mat-spinner *ngIf="loading$ | async" diameter="24"></mat-spinner>
+      </button>
+
+      <!-- Forgot Password Link -->
+      <div class="forgot-password">
+        <span>Forgot your password?</span>
+        <button type="button" mat-button color="primary" (click)="onForgotPassword()">
+          Reset
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

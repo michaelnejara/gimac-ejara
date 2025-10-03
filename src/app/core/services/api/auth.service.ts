@@ -72,7 +72,7 @@ export class AuthService {
     };
 
     return this.http.post<AuthModels.LoginSuccessResponse>(
-      `${environment.apiUrl}/authentication/complete-login`,
+      `${environment.nellysCoin.apiUrl}/authentication/complete-login`,
       payload
     );
   }

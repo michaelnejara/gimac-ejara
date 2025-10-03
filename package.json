@@ -48,6 +48,7 @@
     "@angular/build": "^20.3.3",
     "@angular/cli": "^20.3.3",
     "@angular/compiler-cli": "^20.3.0",
+    "@jest/globals": "^30.2.0",
     "@ngrx/store": "^20.0.1",
     "@ngrx/store-devtools": "^20.0.1",
     "@types/jasmine": "~5.1.0",

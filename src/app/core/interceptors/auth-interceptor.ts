@@ -5,6 +5,7 @@ import { catchError, switchMap, take } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { selectAuthToken } from '@store/auth/auth.state';
 import { AuthActions } from '@store/auth/auth.actions';
+import { environment } from '@environments/environment';
 
 /**
  * Authentication Interceptor
@@ -26,8 +27,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     'ipgeolocation.io'
   ].some(endpoint => req.url.includes(endpoint));
 
+  // Add auth header if token exists
+  let authReq = req;
+
+  // Add language header and credentials
+  const language = localStorage.getItem('app-language') || 'en';
+  authReq = authReq.clone({
+    setHeaders: {
+      'Accept-Language': language,
+      'client-key': environment.nellysCoin.clientKey,
+      'client-secret': environment.nellysCoin.clientSecret
+    }
+  });
+
   if (skipAuth) {
-    return next(req);
+    return next(authReq);
   }
 
   // Get token from store
@@ -36,8 +50,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     .pipe(take(1))
     .subscribe(token => authToken = token);
 
-  // Add auth header if token exists
-  let authReq = req;
   if (authToken) {
     authReq = req.clone({
       setHeaders: {
@@ -45,14 +57,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
     });
   }
-
-  // Add language header
-  const language = localStorage.getItem('app-language') || 'en';
-  authReq = authReq.clone({
-    setHeaders: {
-      'Accept-Language': language
-    }
-  });
 
   return next(authReq).pipe(
     catchError(error => {

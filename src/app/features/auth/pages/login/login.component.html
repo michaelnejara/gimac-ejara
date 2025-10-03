@@ -1,1 +1,157 @@
-<p>login.component works!</p>
+<div class="ejara-login-page ejara-page">
+  <main class="main-block">
+    <div class="logo-container">
+      <img
+        ngSrc="/assets/ejara-logo.svg"
+        alt="Ejara's purple logo"
+        class="logo"
+        height="91"
+        width="266"
+        priority="true"
+      />
+    </div>
+    <div class="form-container">
+      <div class="form-title">
+        <h1 class="main-title">Login</h1>
+        <span class="sub-title">Enter your credentials to login</span>
+      </div>
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <!-- Username of phone number Field -->
+        <div class="form-group">
+          <label for="usernameOrPhoneNumber" class="form-label">
+            Username
+            <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="usernameOrPhoneNumber"
+              formControlName="usernameOrPhoneNumber"
+              placeholder="admin@ejara.com"
+              class="form-input"
+              [class.input-error]="
+                loginForm.get('usernameOrPhoneNumber')?.invalid &&
+                loginForm.get('usernameOrPhoneNumber')?.touched
+              "
+            />
+          </div>
+          @if (loginForm.get('usernameOrPhoneNumber')?.invalid &&
+          loginForm.get('usernameOrPhoneNumber')?.touched) {
+          <div class="error-message">
+            @if (hasError('usernameOrPhoneNumber', 'required')) {
+            <span>Username or phone number is required</span>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password" class="form-label">
+            Password
+            <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              [type]="!hidePassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="form-input"
+              [class.input-error]="
+                loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+              "
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="hidePassword ? 'Hide password' : 'Show password'"
+            >
+              @if (hidePassword) {
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              } @else {
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              }
+            </button>
+          </div>
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <div class="error-message">
+            @if (hasError('password','required')) {
+            <span>Password is required</span>
+            } @if (hasError('password','minlength')) {
+            <span>Password must be at least 6 characters</span>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="submit-button" [disabled]="loading$ | async">
+          @if (loading$ | async) {
+          <svg class="spinner" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle
+              class="spinner-circle"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+              fill="none"
+            />
+          </svg>
+          <span>Signing in...</span>
+          } @else {
+          <span>Sign In</span>
+          <svg
+            class="button-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12H19M19 12L12 5M19 12L12 19"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          }
+        </button>
+      </form>
+      <div class="form-footer">
+        <p class="footer-text">
+          Forgot your password?
+          <a routerLink="../forgot-password" class="footer-link">Reset</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</div>

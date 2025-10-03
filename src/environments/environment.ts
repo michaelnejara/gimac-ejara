@@ -16,7 +16,7 @@ export const environment = {
     },
 
     nellysCoin: {
-        apiUrl: 'https://prodbox-nellys-coin-v2.ejaraapis.xyz',
+        apiUrl: 'https://prodbox-nellys-coin-v2.ejaraapis.xyz/api/v1',
         clientKey: 'e59de08018',
         clientSecret: 'q7uaGP*2ENy0MWX!yjLeZ*q2x',
     },

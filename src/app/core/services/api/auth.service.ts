@@ -39,7 +39,7 @@ export class AuthService {
    */
   login(payload: AuthModels.LoginPayload): Observable<AuthModels.LoginMfaResponse> {
     return this.http.post<AuthModels.LoginMfaResponse>(
-      `${environment.apiUrl}/authentication/login`,
+      `${environment.nellysCoin.apiUrl}/authentication/login`,
       payload
     );
   }

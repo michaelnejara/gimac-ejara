@@ -1,1 +1,148 @@
-<p>mfa-verify.component works!</p>
+<!--
+  ===============================================
+  MFA VERIFICATION PAGE
+  Ejara Admin Panel - Two-Factor Authentication
+  ===============================================
+-->
+
+<div class="ejara-mfa-page ejara-page">
+  <main class="main-block">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img
+        ngSrc="/assets/ejara-logo.svg"
+        alt="Ejara's purple logo"
+        class="logo"
+        height="91"
+        width="266"
+        priority="true"
+      />
+    </div>
+
+    <!-- MFA Form Container -->
+    <div class="form-container">
+      <!-- Title Section -->
+      <div class="form-title">
+        <h1 class="main-title">Two-Factor Authentication</h1>
+        <span class="sub-title">Enter the 6-digit code from your authenticator app</span>
+      </div>
+
+      <!-- Error Message -->
+      @if (errorMessage()) {
+        <div class="error-banner">
+          <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="error-content">
+            <span class="error-text">{{ errorMessage() }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- MFA Form -->
+      <form class="mfa-form" [formGroup]="mfaForm" (ngSubmit)="verifyOtp()">
+        <!-- OTP Input Field -->
+        <div class="form-group">
+          <label for="otpCode" class="form-label">
+            Authentication Code
+            <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              id="otpCode"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              formControlName="otpCode"
+              [value]="otpCode()"
+              (input)="onOtpInput($event)"
+              (paste)="onOtpPaste($event)"
+              (keydown)="onOtpKeydown($event)"
+              [disabled]="isLoading()"
+              placeholder="000000"
+              class="form-input otp-input"
+              [class.input-error]="errorMessage()"
+              [class.input-complete]="otpCode().length === 6"
+              autocomplete="one-time-code"
+              aria-label="6-digit verification code"
+            />
+            <!-- Character Counter -->
+            <span class="character-counter" [class.complete]="otpCode().length === 6">
+              {{ otpCode().length }}/6
+            </span>
+          </div>
+          @if (mfaForm.get('otpCode')?.invalid && mfaForm.get('otpCode')?.touched && !errorMessage()) {
+            <div class="error-message">
+              @if (mfaForm.get('otpCode')?.hasError('required')) {
+                <span>Authentication code is required</span>
+              }
+              @if (mfaForm.get('otpCode')?.hasError('pattern')) {
+                <span>Please enter a valid 6-digit code</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          class="submit-button" 
+          [disabled]="!canSubmit()"
+          [class.loading]="isLoading()"
+        >
+          @if (isLoading()) {
+            <svg class="spinner" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle
+                class="spinner-circle"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+                fill="none"
+              />
+            </svg>
+            <span>Verifying...</span>
+          } @else {
+            <span>Verify Code</span>
+            <svg
+              class="button-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5 12H19M19 12L12 5M19 12L12 19"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          }
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p class="footer-text">
+          Need to use a different account?
+          <button type="button" (click)="goBackToLogin()" class="footer-link">
+            Back to Login
+          </button>
+        </p>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        <svg class="help-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <div class="help-content">
+          <p class="help-title">Using an authenticator app?</p>
+          <p class="help-text">Open your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.) and enter the current 6-digit code for Ejara Admin Panel.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

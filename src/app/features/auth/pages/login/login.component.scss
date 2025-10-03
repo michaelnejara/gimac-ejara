@@ -1,5 +1,7 @@
 .ejara-login-page {
   /* Styles specific to the login page */
+  background-position: center;
+  background-repeat: no-repeat;
   @apply h-[100vh] flex justify-center bg-[url(/assets/bg/icons-background.svg)] overflow-hidden overflow-y-auto;
   .main-block {
     @apply flex flex-col min-w-[487px] items-center mt-[82px] gap-[90px];

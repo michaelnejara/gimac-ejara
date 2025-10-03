@@ -15,8 +15,8 @@ export const environment = {
         enableRemoteLogging: false
     },
 
-    nellyCoin: {
-        apiUrl: 'https://testbox-nellys-coin-v2.ejaraapis.xyz',
+    nellysCoin: {
+        apiUrl: 'https://testbox-nellys-coin-v2.ejaraapis.xyz/api/v1',
         clientKey: '2ead6d590b',
         clientSecret: 'sJtJPkBlX!VBq1HEnjqAz0o7D',
     },

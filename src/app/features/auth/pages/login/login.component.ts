@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { selectError, selectLoading } from '@store/auth/auth.state';
 import { AuthActions } from '@store/auth/auth.actions';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -18,12 +19,14 @@ import { AuthActions } from '@store/auth/auth.actions';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    NgOptimizedImage,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
-  ],
+    MatProgressSpinnerModule,
+    RouterLink
+],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -81,15 +84,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   /**
    * Determine login option based on input format
    */
-  getLoginOption(input: string): 'username' | 'email' | 'phone' {
-    if (input.includes('@')) {
-      return 'email';
-    }
-    if (input.startsWith('+')) {
-      return 'phone';
-    }
-    return 'username';
-  }
+  // getLoginOption(input: string): 'username' | 'email' | 'phone' {
+  //   if (input.includes('@')) {
+  //     return 'email';
+  //   }
+  //   if (input.startsWith('+')) {
+  //     return 'phone';
+  //   }
+  //   return 'username';
+  // }
 
   /**
    * Handle login form submission
@@ -105,7 +108,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     // Get form values
     const { usernameOrPhoneNumber, password } = this.loginForm.value;
-    const loginOption = this.getLoginOption(usernameOrPhoneNumber);
+    const loginOption = 'username'; //this.getLoginOption(usernameOrPhoneNumber);
 
     // Dispatch login action
     this.store.dispatch(AuthActions.loginStart({

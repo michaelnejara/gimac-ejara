@@ -70,7 +70,6 @@ function initializeAuthStateFromStorage(): AuthFeatureState {
     const mfaData = storageService.getLocal<AuthModels.MfaData[]>(AUTH_STORAGE_KEYS.MFA_DATA);
 
     // Determine if user is authenticated
-    console.log({authToken, user});
     const isAuthenticated = !!(authToken && user);
 
     // Return initialized state

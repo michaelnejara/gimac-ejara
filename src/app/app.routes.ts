@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { adminGuard } from '@core/guards/admin/admin-guard';
 import { authGuard } from '@core/guards/auth/auth-guard';
 import { guestGuard } from '@core/guards/guest/guest-guard';
+import { Layout } from '@shared/components/layout/layout';
 
 /**
  * Main application routes
@@ -24,51 +25,57 @@ export const routes: Routes = [
 
   // Dashboard (protected)
   {
-    path: 'dashboard',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes)
-  },
+    path: '',
+    component: Layout,
+    children: [
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes)
+      },
 
-  // Payments & Reconciliation (protected)
-  {
-    path: 'payments',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/payments/payments.routes').then(m => m.paymentsRoutes)
-  },
+      // Payments & Reconciliation (protected)
+      {
+        path: 'payments',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/payments/payments.routes').then(m => m.paymentsRoutes)
+      },
 
-  // Bond Management (protected)
-  {
-    path: 'bonds',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/bonds/bonds.routes').then(m => m.bondsRoutes)
-  },
+      // Bond Management (protected)
+      {
+        path: 'bonds',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/bonds/bonds.routes').then(m => m.bondsRoutes)
+      },
 
-  // User Management (protected)
-  {
-    path: 'users',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/users/users.routes').then(m => m.usersRoutes)
-  },
+      // User Management (protected)
+      {
+        path: 'users',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/users/users.routes').then(m => m.usersRoutes)
+      },
 
-  // Reports & Compliance (protected)
-  {
-    path: 'reports',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/reports/reports.routes').then(m => m.reportsRoutes)
-  },
+      // Reports & Compliance (protected)
+      {
+        path: 'reports',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/reports/reports.routes').then(m => m.reportsRoutes)
+      },
 
-  // Alerts & Notifications (protected)
-  {
-    path: 'alerts',
-    canActivate: [authGuard],
-    loadChildren: () => import('./features/alerts/alerts.routes').then(m => m.alertsRoutes)
-  },
+      // Alerts & Notifications (protected)
+      {
+        path: 'alerts',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/alerts/alerts.routes').then(m => m.alertsRoutes)
+      },
 
-  // Audit Logs (protected, admin only)
-  {
-    path: 'audit',
-    canActivate: [authGuard, adminGuard],
-    loadChildren: () => import('./features/audit/audit.routes').then(m => m.auditRoutes)
+      // Audit Logs (protected, admin only)
+      {
+        path: 'audit',
+        canActivate: [authGuard, adminGuard],
+        loadChildren: () => import('./features/audit/audit.routes').then(m => m.auditRoutes)
+      },
+    ]
   },
 
   // 404 Not Found

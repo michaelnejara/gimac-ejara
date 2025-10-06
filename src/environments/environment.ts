@@ -24,5 +24,10 @@ export const environment = {
         apiUrl: 'https://prodbox-mfa.ejaraapis.xyz',
         clientKey: '0024053021',
         clientSecret: 'vJ[ZXKOnbPuZtKaoQblfbpX)%',
+    },
+    gimacPayment: {
+        apiUrl: '',
+        clientKey: '',
+        clientSecret: ''
     }
 };

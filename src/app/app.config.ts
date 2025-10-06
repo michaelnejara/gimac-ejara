@@ -13,26 +13,46 @@ import { authInterceptor } from '@core/interceptors/auth-interceptor';
 import { errorInterceptor } from '@core/interceptors/error/error-interceptor';
 import { provideEffects } from '@ngrx/effects';
 import { AuthEffects } from '@store/auth/auth.effects';
-import { authFeature } from '@store/auth/auth.state';
 import { environment } from '@environments/environment';
 import { ErrorBoundaryService } from '@core/services/error-boundary.service';
+import { GimacPaymentCredentialsInterceptor } from '@core/interceptors/gimac-payment-credentials.interceptor';
+import { DashboardEffects } from '@store/dashboard/dashboard.effects';
+import { dashboardReducer } from '@store/dashboard/dashboard.reducer';
+import { authReducer } from '@store/auth/auth.reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Global error listeners for unhandled errors
     provideBrowserGlobalErrorListeners(),
+
+    // Zone.js configuration with event coalescing for better performance
     provideZoneChangeDetection({ eventCoalescing: true }),
+
+    // Router configuration
     provideRouter(routes),
+
+    // HTTP client with interceptors chain
     provideHttpClient(
       withInterceptors([
+        GimacPaymentCredentialsInterceptor,
         authInterceptor,
         errorInterceptor
       ])
     ),
-    // Global error handler
+
+    // Global error handler for uncaught exceptions
     { provide: ErrorHandler, useClass: ErrorBoundaryService },
-    provideStore(),
-    provideState(authFeature),
-    provideEffects([AuthEffects]),
+    provideStore(
+      {
+        auth: authReducer,
+        dashboard: dashboardReducer
+      }
+    ),
+    // provideState(authFeature),
+    provideEffects([
+      AuthEffects,
+      DashboardEffects
+    ]),
     provideStoreDevtools({
       maxAge: 25, // Retains last 25 states
       logOnly: environment.production,

@@ -25,4 +25,9 @@ export const environment = {
         clientKey: '3de2fbdb78',
         clientSecret: '93Kyno#2uFDOMY*HWC2OpeuR(',  
     },
+    gimacPayment: {
+        apiUrl: '',
+        clientKey: '',
+        clientSecret: ''
+    }
 };

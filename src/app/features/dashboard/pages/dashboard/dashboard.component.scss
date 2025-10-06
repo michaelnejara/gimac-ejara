@@ -1,0 +1,354 @@
+/**
+ * Dashboard Component Styles
+ * 
+ * Provides a modern, card-based layout with:
+ * - Responsive grid system
+ * - Color-coded cards for different metric types
+ * - Smooth animations and transitions
+ * - Material Design principles
+ */
+
+.dashboard-container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+/**
+ * Header Section
+ */
+.dashboard-header {
+  margin-bottom: 32px;
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .welcome-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+
+    @media (max-width: 768px) {
+      font-size: 24px;
+    }
+  }
+
+  .refresh-btn {
+    transition: transform 0.3s ease;
+
+    &:hover:not(:disabled) {
+      transform: scale(1.1);
+    }
+
+    &.spinning mat-icon {
+      animation: spin 1s linear;
+    }
+  }
+}
+
+/**
+ * Loading State
+ */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  p {
+    margin-top: 16px;
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+/**
+ * Error State
+ */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .error-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #f44336;
+    margin-bottom: 16px;
+  }
+
+  .error-message {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+}
+
+/**
+ * Dashboard Content
+ */
+.dashboard-content {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/**
+ * Section Styling
+ */
+.stats-section,
+.quick-actions-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  padding-left: 4px;
+}
+
+/**
+ * Stats Grid
+ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/**
+ * Stat Cards
+ */
+.stat-card {
+  position: relative;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+  border: 2px solid transparent;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  mat-card-content {
+    padding: 24px !important;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .card-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card-value {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .card-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+
+    &.success {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4caf50;
+    }
+
+    &.info {
+      background: rgba(33, 150, 243, 0.15);
+      color: #2196f3;
+    }
+  }
+
+  .card-action {
+    margin-top: 12px;
+    color: inherit;
+    font-weight: 500;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-left: 4px;
+    }
+  }
+}
+
+/**
+ * Card Color Variants
+ */
+.primary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+
+  .card-label,
+  .card-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.success-card {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border-color: #4caf50;
+
+  .card-label,
+  .card-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.danger-card {
+  background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+  color: white;
+  border-color: #f44336;
+
+  .card-label,
+  .card-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.warning-card {
+  background: linear-gradient(135deg, #ff9800 0%, #fb8c00 100%);
+  color: white;
+  border-color: #ff9800;
+
+  .card-label,
+  .card-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.info-card {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border-color: #2196f3;
+
+  .card-label,
+  .card-icon {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/**
+ * Quick Actions Grid
+ */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-btn {
+  height: 80px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+
+  mat-icon {
+    margin-right: 12px;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/**
+ * Animations
+ */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

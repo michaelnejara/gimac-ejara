@@ -26,7 +26,7 @@ import { environment } from '@environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class DashboardService {
+export class GimacPaymentService {
   private http = inject(HttpClient);
   private apiUrl = environment.gimacPayment.apiUrl;
 

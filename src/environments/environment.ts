@@ -28,6 +28,7 @@ export const environment = {
     gimacPayment: {
         apiUrl: '',
         clientKey: '',
-        clientSecret: ''
+        clientSecret: '',
+        useMockData: false
     }
 };

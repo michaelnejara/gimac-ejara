@@ -34,7 +34,9 @@ $sidebar-collapsed-width: 80px;
     }
 
     .content-container {
-      @apply p-[24px];
+      // p-[24px]
+      @apply pt-[72px];
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       max-width: 1920px;
       margin: 0 auto;
 

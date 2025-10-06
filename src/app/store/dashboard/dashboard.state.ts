@@ -43,11 +43,35 @@ export interface DashboardState {
 }
 
 /**
+ * Mock dashboard data for development
+ * Provides realistic sample data while API is being developed
+ * 
+ * This data represents a typical day's activity:
+ * - High transaction volume with good success rate
+ * - Active bond market with pending settlements
+ * - Some reconciliation work needed
+ * - Growing customer base
+ */
+export const MOCK_DASHBOARD_STATS: DashboardStatsDTO = {
+  totalTransactions: 48234,
+  successfulTransactions: 45180,
+  failedTransactions: 854,
+  pendingTransactions: 2200,
+  reconciledTransactions: 44500,
+  unreconciledTransactions: 3734,
+  totalBondsPublished: 1250,
+  bondsSold: 987,
+  bondsSettled: 743,
+  bondsPendingSettlement: 244,
+  numberOfUniqueCustomer: 15678
+};
+
+/**
  * Initial state for dashboard feature
  * Stats are null until first load, not loading, no errors
  */
 export const initialState: DashboardState = {
-  stats: null,
+  stats: MOCK_DASHBOARD_STATS, //null,
   loading: false,
   error: null
 };

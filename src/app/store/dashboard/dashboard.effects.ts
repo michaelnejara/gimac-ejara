@@ -1,10 +1,12 @@
 // src/app/store/dashboard/dashboard.effects.ts
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { DashboardService } from '@core/services/dashboard.service';
 import { DashboardActions } from './dashboard.actions';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { GimacPaymentService } from '@core/services/gimac-payment.service';
+import { environment } from '@environments/environment';
+import { GimacPaymentMockDataService } from '@core/services/gimac-payment-mock-data.service';
 
 /**
  * Dashboard Effects
@@ -20,7 +22,8 @@ import { of } from 'rxjs';
 @Injectable()
 export class DashboardEffects {
   private actions$ = inject(Actions);
-  private dashboardService = inject(DashboardService);
+  private gimacPaymentService = inject(GimacPaymentService);
+  private GimacPaymentMockDataService = inject(GimacPaymentMockDataService);
 
   /**
    * Load Dashboard Stats Effect
@@ -52,21 +55,29 @@ export class DashboardEffects {
     this.actions$.pipe(
       // Listen for LoadStats action
       ofType(DashboardActions.loadStats),
-      
+
       // Switch to new API call, canceling previous if still pending
-      switchMap(() =>
-        this.dashboardService.getDashboardStats().pipe(
+      switchMap(() => {
+        // Use mock data flag from environment
+        const useMockData = environment.gimacPayment.useMockData;
+
+        // Select appropriate service based on environment
+        const source$ = useMockData 
+          ? this.GimacPaymentMockDataService.getDashboardStats()
+          : this.gimacPaymentService.getDashboardStats();
+
+        return source$.pipe(
           // On successful response, dispatch success action with data
           map(stats => DashboardActions.loadStatsSuccess({ stats })),
-          
+
           // On error, extract error message and dispatch failure action
           catchError(error => {
             // Extract error message from response or use default
             const errorMessage = error?.error?.message || 'Failed to load dashboard stats';
             return of(DashboardActions.loadStatsFailure({ error: errorMessage }));
           })
-        )
-      )
+        );
+      })
     )
   );
 
@@ -90,7 +101,7 @@ export class DashboardEffects {
       this.actions$.pipe(
         // Listen for LoadStatsFailure action
         ofType(DashboardActions.loadStatsFailure),
-        
+
         // Log error to console for debugging
         tap(({ error }) => console.error('Dashboard stats error:', error))
       ),

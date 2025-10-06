@@ -98,10 +98,11 @@ $sidebar-collapsed-width: 80px;
   .navbar,
   .sidebar,
   .mobile-menu-toggle {
-    @apply hidden !important;
+    @apply hidden;
   }
 
   .main-content {
-    @apply pt-0 pl-0 !important;
+    padding-top: 0;
+    padding-left: 0;
   }
 }

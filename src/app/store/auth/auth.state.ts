@@ -326,7 +326,7 @@ export const authFeature = createFeature({
      * Resets to initial state
      */
     on(AuthActions.logout, () => ({
-      ...initialAuthState
+      ...getDefaultInitialState()
     })),
     
     /**

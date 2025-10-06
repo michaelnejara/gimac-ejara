@@ -25,7 +25,7 @@ export class Navbar {
   user$: Observable<User | null>;
   isProfileMenuOpen = signal<boolean>(false);
   isNotificationsOpen = signal<boolean>(false);
-  
+
   // Mock notifications (replace with real data from store)
   notifications = signal([
     {
@@ -64,7 +64,7 @@ export class Navbar {
   userInitials = computed(() => {
     const user = this.currentUser();
     if (!user) return '';
-    
+
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -114,7 +114,7 @@ export class Navbar {
   private handleClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
     const isClickInside = target.closest('.profile-dropdown, .notifications-dropdown');
-    
+
     if (!isClickInside) {
       this.isProfileMenuOpen.set(false);
       this.isNotificationsOpen.set(false);

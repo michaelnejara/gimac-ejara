@@ -181,3 +181,13 @@ export interface User {
   companyCode: string;
   createdAt: string;
 }
+
+export interface MenuItem {
+  label: string;
+  icon: string;
+  route?: string;
+  badge?: number;
+  badgeColor?: 'primary' | 'success' | 'warning' | 'error';
+  children?: MenuItem[];
+  expanded?: boolean;
+}

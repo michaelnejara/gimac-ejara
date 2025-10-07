@@ -140,27 +140,7 @@
     grid-template-columns: 4fr;
   }
 }
-/**
- * Stats Row
- */
-// .stats-grid {
-//   display: flex;
-//   flex-wrap: wrap;        // Allows items to move to the next line if needed
-//   gap: 20px;              // Gap between items
-//   justify-content: space-between; // Adjust spacing, optional
 
-//   > * {
-//     flex: 1 1 280px;      // Grow, shrink, and minimum width
-//     max-width: 1fr;       // Optional, to limit size
-//   }
-
-//   @media (max-width: 768px) {
-//     flex-direction: column;
-//     > * {
-//       flex: 1 1 100%;
-//     }
-//   }
-// }
 
 
 /**

@@ -1,0 +1,19 @@
+<div class="breadcrumb-wrapper" *ngIf="breadcrumbs.length > 0">
+  <!-- Titre de la page -->
+  <h1 class="page-title">{{ pageTitle }}</h1>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb-nav">
+    <span *ngFor="let breadcrumb of breadcrumbs; let last = last" class="breadcrumb-segment">
+      <a *ngIf="!last" [routerLink]="breadcrumb.url" class="breadcrumb-link">
+        {{ breadcrumb.label }}
+      </a>
+
+      <span *ngIf="last" class="breadcrumb-current">
+        {{ breadcrumb.label }}
+      </span>
+
+      <span *ngIf="!last" class="breadcrumb-separator"> > </span>
+    </span>
+  </nav>
+</div>

@@ -1,0 +1,13 @@
+<div class="trsx-list">
+  <app-reusable-table
+    [data]="users"
+    [columns]="columns"
+    [actions]="actions"
+    [pageSize]="10"
+    [showFilter]="true"
+    [showPagination]="true"
+    [keyword]="searchKeyword"
+    (keywordChange)="onKeywordChange($event)"
+  >
+  </app-reusable-table>
+</div>

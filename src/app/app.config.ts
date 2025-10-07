@@ -19,6 +19,8 @@ import { GimacPaymentCredentialsInterceptor } from '@core/interceptors/gimac-pay
 import { DashboardEffects } from '@store/dashboard/dashboard.effects';
 import { dashboardReducer } from '@store/dashboard/dashboard.reducer';
 import { authReducer } from '@store/auth/auth.reducer';
+import { TransactionsEffects } from '@store/transactions/transactions.effects';
+import { transactionsReducer } from '@store/transactions/transactions.reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -45,13 +47,15 @@ export const appConfig: ApplicationConfig = {
     provideStore(
       {
         auth: authReducer,
-        dashboard: dashboardReducer
+        dashboard: dashboardReducer,
+        transactions: transactionsReducer
       }
     ),
     // provideState(authFeature),
     provideEffects([
       AuthEffects,
-      DashboardEffects
+      DashboardEffects,
+      TransactionsEffects
     ]),
     provideStoreDevtools({
       maxAge: 25, // Retains last 25 states

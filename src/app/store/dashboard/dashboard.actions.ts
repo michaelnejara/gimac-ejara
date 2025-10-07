@@ -1,5 +1,5 @@
+import { DashboardStatsDTO } from '@core/models/dashboard.models';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { DashboardStatsDTO } from './dashboard.state';
 
 /**
  * Dashboard Actions Group

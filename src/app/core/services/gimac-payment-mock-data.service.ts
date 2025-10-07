@@ -1,8 +1,8 @@
 // src/app/core/services/mock-data.service.ts
 import { Injectable } from '@angular/core';
+import { DashboardStatsDTO } from '@core/models/dashboard.models';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { DashboardStatsDTO } from '@store/dashboard/dashboard.state';
 
 /**
  * Mock Data Service

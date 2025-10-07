@@ -1,11 +1,14 @@
-<!-- src/app/pages/dashboard/dashboard.component.html -->
 <div class="dashboard-container">
+  
   <!-- Header Section -->
   <div class="dashboard-header" @fadeIn>
     <div class="header-content">
-      <h1 class="welcome-title" *ngIf="user$ | async as user">
-        Welcome to Bond Management Panel, {{ getUserFirstName(user) }}
-      </h1>
+      <div class="header-text">
+        <h1 class="welcome-title" *ngIf="user$ | async as user">
+          Welcome back, {{ getUserFirstName(user) }}!
+        </h1>
+        <p class="header-subtitle">Here's what's happening with your bonds today</p>
+      </div>
       <button 
         mat-icon-button 
         class="refresh-btn"
@@ -18,10 +21,16 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading$ | async" class="loading-container" @fadeIn>
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading dashboard data...</p>
+  <!-- Loading State with Skeleton -->
+  <div *ngIf="loading$ | async" class="dashboard-content">
+    <section class="stats-section">
+      <div class="stats-grid">
+        <app-skeleton-loader 
+          type="dashboard-card" 
+          [repeat]="11">
+        </app-skeleton-loader>
+      </div>
+    </section>
   </div>
 
   <!-- Error State -->
@@ -35,7 +44,7 @@
   </div>
 
   <!-- Dashboard Content -->
-  <div *ngIf="stats$ | async as stats" class="dashboard-content">
+  <div *ngIf="!(loading$ | async) && (stats$ | async) as stats" class="dashboard-content" @fadeIn>
     
     <!-- Performance Overview Section -->
     <section class="stats-section">
@@ -44,178 +53,212 @@
       <div class="stats-grid">
         
         <!-- Total Transactions Card -->
-        <mat-card class="stat-card primary-card" @slideIn matRipple>
+        <mat-card class="stat-card card-blue" matRipple (click)="goToTransactions()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">swap_horiz</mat-icon>
+              <div class="card-icon-wrapper blue">
+                <mat-icon>swap_horiz</mat-icon>
+              </div>
               <span class="card-label">Total Transactions</span>
             </div>
-            <div class="card-value">{{ formatNumber(stats.totalTransactions) }}</div>
-            <button mat-button class="card-action" (click)="goToTransactions()">
-              View all
+            <div class="card-value" [matTooltip]="stats.totalTransactions.toLocaleString()">
+              {{ formatNumber(stats.totalTransactions) }}
+            </div>
+            <button mat-button class="card-action">
+              <span>View all</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Successful Transactions Card -->
-        <mat-card class="stat-card success-card" @slideIn matRipple>
+        <mat-card class="stat-card card-green" matRipple>
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">check_circle</mat-icon>
+              <div class="card-icon-wrapper green">
+                <mat-icon>check_circle</mat-icon>
+              </div>
               <span class="card-label">Successful Transactions</span>
             </div>
-            <div class="card-value">{{ formatNumber(stats.successfulTransactions) }}</div>
-            <div class="card-badge success" *ngIf="getSuccessRate() !== null">
-              {{ getSuccessRate() }}% success rate
+            <div class="card-value" [matTooltip]="stats.successfulTransactions.toLocaleString()">
+              {{ formatNumber(stats.successfulTransactions) }}
             </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Failed Transactions Card -->
-        <mat-card class="stat-card danger-card" @slideIn matRipple>
+        <mat-card class="stat-card card-red" matRipple (click)="goToTransactions()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">cancel</mat-icon>
+              <div class="card-icon-wrapper red">
+                <mat-icon>cancel</mat-icon>
+              </div>
               <span class="card-label">Failed Transactions</span>
             </div>
-            <div class="card-value">{{ stats.failedTransactions }}</div>
+            <div class="card-value" [matTooltip]="stats.failedTransactions.toLocaleString()">
+              {{ stats.failedTransactions }}
+            </div>
             <button 
               mat-button 
               class="card-action" 
-              *ngIf="stats.failedTransactions > 0"
-              (click)="goToTransactions()">
-              Review issues
+              *ngIf="stats.failedTransactions > 0">
+              <span>Review issues</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Pending Transactions Card -->
-        <mat-card class="stat-card warning-card" @slideIn matRipple>
+        <mat-card class="stat-card card-orange" matRipple (click)="goToTransactions()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">hourglass_empty</mat-icon>
+              <div class="card-icon-wrapper orange">
+                <mat-icon>hourglass_empty</mat-icon>
+              </div>
               <span class="card-label">Pending Transactions</span>
             </div>
-            <div class="card-value">{{ stats.pendingTransactions }}</div>
+            <div class="card-value" [matTooltip]="stats.pendingTransactions.toLocaleString()">
+              {{ formatNumber(stats.pendingTransactions) }}
+            </div>
             <button 
               mat-button 
               class="card-action"
-              *ngIf="stats.pendingTransactions > 0"
-              (click)="goToTransactions()">
-              Process pending
+              *ngIf="stats.pendingTransactions > 0">
+              <span>Process pending</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Total Bonds Published Card -->
-        <mat-card class="stat-card info-card" @slideIn matRipple>
+        <mat-card class="stat-card card-blue" matRipple (click)="goToBonds()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">description</mat-icon>
+              <div class="card-icon-wrapper blue">
+                <mat-icon>description</mat-icon>
+              </div>
               <span class="card-label">Total Bonds Published</span>
             </div>
-            <div class="card-value">{{ stats.totalBondsPublished }}</div>
-            <button mat-button class="card-action" (click)="goToBonds()">
-              View bonds
+            <div class="card-value" [matTooltip]="stats.totalBondsPublished.toLocaleString()">
+              {{ formatNumber(stats.totalBondsPublished) }}
+            </div>
+            <button mat-button class="card-action">
+              <span>View bonds</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Bonds Sold Card -->
-        <mat-card class="stat-card success-card" @slideIn matRipple>
+        <mat-card class="stat-card card-green" matRipple>
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">trending_up</mat-icon>
+              <div class="card-icon-wrapper green">
+                <mat-icon>trending_up</mat-icon>
+              </div>
               <span class="card-label">Bonds Sold</span>
             </div>
-            <div class="card-value">{{ stats.bondsSold }}</div>
-            <div class="card-badge success" *ngIf="stats.totalBondsPublished > 0">
-              {{ ((stats.bondsSold / stats.totalBondsPublished) * 100).toFixed(1) }}% sold
+            <div class="card-value" [matTooltip]="stats.bondsSold.toLocaleString()">
+              {{ formatNumber(stats.bondsSold) }}
             </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Bonds Settled Card -->
-        <mat-card class="stat-card" @slideIn matRipple>
+        <mat-card class="stat-card card-light" matRipple>
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">done_all</mat-icon>
+              <div class="card-icon-wrapper gray">
+                <mat-icon>done_all</mat-icon>
+              </div>
               <span class="card-label">Bonds Settled</span>
             </div>
-            <div class="card-value">{{ stats.bondsSettled }}</div>
-            <div class="card-badge info" *ngIf="getSettlementRate() !== null">
+            <div class="card-value" [matTooltip]="stats.bondsSettled.toLocaleString()">
+              {{ formatNumber(stats.bondsSettled) }}
+            </div>
+            <div class="card-badge" *ngIf="getSettlementRate() !== null">
               {{ getSettlementRate() }}% settled
             </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Bonds Pending Settlement Card -->
-        <mat-card class="stat-card warning-card" @slideIn matRipple>
+        <mat-card class="stat-card card-orange" matRipple (click)="goToBonds()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">pending_actions</mat-icon>
+              <div class="card-icon-wrapper orange">
+                <mat-icon>pending_actions</mat-icon>
+              </div>
               <span class="card-label">Pending Settlement</span>
             </div>
-            <div class="card-value">{{ stats.bondsPendingSettlement }}</div>
+            <div class="card-value" [matTooltip]="stats.bondsPendingSettlement.toLocaleString()">
+              {{ formatNumber(stats.bondsPendingSettlement) }}
+            </div>
             <button 
               mat-button 
               class="card-action"
-              *ngIf="stats.bondsPendingSettlement > 0"
-              (click)="goToBonds()">
-              Process
+              *ngIf="stats.bondsPendingSettlement > 0">
+              <span>Process</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Reconciled Transactions Card -->
-        <mat-card class="stat-card success-card" @slideIn matRipple>
+        <mat-card class="stat-card card-green" matRipple (click)="goToReconciliation()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">verified</mat-icon>
+              <div class="card-icon-wrapper green">
+                <mat-icon>verified</mat-icon>
+              </div>
               <span class="card-label">Reconciled</span>
             </div>
-            <div class="card-value">{{ stats.reconciledTransactions }}</div>
-            <button mat-button class="card-action" (click)="goToReconciliation()">
-              View details
+            <div class="card-value" [matTooltip]="stats.reconciledTransactions.toLocaleString()">
+              {{ formatNumber(stats.reconciledTransactions) }}
+            </div>
+            <button mat-button class="card-action">
+              <span>View details</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Unreconciled Transactions Card -->
-        <mat-card class="stat-card danger-card" @slideIn matRipple>
+        <mat-card class="stat-card card-red" matRipple (click)="goToReconciliation()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">warning</mat-icon>
+              <div class="card-icon-wrapper red">
+                <mat-icon>warning</mat-icon>
+              </div>
               <span class="card-label">Unreconciled</span>
             </div>
-            <div class="card-value">{{ stats.unreconciledTransactions }}</div>
+            <div class="card-value" [matTooltip]="stats.unreconciledTransactions.toLocaleString()">
+              {{ formatNumber(stats.unreconciledTransactions) }}
+            </div>
             <button 
               mat-button 
               class="card-action"
-              *ngIf="stats.unreconciledTransactions > 0"
-              (click)="goToReconciliation()">
-              Reconcile now
+              *ngIf="stats.unreconciledTransactions > 0">
+              <span>Reconcile now</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
         </mat-card>
 
         <!-- Unique Customers Card -->
-        <mat-card class="stat-card info-card" @slideIn matRipple>
+        <mat-card class="stat-card card-blue" matRipple (click)="goToCustomers()">
           <mat-card-content>
             <div class="card-header">
-              <mat-icon class="card-icon">people</mat-icon>
+              <div class="card-icon-wrapper blue">
+                <mat-icon>people</mat-icon>
+              </div>
               <span class="card-label">Unique Customers</span>
             </div>
-            <div class="card-value">{{ formatNumber(stats.numberOfUniqueCustomer) }}</div>
-            <button mat-button class="card-action" (click)="goToCustomers()">
-              View customers
+            <div class="card-value" [matTooltip]="stats.numberOfUniqueCustomer.toLocaleString()">
+              {{ formatNumber(stats.numberOfUniqueCustomer) }}
+            </div>
+            <button mat-button class="card-action">
+              <span>View customers</span>
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-content>
@@ -228,41 +271,51 @@
     <section class="quick-actions-section" @fadeIn>
       <h2 class="section-title">Quick Actions</h2>
       
-      <div class="actions-grid">
+      <div class="actions-container">
         
-        <button 
-          mat-raised-button 
-          color="primary" 
-          class="action-btn"
-          (click)="createNewBond()">
-          <mat-icon>add_circle</mat-icon>
-          <span>Create New Bond</span>
-        </button>
+        <div class="action-card" matRipple (click)="createNewBond()">
+          <div class="action-icon-wrapper primary">
+            <mat-icon>add_circle_outline</mat-icon>
+          </div>
+          <div class="action-content">
+            <h3 class="action-title">Create New Bond</h3>
+            <p class="action-description">Publish a new bond to the market</p>
+          </div>
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </div>
 
-        <button 
-          mat-raised-button 
-          color="accent" 
-          class="action-btn"
-          (click)="manualTransaction()">
-          <mat-icon>edit</mat-icon>
-          <span>Manual Transaction</span>
-        </button>
+        <div class="action-card" matRipple (click)="manualTransaction()">
+          <div class="action-icon-wrapper accent">
+            <mat-icon>edit_note</mat-icon>
+          </div>
+          <div class="action-content">
+            <h3 class="action-title">Manual Transaction</h3>
+            <p class="action-description">Record a manual transaction entry</p>
+          </div>
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </div>
 
-        <button 
-          mat-raised-button 
-          class="action-btn"
-          (click)="goToReconciliation()">
-          <mat-icon>account_balance</mat-icon>
-          <span>Reconcile Accounts</span>
-        </button>
+        <div class="action-card" matRipple (click)="goToReconciliation()">
+          <div class="action-icon-wrapper success">
+            <mat-icon>account_balance</mat-icon>
+          </div>
+          <div class="action-content">
+            <h3 class="action-title">Reconcile Accounts</h3>
+            <p class="action-description">Match and verify transactions</p>
+          </div>
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </div>
 
-        <button 
-          mat-raised-button 
-          class="action-btn"
-          (click)="goToBonds()">
-          <mat-icon>analytics</mat-icon>
-          <span>View Reports</span>
-        </button>
+        <div class="action-card" matRipple (click)="goToBonds()">
+          <div class="action-icon-wrapper info">
+            <mat-icon>bar_chart</mat-icon>
+          </div>
+          <div class="action-content">
+            <h3 class="action-title">View Reports</h3>
+            <p class="action-description">Access analytics and insights</p>
+          </div>
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </div>
 
       </div>
     </section>

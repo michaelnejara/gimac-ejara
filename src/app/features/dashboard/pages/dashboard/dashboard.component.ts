@@ -1,18 +1,29 @@
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Observable, Subject, takeUntil } from 'rxjs';
-import { DashboardStatsDTO, selectDashboardError, selectDashboardLoading, selectDashboardStats } from '@store/dashboard/dashboard.state';
-import { DashboardActions } from '@store/dashboard/dashboard.actions';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatRippleModule } from '@angular/material/core';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { selectUser } from '@store/auth/auth.state';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+// Angular Material
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+
+// Store
+import { DashboardActions } from '@store/dashboard/dashboard.actions';
+import { 
+  selectDashboardStats, 
+  selectDashboardLoading, 
+  selectDashboardError,
+  DashboardStatsDTO 
+} from '@store/dashboard/dashboard.state';
+
 import { dashboardAnimations } from './dashboard.animations';
+import { SkeletonLoader } from "@shared/components/ui/skeleton-loader/skeleton-loader";
+import { selectUser } from '@store/auth/auth.state';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,10 +33,10 @@ import { dashboardAnimations } from './dashboard.animations';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatTooltipModule,
-    MatRippleModule
-  ],
+    MatRippleModule,
+    SkeletonLoader
+],
   animations: [
     dashboardAnimations.fadeIn,
     dashboardAnimations.slideIn,
@@ -34,7 +45,7 @@ import { dashboardAnimations } from './dashboard.animations';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   /** NgRx store instance for state management */
   private store = inject(Store);
   

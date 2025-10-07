@@ -7,15 +7,12 @@ import { filter } from 'rxjs';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule
-  ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss'
+  styleUrl: './sidebar.scss',
 })
 export class Sidebar {
-private router = inject(Router);
+  private router = inject(Router);
 
   // State
   isCollapsed = signal<boolean>(false);
@@ -27,33 +24,34 @@ private router = inject(Router);
     {
       label: 'Dashboard',
       icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-      route: '/dashboard'
+      route: '/dashboard',
     },
     {
       label: 'Users',
       icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
       route: '/users',
       badge: 3,
-      badgeColor: 'primary'
+      badgeColor: 'primary',
     },
     {
-      label: 'Payments',
+      label: 'Transactions',
       icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-      route: '/payments',
+      route: '/transactions',
       children: [
-        { label: 'All Payments', icon: '', route: '/payments/list' },
-        { label: 'Reconciliation', icon: '', route: '/payments/reconciliation' }
-      ]
+        { label: 'All Transactions', icon: '', route: '/transactions/list' },
+        { label: 'Anomalies', icon: '', route: '/transactions/anomalies' },
+        { label: 'Reconciliation', icon: '', route: '/transactions/reconciliation' },
+      ],
     },
     {
       label: 'Bonds',
       icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-      route: '/bonds'
+      route: '/bonds',
     },
     {
       label: 'Audit',
       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-      route: '/audit'
+      route: '/audit',
     },
     // {
     //   label: 'Notification Center',
@@ -65,8 +63,8 @@ private router = inject(Router);
     {
       label: 'Reports',
       icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-      route: '/reports'
-    }
+      route: '/reports',
+    },
   ]);
 
   // Computed
@@ -76,12 +74,12 @@ private router = inject(Router);
 
   ngOnInit(): void {
     // Track current route
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: any) => {
-      this.currentRoute.set(event.url);
-      this.isMobileMenuOpen.set(false); // Close mobile menu on navigation
-    });
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        this.currentRoute.set(event.url);
+        this.isMobileMenuOpen.set(false); // Close mobile menu on navigation
+      });
 
     // Set initial route
     this.currentRoute.set(this.router.url);
@@ -91,14 +89,14 @@ private router = inject(Router);
    * Toggle sidebar collapse
    */
   toggleSidebar(): void {
-    this.isCollapsed.update(value => !value);
+    this.isCollapsed.update((value) => !value);
   }
 
   /**
    * Toggle mobile menu
    */
   toggleMobileMenu(): void {
-    this.isMobileMenuOpen.update(value => !value);
+    this.isMobileMenuOpen.update((value) => !value);
   }
 
   /**
@@ -118,10 +116,8 @@ private router = inject(Router);
     event.stopPropagation();
 
     if (item.children) {
-      this.menuItems.update(items =>
-        items.map(i =>
-          i === item ? { ...i, expanded: !i.expanded } : i
-        )
+      this.menuItems.update((items) =>
+        items.map((i) => (i === item ? { ...i, expanded: !i.expanded } : i))
       );
     }
   }
@@ -134,7 +130,7 @@ private router = inject(Router);
       primary: 'badge-primary',
       success: 'badge-success',
       warning: 'badge-warning',
-      error: 'badge-error'
+      error: 'badge-error',
     };
     return color ? colorMap[color] || 'badge-primary' : 'badge-primary';
   }

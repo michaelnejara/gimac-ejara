@@ -6,18 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'app-payment-details',
+  selector: 'app-transactions-details',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTabsModule
-  ],
-  templateUrl: './payment-details.component.html',
-  styleUrl: './payment-details.component.scss'
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatTabsModule],
+  templateUrl: './transactions-details.component.html',
+  styleUrl: './transactions-details.component.scss',
 })
-export class PaymentDetailsComponent {
-
-}
+export class TransactionDetailsComponent {}

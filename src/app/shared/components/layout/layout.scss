@@ -12,7 +12,8 @@ $sidebar-collapsed-width: 80px;
 
 .app-layout {
   @apply min-h-screen bg-[var(--color-background-primary)];
-  
+  background: #f2f3f4;
+
   // ============================================
   // MAIN CONTENT AREA
   // ============================================
@@ -35,10 +36,14 @@ $sidebar-collapsed-width: 80px;
 
     .content-container {
       // p-[24px]
+
+      // background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      max-width: 1920px;
       @apply pt-[72px];
       // background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       // max-width: 1920px;
       margin: 0 auto;
+      padding: 40px;
 
       @media (max-width: 768px) {
         @apply p-[16px] pt-[72px];
@@ -48,7 +53,7 @@ $sidebar-collapsed-width: 80px;
 }
 
 // ============================================
-// LAYOUT WITH SIDEBAR STATES 
+// LAYOUT WITH SIDEBAR STATES
 // ============================================
 
 // When sidebar is present

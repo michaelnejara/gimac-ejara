@@ -1,13 +1,241 @@
-<div class="trsx-list">
-  <app-reusable-table
-    [data]="users"
-    [columns]="columns"
-    [actions]="actions"
-    [pageSize]="10"
-    [showFilter]="true"
-    [showPagination]="true"
-    [keyword]="searchKeyword"
-    (keywordChange)="onKeywordChange($event)"
-  >
-  </app-reusable-table>
+<div class="transactions-page">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="breadcrumbs">
+      <a routerLink="/">Home</a>
+      <mat-icon>chevron_right</mat-icon>
+      <!-- <a routerLink="/pay-out">Pay-out/Pay-in & Abuze Policy</a> -->
+      <!-- <mat-icon>chevron_right</mat-icon> -->
+      <span class="current">Transactions</span>
+    </div>
+    
+    <h1 class="page-title">Transactions</h1>
+  </div>
+
+  <!-- Filters and Actions Bar -->
+  <div class="filters-bar">
+    
+    <!-- Status Filter Chips -->
+    <div class="status-filters">
+      <mat-chip-listbox 
+        [value]="activeStatusFilter"
+        (change)="onStatusFilterChange($event.value)"
+        aria-label="Status filter">
+        <mat-chip-option 
+          *ngFor="let filter of statusFilters" 
+          [value]="filter.value"
+          [class.active]="activeStatusFilter === filter.value">
+          {{ filter.label }}
+          <span class="count" *ngIf="filter.value === 'all'">
+            {{ (totalCount$ | async) || 0 }}
+          </span>
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="actions-row">
+      
+      <!-- Search -->
+      <mat-form-field class="search-field" appearance="outline">
+        <mat-icon matPrefix>search</mat-icon>
+        <input 
+          matInput 
+          placeholder="Search a User"
+          [formControl]="searchControl">
+      </mat-form-field>
+
+      <!-- Right Actions -->
+      <div class="right-actions">
+        
+        <!-- Reconciliation CTA -->
+        <button 
+          mat-raised-button 
+          color="accent"
+          class="reconcile-btn"
+          *ngIf="unreconciledCount > 0"
+          (click)="bulkReconcile()">
+          <mat-icon>account_balance</mat-icon>
+          <span>Reconcile ({{ unreconciledCount }})</span>
+        </button>
+
+        <!-- Export Button -->
+        <button 
+          mat-button 
+          class="action-btn"
+          (click)="exportTransactions()">
+          <mat-icon>file_download</mat-icon>
+          <span>Export</span>
+        </button>
+
+        <!-- Fields Button -->
+        <button 
+          mat-button 
+          class="action-btn"
+          (click)="openFieldsSelector()">
+          <mat-icon>view_column</mat-icon>
+          <span>Fields</span>
+        </button>
+
+        <!-- Filters Button -->
+        <button 
+          mat-button 
+          class="action-btn"
+          (click)="openFilters()">
+          <mat-icon>filter_list</mat-icon>
+          <span>Filters</span>
+        </button>
+
+        <!-- Add Payment Type Button -->
+        <button 
+          mat-raised-button 
+          color="primary"
+          class="add-btn"
+          (click)="addTransaction()">
+          <mat-icon>add</mat-icon>
+          <span>Add Payment Type</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="table-section">
+    <app-data-table
+      [data]="(transactions$ | async) || []"
+      [config]="tableConfig"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+      
+      <!-- Username Column with Avatar -->
+      <ng-template appTableColumn="username" let-row>
+        <div class="username-cell">
+          <div class="avatar">
+            {{ getInitials(row) }}
+          </div>
+          <div class="user-info">
+            <div class="name">{{ getSenderName(row) }}</div>
+            <div class="email">{{ row.senderAccountIdentifier }}</div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Transaction Type Column -->
+      <ng-template appTableColumn="transactionType" let-row>
+        <span class="transaction-type">
+          {{ getTransactionType(row) }}
+        </span>
+      </ng-template>
+
+      <!-- Payment Mode Column -->
+      <ng-template appTableColumn="paymentMode" let-row>
+        <div class="payment-mode">
+          <mat-icon class="mode-icon">{{ getPaymentModeIcon(row) }}</mat-icon>
+          <span>{{ getPaymentMode(row) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Country Column with Flag -->
+      <ng-template appTableColumn="country" let-row>
+        <div class="country-cell">
+          <span class="flag">{{ getCountryFlag(row) }}</span>
+          <span>{{ getCountryName(row) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Amount Column -->
+      <ng-template appTableColumn="amount" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ getAmount(row) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Services Column -->
+      <ng-template appTableColumn="services" let-row>
+        <span class="service-name">{{ getServiceName(row) }}</span>
+      </ng-template>
+
+      <!-- Approved By Column -->
+      <ng-template appTableColumn="approvedBy" let-row>
+        <span class="approver">{{ getApprovedBy(row) }}</span>
+      </ng-template>
+
+      <!-- Updated By Column -->
+      <ng-template appTableColumn="updatedBy" let-row>
+        <span class="updater">{{ getUpdatedBy(row) }}</span>
+      </ng-template>
+
+      <!-- Providers Column with Badges -->
+      <ng-template appTableColumn="providers" let-row>
+        <div class="providers-cell">
+          <span class="provider-badge" [matTooltip]="getProviderTooltip(row)">
+            <mat-icon class="provider-icon">{{ getProviderIcon(row) }}</mat-icon>
+            <span>{{ getProviderName(row) }}</span>
+          </span>
+        </div>
+      </ng-template>
+
+      <!-- Currency Column with Badge -->
+      <ng-template appTableColumn="currency" let-row>
+        <span class="currency-badge">
+          {{ getCurrency(row) }}
+        </span>
+      </ng-template>
+
+      <!-- Creation Date Column -->
+      <ng-template appTableColumn="createdAt" let-row>
+        <div class="date-cell">
+          <div class="date">{{ formatDate(row.createdAt) }}</div>
+          <div class="time">{{ formatTime(row.createdAt) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Actions (using menu) -->
+      <ng-template appTableActions let-row>
+        <button 
+          mat-icon-button 
+          [matMenuTriggerFor]="actionsMenu"
+          (click)="$event.stopPropagation()">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        
+        <mat-menu #actionsMenu="matMenu">
+          <button mat-menu-item (click)="viewTransaction(row)">
+            <mat-icon>visibility</mat-icon>
+            <span>View Details</span>
+          </button>
+          
+          <button 
+            mat-menu-item 
+            (click)="editTransaction(row)"
+            *ngIf="getStatusValue(row.status) !== 'completed' && getStatusValue(row.status) !== 'cancelled'">
+            <mat-icon>edit</mat-icon>
+            <span>Edit</span>
+          </button>
+          
+          <button 
+            mat-menu-item 
+            (click)="reconcileTransaction(row)"
+            *ngIf="!row.reconciledAt && getStatusValue(row.status) === 'completed'">
+            <mat-icon>account_balance</mat-icon>
+            <span>Reconcile</span>
+          </button>
+          
+          <mat-divider></mat-divider>
+          
+          <button 
+            mat-menu-item 
+            class="delete-action"
+            (click)="deleteTransaction(row)"
+            *ngIf="getStatusValue(row.status) !== 'completed'">
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
+        </mat-menu>
+      </ng-template>
+
+    </app-data-table>
+  </div>
+
 </div>

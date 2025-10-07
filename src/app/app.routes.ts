@@ -13,14 +13,14 @@ export const routes: Routes = [
   {
     path: '',
     redirectTo: '/dashboard',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
 
   // Authentication routes (public)
   {
     path: 'auth',
     canActivate: [guestGuard],
-    loadChildren: () => import('./features/auth/auth.routes').then(m => m.authRoutes)
+    loadChildren: () => import('./features/auth/auth.routes').then((m) => m.authRoutes),
   },
 
   // Dashboard (protected)
@@ -31,56 +31,61 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes)
+        loadChildren: () =>
+          import('./features/dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
       },
 
       // Payments & Reconciliation (protected)
       {
-        path: 'payments',
+        path: 'transactions',
+        data: { breadcrumb: 'Transactions' },
         canActivate: [authGuard],
-        loadChildren: () => import('./features/payments/payments.routes').then(m => m.paymentsRoutes)
+        loadChildren: () =>
+          import('./features/transactions/transactions.routes').then((m) => m.transactionssRoutes),
       },
 
       // Bond Management (protected)
       {
         path: 'bonds',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/bonds/bonds.routes').then(m => m.bondsRoutes)
+        loadChildren: () => import('./features/bonds/bonds.routes').then((m) => m.bondsRoutes),
       },
 
       // User Management (protected)
       {
         path: 'users',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/users/users.routes').then(m => m.usersRoutes)
+        loadChildren: () => import('./features/users/users.routes').then((m) => m.usersRoutes),
       },
 
       // Reports & Compliance (protected)
       {
         path: 'reports',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/reports/reports.routes').then(m => m.reportsRoutes)
+        loadChildren: () =>
+          import('./features/reports/reports.routes').then((m) => m.reportsRoutes),
       },
 
       // Alerts & Notifications (protected)
       {
         path: 'alerts',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/alerts/alerts.routes').then(m => m.alertsRoutes)
+        loadChildren: () => import('./features/alerts/alerts.routes').then((m) => m.alertsRoutes),
       },
 
       // Audit Logs (protected, admin only)
       {
         path: 'audit',
         canActivate: [authGuard, adminGuard],
-        loadChildren: () => import('./features/audit/audit.routes').then(m => m.auditRoutes)
+        loadChildren: () => import('./features/audit/audit.routes').then((m) => m.auditRoutes),
       },
-    ]
+    ],
   },
 
   // 404 Not Found
   {
     path: '**',
-    loadComponent: () => import('./shared/components/not-found/not-found.component').then(m => m.NotFoundComponent)
-  }
+    loadComponent: () =>
+      import('./shared/components/not-found/not-found.component').then((m) => m.NotFoundComponent),
+  },
 ];

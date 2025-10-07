@@ -25,10 +25,11 @@
   <div *ngIf="loading$ | async" class="dashboard-content">
     <section class="stats-section">
       <div class="stats-grid">
-        <app-skeleton-loader 
-          type="dashboard-card" 
-          [repeat]="11">
-        </app-skeleton-loader>
+    <app-skeleton-loader 
+        type="dashboard-card" 
+        *ngFor="let item of [].constructor(11); let i = index">
+      </app-skeleton-loader>
+
       </div>
     </section>
   </div>

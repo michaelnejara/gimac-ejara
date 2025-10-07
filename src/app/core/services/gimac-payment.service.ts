@@ -2,8 +2,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DashboardStatsDTO } from '@store/dashboard/dashboard.state';
 import { environment } from '@environments/environment';
+import { DashboardStatsDTO } from '@core/models/dashboard.models';
+import { addInterceptorMarker, INTERCEPTOR_MARKERS } from '@core/constants/interceptor-markers.constants';
 
 /**
  * Dashboard Service
@@ -51,6 +52,6 @@ export class GimacPaymentService {
    * ```
    */
   getDashboardStats(): Observable<DashboardStatsDTO> {
-    return this.http.get<DashboardStatsDTO>(`${this.apiUrl}/dashboard/stats`);
+    return this.http.get<DashboardStatsDTO>(addInterceptorMarker(`${this.apiUrl}/dashboard/stats`, INTERCEPTOR_MARKERS.GIMAC));
   }
 }

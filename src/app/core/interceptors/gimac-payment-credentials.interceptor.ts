@@ -1,4 +1,3 @@
-// src/app/core/interceptors/client-credentials.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
 import { environment } from '@environments/environment';
 
@@ -34,6 +33,17 @@ import { environment } from '@environments/environment';
  *   ])
  * )
  * ```
+ *
+ *  @example
+ * ```typescript
+ * // In service:
+ * this.http.get('/api/dashboard/stats/gimac-interceptor');
+ * 
+ * // Interceptor processes:
+ * // 1. Detects '/gimac-interceptor' suffix
+ * // 2. Adds client-key and client-secret headers
+ * // 3. Removes suffix -> actual request to '/api/dashboard/stats'
+ * ```
  * 
  * @security
  * - Gimac Payment credentials should be different per environment
@@ -42,19 +52,34 @@ import { environment } from '@environments/environment';
  * - Rotate credentials regularly
  */
 export const GimacPaymentCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
+
+  const GIMAC_MARKER = '/gimac-interceptor';
+
   /**
-   * Clone the request and add client credential headers
+   * Clone the request and add Gimac credential headers
    * 
    * Headers are added to all requests regardless of URL or method.
    * If you need to exclude certain endpoints, add conditional logic here.
+   * 
+   * Check if the URL ends with the Gimac interceptor marker
    */
-  const clonedRequest = req.clone({
-    setHeaders: {
-      'client-key': environment.gimacPayment.clientKey,
-      'client-secret': environment.gimacPayment.clientSecret
-    }
-  });
+  if (req.url.endsWith(GIMAC_MARKER)) {
+    // Remove the marker from the URL
+    const cleanUrl = req.url.slice(0, -GIMAC_MARKER.length);
 
-  // Pass the modified request to the next handler
-  return next(clonedRequest);
+    // Clone the request with cleaned URL and add Gimac credentials
+    const clonedRequest = req.clone({
+      url: cleanUrl,
+      setHeaders: {
+        'client-key': environment.gimacPayment.clientKey,
+        'client-secret': environment.gimacPayment.clientSecret
+      }
+    });
+
+    // Pass the modified request to the next handler
+    return next(clonedRequest);
+  }
+
+  // If URL doesn't have the marker, pass through unchanged
+  return next(req);
 };

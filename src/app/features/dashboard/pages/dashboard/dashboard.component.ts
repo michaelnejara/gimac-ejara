@@ -17,13 +17,13 @@ import { DashboardActions } from '@store/dashboard/dashboard.actions';
 import { 
   selectDashboardStats, 
   selectDashboardLoading, 
-  selectDashboardError,
-  DashboardStatsDTO 
+  selectDashboardError, 
 } from '@store/dashboard/dashboard.state';
 
 import { dashboardAnimations } from './dashboard.animations';
 import { SkeletonLoader } from "@shared/components/ui/skeleton-loader/skeleton-loader";
 import { selectUser } from '@store/auth/auth.state';
+import { DashboardStatsDTO } from '@core/models/dashboard.models';
 
 @Component({
   selector: 'app-dashboard',

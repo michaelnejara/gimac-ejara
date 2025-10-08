@@ -6,22 +6,11 @@ import {
   GimacTransactionResponse, 
   GimacTransaction, 
   GimacTransactionFilterParams,
-  TransactionStatus,
   PaginationInfo 
 } from '@core/models/transaction.models';
 
 /**
  * Mock Transactions Service
- * 
- * Provides mock transaction data for development and testing.
- * Simulates API responses with realistic delays and pagination.
- * 
- * Features:
- * - Generates realistic mock transactions
- * - Supports filtering by status, dates, keywords
- * - Implements pagination
- * - Simulates network delays
- * - Supports error scenarios
  */
 @Injectable({
   providedIn: 'root'
@@ -36,7 +25,6 @@ export class MockTransactionsService {
 
   /**
    * Initialize mock transaction data
-   * Generates a pool of mock transactions on service creation
    */
   private initializeMockData(): void {
     this.mockTransactions = [];
@@ -47,16 +35,13 @@ export class MockTransactionsService {
   }
 
   /**
-   * Generate a single mock transaction
-   * 
-   * @param id - Transaction ID
-   * @returns Mock GimacTransaction object
+   * Generate a single mock transaction with all required fields
    */
   private generateMockTransaction(id: number): GimacTransaction {
     const statuses = ['initiated', 'pending', 'completed', 'failed', 'cancelled'];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const statusValue = statuses[Math.floor(Math.random() * statuses.length)];
     
-    const currencies = ['USD', 'EUR', 'GBP', 'NGN', 'GHS', 'KES'];
+    const currencies = ['USD', 'EUR', 'XAF', 'NGN', 'GHS', 'KES'];
     const senderCurrency = currencies[Math.floor(Math.random() * currencies.length)];
     const receiverCurrency = currencies[Math.floor(Math.random() * currencies.length)];
     
@@ -64,29 +49,27 @@ export class MockTransactionsService {
     const createdDate = new Date();
     createdDate.setDate(createdDate.getDate() - Math.floor(Math.random() * 90));
     
-    const senderAccounts = [
-      '+237670000001',
-      '+237680000001',
-      '+237690000001',
-      'sender@email.com',
-      '1234567890'
-    ];
-    
-    const receiverAccounts = [
-      '+237670000002',
-      '+237680000002',
-      '+237690000002',
-      'receiver@email.com',
-      '0987654321'
-    ];
+    const countries = ['CM', 'USA', 'NG', 'GH', 'KE', 'SN'];
+    const senderCountry = countries[Math.floor(Math.random() * countries.length)];
+    const receiverCountry = countries[Math.floor(Math.random() * countries.length)];
+
+    const paymentTypes = ['mobile', 'bank', 'card', 'wallet'];
+    const senderType = paymentTypes[Math.floor(Math.random() * paymentTypes.length)];
+    const receiverType = paymentTypes[Math.floor(Math.random() * paymentTypes.length)];
 
     return {
       id,
       createdAt: createdDate.toISOString(),
       updatedAt: createdDate.toISOString(),
-      status: { value: status, label: this.getStatusLabel(status) },
+      status: { 
+        value: statusValue, 
+        label: this.getStatusLabel(statusValue) 
+      },
       apiClientId: Math.floor(Math.random() * 10) + 1,
-      gimacServiceCode: { code: 'TRANSFER', name: 'Money Transfer' },
+      gimacServiceCode: { 
+        code: this.getRandomServiceCode(), 
+        name: this.getRandomServiceName() 
+      },
       gimacSupportedServiceId: Math.floor(Math.random() * 5) + 1,
       gimacSupportedServiceConfigId: Math.floor(Math.random() * 10) + 1,
       baseCurrencyId: 1,
@@ -100,28 +83,28 @@ export class MockTransactionsService {
       baseCurrencyUsdRate: { rate: 1.0 },
       internalReference: `INT-${id.toString().padStart(8, '0')}`,
       externalReference: `EXT-${id.toString().padStart(8, '0')}`,
-      validatedAt: status === 'completed' ? createdDate.toISOString() : '',
-      reconciledAt: status === 'completed' && Math.random() > 0.3 ? createdDate.toISOString() : '',
-      webhookSentAt: status === 'completed' && Math.random() > 0.2 ? createdDate.toISOString() : '',
+      validatedAt: statusValue === 'completed' ? createdDate.toISOString() : '',
+      reconciledAt: statusValue === 'completed' && Math.random() > 0.3 ? createdDate.toISOString() : '',
+      webhookSentAt: statusValue === 'completed' && Math.random() > 0.2 ? createdDate.toISOString() : '',
       createdBy: 1,
       senderAccountInfo: {
-        name: `Sender ${id}`,
-        type: 'mobile',
-        country: 'CM'
+        name: this.generateRandomName(),
+        type: senderType,
+        country: senderCountry
       },
       receiverAccountInfo: {
-        name: `Receiver ${id}`,
-        type: 'mobile',
-        country: 'CM'
+        name: this.generateRandomName(),
+        type: receiverType,
+        country: receiverCountry
       },
-      senderAccountIdentifier: senderAccounts[Math.floor(Math.random() * senderAccounts.length)],
-      receiverAccountIdentifier: receiverAccounts[Math.floor(Math.random() * receiverAccounts.length)],
+      senderAccountIdentifier: this.generateAccountIdentifier(senderType, senderCountry),
+      receiverAccountIdentifier: this.generateAccountIdentifier(receiverType, receiverCountry),
       billInfo: {},
       senderCountryId: Math.floor(Math.random() * 50) + 1,
       receiverCountryId: Math.floor(Math.random() * 50) + 1,
       senderCurrencyId: 1,
       receiverCurrencyId: 2,
-      isWebhookSent: status === 'completed' && Math.random() > 0.2,
+      isWebhookSent: statusValue === 'completed' && Math.random() > 0.2,
       validationChannel: { channel: 'API' },
       accumulatedFeePolicy: {},
       accumulatedFeeInSenderCurrency: { amount: (parseFloat(amount) * 0.02).toFixed(2), currency: senderCurrency },
@@ -148,50 +131,74 @@ export class MockTransactionsService {
   }
 
   /**
-   * Get status label from status value
-   * 
-   * @param status - Status value
-   * @returns Human-readable status label
+   * Helper methods
    */
   private getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       'initiated': 'Initiated',
-      'pending': 'Pending',
-      'completed': 'Completed',
+      'pending': 'Pending Approval',
+      'completed': 'Confirmed',
       'failed': 'Failed',
       'cancelled': 'Cancelled'
     };
     return labels[status] || status;
   }
 
+  private generateRandomName(): string {
+    const firstNames = ['Etienne', 'Simon', 'Edouard', 'Marie', 'Jean', 'Anna', 'Pierre', 'Sophie', 'John', 'Maria'];
+    const lastNames = ['Ngongo', 'Beta', 'Franck', 'Dubois', 'Martin', 'Garcia', 'Smith', 'Johnson', 'Doe', 'Brown'];
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    return `${firstName} ${lastName}`;
+  }
+
+  private getRandomServiceCode(): string {
+    const codes = ['TRANSFER', 'PAYMENT', 'WITHDRAWAL', 'DEPOSIT', 'REFUND'];
+    return codes[Math.floor(Math.random() * codes.length)];
+  }
+
+  private getRandomServiceName(): string {
+    const names = ['Money Transfer', 'Bill Payment', 'Cash Withdrawal', 'Deposit', 'Refund'];
+    return names[Math.floor(Math.random() * names.length)];
+  }
+
+  private generateAccountIdentifier(type: string, country: string): string {
+    if (type === 'mobile') {
+      const codes: Record<string, string> = {
+        'CM': '+237',
+        'NG': '+234',
+        'GH': '+233',
+        'KE': '+254',
+        'SN': '+221',
+        'USA': '+1'
+      };
+      const code = codes[country] || '+237';
+      return `${code}6${Math.floor(Math.random() * 100000000)}`;
+    }
+    if (type === 'email') {
+      return `user${Math.floor(Math.random() * 10000)}@example.com`;
+    }
+    return `ACC${Math.floor(Math.random() * 1000000000)}`;
+  }
+
   /**
-   * Get paginated transactions with filters
-   * 
-   * Simulates API behavior with filtering and pagination
-   * 
-   * @param filters - Filter parameters
-   * @param delayMs - Simulated network delay in milliseconds
-   * @returns Observable<GimacTransactionResponse>
+   * Get transactions with filters
    */
   getTransactions(
     filters: GimacTransactionFilterParams,
     delayMs: number = 800
   ): Observable<GimacTransactionResponse> {
-    // Apply filters
     let filteredTransactions = this.applyFilters(this.mockTransactions, filters);
     
-    // Calculate pagination
     const limit = filters.limit || 20;
     const pageNumber = filters.pageNumber || 1;
     const totalCount = filteredTransactions.length;
     const totalPages = Math.ceil(totalCount / limit);
     
-    // Get page data
     const startIndex = (pageNumber - 1) * limit;
     const endIndex = startIndex + limit;
     const pageData = filteredTransactions.slice(startIndex, endIndex);
     
-    // Build pagination info
     const paginationInfo: PaginationInfo = {
       currentPageNumber: pageNumber,
       totalPages,
@@ -199,7 +206,6 @@ export class MockTransactionsService {
       nextPageNumber: pageNumber < totalPages ? pageNumber + 1 : 0
     };
     
-    // Build response
     const response: GimacTransactionResponse = {
       message: 'Transactions retrieved successfully',
       data: pageData,
@@ -208,16 +214,11 @@ export class MockTransactionsService {
       page: paginationInfo
     };
     
-    // Return with delay to simulate network
     return of(response).pipe(delay(delayMs));
   }
 
   /**
-   * Apply filters to transaction list
-   * 
-   * @param transactions - Full transaction list
-   * @param filters - Filter parameters
-   * @returns Filtered transaction list
+   * Apply filters
    */
   private applyFilters(
     transactions: GimacTransaction[],
@@ -225,57 +226,24 @@ export class MockTransactionsService {
   ): GimacTransaction[] {
     let filtered = [...transactions];
     
-    // Filter by status
     if (filters.status) {
-      filtered = filtered.filter(t => 
-        (t.status as any).value === filters.status
-      );
+      filtered = filtered.filter(t => {
+        const status = typeof t.status === 'object' ? (t.status as any).value : t.status;
+        return status === filters.status;
+      });
     }
     
-    // Filter by gimacSupportedServiceId
-    if (filters.gimacSupportedServiceId) {
-      filtered = filtered.filter(t => 
-        t.gimacSupportedServiceId === filters.gimacSupportedServiceId
-      );
-    }
-    
-    // Filter by sender account identifier
-    if (filters.senderAccountIdentifier) {
-      filtered = filtered.filter(t => 
-        t.senderAccountIdentifier.toLowerCase().includes(filters.senderAccountIdentifier!.toLowerCase())
-      );
-    }
-    
-    // Filter by receiver account identifier
-    if (filters.receiverAccountIdentifier) {
-      filtered = filtered.filter(t => 
-        t.receiverAccountIdentifier.toLowerCase().includes(filters.receiverAccountIdentifier!.toLowerCase())
-      );
-    }
-    
-    // Filter by date range
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter(t => new Date(t.createdAt) >= fromDate);
-    }
-    
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      filtered = filtered.filter(t => new Date(t.createdAt) <= toDate);
-    }
-    
-    // Filter by keyword (searches multiple fields)
     if (filters.keyword) {
       const keyword = filters.keyword.toLowerCase();
       filtered = filtered.filter(t => 
         t.internalReference.toLowerCase().includes(keyword) ||
         t.externalReference.toLowerCase().includes(keyword) ||
         t.senderAccountIdentifier.toLowerCase().includes(keyword) ||
-        t.receiverAccountIdentifier.toLowerCase().includes(keyword)
+        t.receiverAccountIdentifier.toLowerCase().includes(keyword) ||
+        (t.senderAccountInfo?.['name'] || '').toLowerCase().includes(keyword)
       );
     }
     
-    // Sort by created date (newest first)
     filtered.sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
@@ -285,10 +253,6 @@ export class MockTransactionsService {
 
   /**
    * Get transaction by ID
-   * 
-   * @param id - Transaction ID
-   * @param delayMs - Simulated network delay
-   * @returns Observable with transaction data
    */
   getTransactionById(id: number, delayMs: number = 500): Observable<GimacTransaction | null> {
     const transaction = this.mockTransactions.find(t => t.id === id);
@@ -296,48 +260,13 @@ export class MockTransactionsService {
   }
 
   /**
-   * Generate random transactions (for testing dynamic updates)
-   * 
-   * @param count - Number of transactions to generate
-   * @param delayMs - Simulated network delay
-   * @returns Observable with new transactions
+   * Get statistics
    */
-  generateRandomTransactions(count: number, delayMs: number = 800): Observable<GimacTransaction[]> {
-    const newTransactions: GimacTransaction[] = [];
-    const startId = this.mockTransactions.length + 1;
-    
-    for (let i = 0; i < count; i++) {
-      newTransactions.push(this.generateMockTransaction(startId + i));
-    }
-    
-    // Add to mock data
-    this.mockTransactions.push(...newTransactions);
-    
-    return of(newTransactions).pipe(delay(delayMs));
-  }
-
-  /**
-   * Reset mock data to initial state
-   * Useful for testing
-   */
-  resetMockData(): void {
-    this.initializeMockData();
-  }
-
-  /**
-   * Get statistics for mock transactions
-   * Useful for debugging
-   * 
-   * @returns Statistics object
-   */
-  getStatistics(): {
-    total: number;
-    byStatus: Record<string, number>;
-  } {
+  getStatistics(): { total: number; byStatus: Record<string, number> } {
     const byStatus: Record<string, number> = {};
     
     this.mockTransactions.forEach(t => {
-      const status = (t.status as any).value;
+      const status = typeof t.status === 'object' ? (t.status as any).value : t.status;
       byStatus[status] = (byStatus[status] || 0) + 1;
     });
     

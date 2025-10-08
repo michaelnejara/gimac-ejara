@@ -1,10 +1,12 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
+import { 
+  Component, 
+  Input, 
+  Output, 
+  EventEmitter, 
   ViewChild,
   OnInit,
+  OnChanges,
+  AfterContentInit,
   ChangeDetectionStrategy,
   ContentChildren,
   QueryList,
@@ -21,40 +23,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
-import {
-  TableConfig,
-  TableColumn,
+
+// Models
+import { 
+  TableConfig, 
+  TableColumn, 
   TableAction,
   TablePageEvent,
   TableSortEvent,
   TableSelectionEvent
 } from '@core/models/table-config.models';
 
-/**
- * Directive for defining custom column templates
- */
-import { Directive } from '@angular/core';
-
-@Directive({
-  selector: '[appTableColumn]',
-  standalone: true
-})
-export class TableColumnDirective {
-  @Input('appTableColumn') columnKey!: string;
-
-  constructor(public template: TemplateRef<any>) { }
-}
-
-/**
- * Directive for defining custom actions template
- */
-@Directive({
-  selector: '[appTableActions]',
-  standalone: true
-})
-export class TableActionsDirective {
-  constructor(public template: TemplateRef<any>) { }
-}
+// Directives (for ContentChildren queries only)
+import { TableColumnDirective, TableActionsDirective } from './data-table-directives';
 
 /**
  * Reusable Data Table Component
@@ -63,12 +44,12 @@ export class TableActionsDirective {
  * 
  * Features:
  * - Configurable columns with multiple types
- * - Custom column templates
+ * - Custom column templates via appTableColumn directive
  * - Custom cell renderers
  * - Sorting
  * - Pagination
  * - Row actions (icon buttons or regular buttons)
- * - Custom actions template
+ * - Custom actions template via appTableActions directive
  * - Row selection
  * - Loading states
  * - Empty states
@@ -100,7 +81,6 @@ export class TableActionsDirective {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatTableModule,
@@ -110,55 +90,75 @@ export class TableActionsDirective {
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
-    MatCheckboxModule,
-    TableColumnDirective,
-    TableActionsDirective
+    MatCheckboxModule
   ],
   templateUrl: './data-table.html',
-  styleUrl: './data-table.scss'
+  styleUrl: './data-table.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTable<T = any> implements OnInit {
+export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
+  
+  // ==================
+  // INPUTS & OUTPUTS
+  // ==================
+  
   /** Table data */
   @Input() data: T[] = [];
-
+  
   /** Table configuration */
   @Input() config!: TableConfig<T>;
-
+  
   /** Page change event */
   @Output() pageChange = new EventEmitter<TablePageEvent>();
-
+  
   /** Sort change event */
   @Output() sortChange = new EventEmitter<TableSortEvent>();
-
+  
   /** Selection change event */
   @Output() selectionChange = new EventEmitter<TableSelectionEvent<T>>();
-
+  
   /** Row click event */
   @Output() rowClick = new EventEmitter<T>();
 
+  // ==================
+  // CONTENT CHILDREN
+  // ==================
+  
   /** Custom column templates */
   @ContentChildren(TableColumnDirective) columnTemplates!: QueryList<TableColumnDirective>;
-
+  
   /** Custom actions template */
   @ContentChild(TableActionsDirective) actionsTemplate?: TableActionsDirective;
 
+  // ==================
+  // VIEW CHILDREN
+  // ==================
+  
   /** Material table data source */
   dataSource = new MatTableDataSource<T>();
-
+  
   /** Selection model for checkbox selection */
   selection = new SelectionModel<T>(true, []);
-
+  
   /** Paginator reference */
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-
+  
   /** Sort reference */
   @ViewChild(MatSort) sort!: MatSort;
-
+  
+  // ==================
+  // COMPONENT STATE
+  // ==================
+  
   /** Displayed column keys */
   displayedColumns: string[] = [];
-
+  
   /** Map of column keys to templates */
   private columnTemplateMap = new Map<string, TemplateRef<any>>();
+
+  // ==================
+  // LIFECYCLE HOOKS
+  // ==================
 
   ngOnInit(): void {
     this.initializeTable();
@@ -175,13 +175,17 @@ export class DataTable<T = any> implements OnInit {
     this.updateDataSource();
   }
 
+  // ==================
+  // PRIVATE METHODS
+  // ==================
+
   /**
    * Initialize table configuration
    */
   private initializeTable(): void {
     // Build displayed columns array
     this.displayedColumns = this.buildDisplayedColumns();
-
+    
     // Update data source
     this.updateDataSource();
   }
@@ -192,23 +196,23 @@ export class DataTable<T = any> implements OnInit {
    */
   private buildDisplayedColumns(): string[] {
     const columns: string[] = [];
-
+    
     // Add selection column
     if (this.config.selectable) {
       columns.push('select');
     }
-
+    
     // Add data columns
     const dataColumns = this.config.columns
-      .filter(col => !col.hidden)
-      .map(col => col.key);
+      .filter((col) => !col.hidden)
+      .map((col: { key: any; }) => col.key);
     columns.push(...dataColumns);
-
+    
     // Add actions column
     if (this.config.showActions && (this.config.actions?.length || this.actionsTemplate)) {
       columns.push('actions');
     }
-
+    
     return columns;
   }
 
@@ -217,67 +221,6 @@ export class DataTable<T = any> implements OnInit {
    */
   private updateDataSource(): void {
     this.dataSource.data = this.data;
-  }
-
-  /**
-   * Get column configuration by key
-   */
-  getColumn(key: string): TableColumn<T> | undefined {
-    return this.config.columns.find(col => col.key === key);
-  }
-
-  /**
-   * Get custom template for column
-   */
-  getColumnTemplate(columnKey: string): TemplateRef<any> | null {
-    const column = this.getColumn(columnKey);
-
-    // Check if column has templateRef
-    if (column?.templateRef) {
-      return column.templateRef;
-    }
-
-    // Check content children templates
-    return this.columnTemplateMap.get(columnKey) || null;
-  }
-
-  /**
-   * Check if column has custom template
-   */
-  hasCustomTemplate(columnKey: string): boolean {
-    const column = this.getColumn(columnKey);
-    return column?.type === 'template' || !!this.getColumnTemplate(columnKey);
-  }
-
-  /**
-   * Get formatted cell value
-   */
-  getCellValue(row: T, column: TableColumn<T>): any {
-    // Use cell renderer if provided
-    if (column.cellRenderer) {
-      return column.cellRenderer(row);
-    }
-
-    const value = (row as any)[column.key];
-
-    // Use custom formatter if provided
-    if (column.formatter) {
-      return column.formatter(value, row);
-    }
-
-    // Apply type-based formatting
-    switch (column.type) {
-      case 'date':
-        return this.formatDate(value);
-      case 'currency':
-        return this.formatCurrency(value);
-      case 'number':
-        return this.formatNumber(value);
-      case 'boolean':
-        return value ? 'Yes' : 'No';
-      default:
-        return value;
-    }
   }
 
   /**
@@ -309,17 +252,91 @@ export class DataTable<T = any> implements OnInit {
   }
 
   /**
+   * Emit selection change event
+   */
+  private emitSelectionChange(): void {
+    this.selectionChange.emit({
+      selected: this.selection.selected
+    });
+  }
+
+  // ==================
+  // PUBLIC METHODS
+  // ==================
+
+  /**
+   * Get column configuration by key
+   */
+  getColumn(key: string): TableColumn<T> | undefined {
+    return this.config.columns.find((col: { key: string; }) => col.key === key);
+  }
+
+  /**
+   * Get custom template for column
+   */
+  getColumnTemplate(columnKey: string): TemplateRef<any> | null {
+    const column = this.getColumn(columnKey);
+    
+    // Check if column has templateRef
+    if (column?.templateRef) {
+      return column.templateRef;
+    }
+    
+    // Check content children templates
+    return this.columnTemplateMap.get(columnKey) || null;
+  }
+
+  /**
+   * Check if column has custom template
+   */
+  hasCustomTemplate(columnKey: string): boolean {
+    const column = this.getColumn(columnKey);
+    return column?.type === 'template' || !!this.getColumnTemplate(columnKey);
+  }
+
+  /**
+   * Get formatted cell value
+   */
+  getCellValue(row: T, column: TableColumn<T>): any {
+    // Use cell renderer if provided
+    if (column.cellRenderer) {
+      return column.cellRenderer(row);
+    }
+    
+    const value = (row as any)[column.key];
+    
+    // Use custom formatter if provided
+    if (column.formatter) {
+      return column.formatter(value, row);
+    }
+    
+    // Apply type-based formatting
+    switch (column.type) {
+      case 'date':
+        return this.formatDate(value);
+      case 'currency':
+        return this.formatCurrency(value);
+      case 'number':
+        return this.formatNumber(value);
+      case 'boolean':
+        return value ? 'Yes' : 'No';
+      default:
+        return value;
+    }
+  }
+
+  /**
    * Get badge color for value
    */
   getBadgeColor(column: TableColumn<T>, value: any): string {
     if (!column.badgeConfig) return 'default';
-
+    
     const { colorMap, defaultColor } = column.badgeConfig;
-
+    
     if (colorMap && colorMap[value]) {
       return colorMap[value];
     }
-
+    
     return defaultColor || 'default';
   }
 
@@ -330,7 +347,7 @@ export class DataTable<T = any> implements OnInit {
     if (!column.badgeConfig || !column.badgeConfig.transform) {
       return value;
     }
-
+    
     return column.badgeConfig.transform(value);
   }
 
@@ -339,8 +356,8 @@ export class DataTable<T = any> implements OnInit {
    */
   getVisibleActions(row: T): TableAction<T>[] {
     if (!this.config.actions) return [];
-
-    return this.config.actions.filter(action => {
+    
+    return this.config.actions.filter((action) => {
       if (action.hidden) {
         return !action.hidden(row);
       }
@@ -370,13 +387,55 @@ export class DataTable<T = any> implements OnInit {
    */
   getRowClass(row: T): string {
     if (!this.config.rowCssClass) return '';
-
+    
     if (typeof this.config.rowCssClass === 'function') {
       return this.config.rowCssClass(row);
     }
-
+    
     return this.config.rowCssClass;
   }
+
+  /**
+   * Get tooltip text for column header
+   */
+  getHeaderTooltip(column: TableColumn<T>): string {
+    if (!column.tooltip) {
+      return '';
+    }
+
+    // Only show tooltip on header if it's a static string
+    if (typeof column.tooltip === 'string') {
+      return column.tooltip;
+    }
+
+    return '';
+  }
+
+  /**
+   * Get cell tooltip
+   */
+  getCellTooltip(column: TableColumn<T>, row: T): string {
+    if (!column.tooltip) {
+      return '';
+    }
+
+    if (typeof column.tooltip === 'function') {
+      return column.tooltip(row);
+    }
+
+    return column.tooltip;
+  }
+
+  /**
+   * Get button type class
+   */
+  getActionButtonType(action: TableAction<T>): string {
+    return action.type || 'icon';
+  }
+
+  // ==================
+  // EVENT HANDLERS
+  // ==================
 
   /**
    * Handle row click
@@ -417,6 +476,10 @@ export class DataTable<T = any> implements OnInit {
     action.handler(row);
   }
 
+  // ==================
+  // SELECTION METHODS
+  // ==================
+
   /**
    * Whether all rows are selected
    */
@@ -435,7 +498,7 @@ export class DataTable<T = any> implements OnInit {
     } else {
       this.dataSource.data.forEach(row => this.selection.select(row));
     }
-
+    
     this.emitSelectionChange();
   }
 
@@ -445,15 +508,6 @@ export class DataTable<T = any> implements OnInit {
   toggleRow(row: T): void {
     this.selection.toggle(row);
     this.emitSelectionChange();
-  }
-
-  /**
-   * Emit selection change event
-   */
-  private emitSelectionChange(): void {
-    this.selectionChange.emit({
-      selected: this.selection.selected
-    });
   }
 
   /**
@@ -471,77 +525,5 @@ export class DataTable<T = any> implements OnInit {
       return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
     }
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row`;
-  }
-
-  /**
-   * Get button type class
-   */
-  getActionButtonType(action: TableAction<T>): string {
-    return action.type || 'icon';
-  }
-
-  /**
-   * Get tooltip text for column header
-   * Resolves tooltip if it's a function or returns the string directly
-   * 
-   * @param column - Table column configuration
-   * @param row - Row data (optional, for cell tooltips)
-   * @returns Tooltip string or empty string
-   */
-  getTooltip(column: TableColumn<T>, row?: T): string {
-    if (!column.tooltip) {
-      return '';
-    }
-
-    if (typeof column.tooltip === 'function') {
-      if (row) {
-        return column.tooltip(row);
-      }
-      return '';
-    }
-
-    return column.tooltip;
-  }
-
-  /**
-   * Check if column has tooltip
-   * 
-   * @param column - Table column configuration
-   * @returns true if column has tooltip defined
-   */
-  hasTooltip(column: TableColumn<T>): boolean {
-    return !!column.tooltip;
-  }
-
-  /**
-   * Get column header tooltip
-   * Only returns tooltip if it's a static string
-   * 
-   * @param column - Table column configuration
-   * @returns Tooltip string for header or empty string
-   */
-  getHeaderTooltip(column: TableColumn<T>): string {
-    if (!column.tooltip) {
-      return '';
-    }
-
-    // Only show tooltip on header if it's a static string
-    if (typeof column.tooltip === 'string') {
-      return column.tooltip;
-    }
-
-    return '';
-  }
-
-  /**
-   * Get cell tooltip
-   * Resolves tooltip function with row data
-   * 
-   * @param column - Table column configuration
-   * @param row - Row data
-   * @returns Tooltip string for cell
-   */
-  getCellTooltip(column: TableColumn<T>, row: T): string {
-    return this.getTooltip(column, row);
   }
 }

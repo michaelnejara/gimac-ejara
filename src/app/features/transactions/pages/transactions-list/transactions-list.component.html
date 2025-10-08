@@ -1,3 +1,4 @@
+<!-- src/app/features/transactions/pages/transactions-list/transactions-list.component.html -->
 <div class="transactions-page">
   
   <!-- Page Header -->
@@ -5,8 +6,8 @@
     <div class="breadcrumbs">
       <a routerLink="/">Home</a>
       <mat-icon>chevron_right</mat-icon>
-      <!-- <a routerLink="/pay-out">Pay-out/Pay-in & Abuze Policy</a> -->
-      <!-- <mat-icon>chevron_right</mat-icon> -->
+      <a routerLink="/pay-out">Pay-out/Pay-in & Abuze Policy</a>
+      <mat-icon>chevron_right</mat-icon>
       <span class="current">Transactions</span>
     </div>
     
@@ -108,7 +109,7 @@
       (pageChange)="onPageChange($event)"
       (sortChange)="onSortChange($event)">
       
-      <!-- Username Column with Avatar -->
+      <!-- Custom Template: Username with Avatar -->
       <ng-template appTableColumn="username" let-row>
         <div class="username-cell">
           <div class="avatar">
@@ -121,14 +122,14 @@
         </div>
       </ng-template>
 
-      <!-- Transaction Type Column -->
+      <!-- Custom Template: Transaction Type -->
       <ng-template appTableColumn="transactionType" let-row>
         <span class="transaction-type">
           {{ getTransactionType(row) }}
         </span>
       </ng-template>
 
-      <!-- Payment Mode Column -->
+      <!-- Custom Template: Payment Mode -->
       <ng-template appTableColumn="paymentMode" let-row>
         <div class="payment-mode">
           <mat-icon class="mode-icon">{{ getPaymentModeIcon(row) }}</mat-icon>
@@ -136,7 +137,7 @@
         </div>
       </ng-template>
 
-      <!-- Country Column with Flag -->
+      <!-- Custom Template: Country with Flag -->
       <ng-template appTableColumn="country" let-row>
         <div class="country-cell">
           <span class="flag">{{ getCountryFlag(row) }}</span>
@@ -144,46 +145,26 @@
         </div>
       </ng-template>
 
-      <!-- Amount Column -->
+      <!-- Custom Template: Amount -->
       <ng-template appTableColumn="amount" let-row>
         <div class="amount-cell">
           <div class="amount">{{ getAmount(row) }}</div>
         </div>
       </ng-template>
 
-      <!-- Services Column -->
+      <!-- Custom Template: Services -->
       <ng-template appTableColumn="services" let-row>
         <span class="service-name">{{ getServiceName(row) }}</span>
       </ng-template>
 
-      <!-- Approved By Column -->
-      <ng-template appTableColumn="approvedBy" let-row>
-        <span class="approver">{{ getApprovedBy(row) }}</span>
-      </ng-template>
-
-      <!-- Updated By Column -->
-      <ng-template appTableColumn="updatedBy" let-row>
-        <span class="updater">{{ getUpdatedBy(row) }}</span>
-      </ng-template>
-
-      <!-- Providers Column with Badges -->
-      <ng-template appTableColumn="providers" let-row>
-        <div class="providers-cell">
-          <span class="provider-badge" [matTooltip]="getProviderTooltip(row)">
-            <mat-icon class="provider-icon">{{ getProviderIcon(row) }}</mat-icon>
-            <span>{{ getProviderName(row) }}</span>
-          </span>
-        </div>
-      </ng-template>
-
-      <!-- Currency Column with Badge -->
+      <!-- Custom Template: Currency Badge -->
       <ng-template appTableColumn="currency" let-row>
         <span class="currency-badge">
           {{ getCurrency(row) }}
         </span>
       </ng-template>
 
-      <!-- Creation Date Column -->
+      <!-- Custom Template: Creation Date -->
       <ng-template appTableColumn="createdAt" let-row>
         <div class="date-cell">
           <div class="date">{{ formatDate(row.createdAt) }}</div>
@@ -191,7 +172,7 @@
         </div>
       </ng-template>
 
-      <!-- Custom Actions (using menu) -->
+      <!-- Custom Actions Template -->
       <ng-template appTableActions let-row>
         <button 
           mat-icon-button 

@@ -1,168 +1,138 @@
 import { createReducer, on } from '@ngrx/store';
 import { TransactionsActions } from './transactions.actions';
 import { initialState } from './transactions.state';
-import { GimacTransaction } from '@core/models/transaction.models';
 
 /**
  * Transactions Reducer
  * 
- * Implements smart caching strategy:
- * - On filter change (except date): Clear cache and fetch fresh
- * - On pagination: Use cache if available, fetch if not
- * - On success: Store in appropriate page cache
- * 
- * Cache Structure:
- * transactionPages: Map<pageNumber, GimacTransaction[]>
- * - Key: page number
- * - Value: array of transactions for that page
+ * Handles state updates for transaction-related actions
  */
 export const transactionsReducer = createReducer(
   initialState,
-  
+
   /**
-   * Handle Load Transactions
+   * Load Transactions
    * Sets loading state and optionally clears cache
    */
-  on(TransactionsActions.loadTransactions, (state, { reinitialize }) => {
-    // If reinitializing, clear the cache
-    if (reinitialize) {
-      return {
-        ...state,
-        transactionPages: new Map(),
-        allTransactions: [],
-        loading: true,
-        error: null
-      };
-    }
-    
-    // Otherwise just set loading
-    return {
-      ...state,
-      loading: true,
-      error: null
-    };
-  }),
-  
+  on(TransactionsActions.loadTransactions, (state, { reinitialize }) => ({
+    ...state,
+    loading: true,
+    error: null,
+    // Clear cache if reinitializing (new filters or page size change)
+    ...(reinitialize && {
+      transactions: [],
+      currentPageTransactions: [],
+      pageCache: new Map()
+    })
+  })),
+
   /**
-   * Handle Load Transactions Success
-   * 
-   * Stores transactions in page cache and updates state
-   * - If append=true: Add new page to cache
-   * - If append=false: Replace cache with new page
+   * Load Transactions Success
+   * Updates state with new transaction data
+   * Handles both appending (pagination) and replacing (filtering)
    */
   on(TransactionsActions.loadTransactionsSuccess, (state, { response, pageNumber, append }) => {
-    // Create new pages map
-    const newPages = new Map(state.transactionPages);
-    
-    // Store the page data
-    newPages.set(pageNumber, response.data);
-    
-    // Flatten all pages into allTransactions array
-    const allTransactions: GimacTransaction[] = [];
-    Array.from(newPages.keys())
-      .sort((a, b) => a - b) // Sort page numbers
-      .forEach(page => {
-        const pageData = newPages.get(page);
-        if (pageData) {
-          allTransactions.push(...pageData);
-        }
-      });
-    
-    return {
-      ...state,
-      transactionPages: newPages,
-      allTransactions,
-      pagination: response.page,
-      totalCount: response.totalCount,
-      count: response.count,
-      loading: false,
-      error: null,
-      initialized: true
-    };
+    const newTransactions = response.data;
+    const newTransactionIds = newTransactions.map(t => t.id);
+
+    // Update page cache
+    const updatedCache = new Map(state.pageCache);
+    updatedCache.set(pageNumber, newTransactionIds);
+
+    if (append) {
+      // Append mode: Add new transactions to existing ones
+      const existingIds = new Set(state.transactions.map(t => t.id));
+      const transactionsToAdd = newTransactions.filter(t => !existingIds.has(t.id));
+
+      return {
+        ...state,
+        transactions: [...state.transactions, ...transactionsToAdd],
+        currentPageTransactions: newTransactions,
+        loading: false,
+        error: null,
+        pagination: response.page,
+        totalCount: response.totalCount,
+        pageCache: updatedCache
+      };
+    } else {
+      // Replace mode: Replace all transactions
+      return {
+        ...state,
+        transactions: newTransactions,
+        currentPageTransactions: newTransactions,
+        loading: false,
+        error: null,
+        pagination: response.page,
+        totalCount: response.totalCount,
+        pageCache: updatedCache
+      };
+    }
   }),
-  
+
   /**
-   * Handle Load Transactions Failure
-   * Sets error state and stops loading
+   * Load Transactions Failure
+   * Sets error state
    */
   on(TransactionsActions.loadTransactionsFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error
   })),
-  
+
   /**
-   * Handle Apply Filters
-   * 
-   * Updates current filters and determines if cache should be cleared
-   * 
-   * Cache clearing logic:
-   * - If only date filters changed: Keep cache
-   * - If any other filter changed: Clear cache (reinitialize)
+   * Apply Filters
+   * Updates filter state and resets to page 1
+   * Cache will be cleared by subsequent loadTransactions action
    */
-  on(TransactionsActions.applyFilters, (state, { filters }) => {
-    // Check if only date filters changed
-    const oldFilters = state.currentFilters;
-    const onlyDateChanged = 
-      filters.dateFrom !== oldFilters.dateFrom ||
-      filters.dateTo !== oldFilters.dateTo;
-    
-    const otherFiltersChanged = 
-      filters.status !== oldFilters.status ||
-      filters.gimacSupportedServiceId !== oldFilters.gimacSupportedServiceId ||
-      filters.senderAccountIdentifier !== oldFilters.senderAccountIdentifier ||
-      filters.receiverAccountIdentifier !== oldFilters.receiverAccountIdentifier ||
-      filters.keyword !== oldFilters.keyword;
-    
-    // If other filters changed, clear cache
-    const shouldClearCache = otherFiltersChanged;
-    
-    return {
-      ...state,
-      currentFilters: {
-        ...filters,
-        pageNumber: 1 // Reset to page 1 when filters change
-      },
-      transactionPages: shouldClearCache ? new Map() : state.transactionPages,
-      allTransactions: shouldClearCache ? [] : state.allTransactions,
-      loading: false
-    };
-  }),
-  
+  on(TransactionsActions.applyFilters, (state, { filters }) => ({
+    ...state,
+    filters: {
+      ...filters,
+      pageNumber: 1 // Always reset to page 1 when filters change
+    }
+  })),
+
   /**
-   * Handle Change Page
+   * Change Page
    * Updates current page number in filters
-   * Effect will handle fetching if not cached
    */
   on(TransactionsActions.changePage, (state, { pageNumber }) => ({
     ...state,
-    currentFilters: {
-      ...state.currentFilters,
+    filters: {
+      ...state.filters,
       pageNumber
     }
   })),
-  
+
   /**
-   * Handle Select Transaction
-   * Sets the selected transaction for detail view
+   * Change Page Size
+   * Updates page size and resets to page 1
+   * Cache will be cleared by subsequent loadTransactions action
    */
-  on(TransactionsActions.selectTransaction, (state, { transaction }) => ({
+  on(TransactionsActions.changePageSize, (state, { pageSize }) => ({
     ...state,
-    selectedTransaction: transaction
+    filters: {
+      ...state.filters,
+      limit: pageSize,
+      pageNumber: 1 // Reset to page 1 when page size changes
+    }
   })),
-  
+
   /**
-   * Handle Clear Selected
-   * Removes selected transaction
+   * Clear Filters
+   * Resets filters to initial state
    */
-  on(TransactionsActions.clearSelected, (state) => ({
+  on(TransactionsActions.clearFilters, (state) => ({
     ...state,
-    selectedTransaction: null
+    filters: {
+      pageNumber: 1,
+      limit: state.filters.limit || 20 // Keep current page size
+    }
   })),
-  
+
   /**
-   * Handle Reset State
-   * Returns to initial state
+   * Reset State
+   * Resets entire state to initial values
    */
   on(TransactionsActions.resetState, () => initialState)
 );

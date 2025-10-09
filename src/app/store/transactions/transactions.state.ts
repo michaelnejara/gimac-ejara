@@ -1,33 +1,19 @@
+// src/app/store/transactions/transactions.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { GimacTransaction, GimacTransactionFilterParams, PaginationInfo } from '@core/models/transaction.models';
+import { 
+  GimacTransaction, 
+  GimacTransactionFilterParams 
+} from '@core/models/transaction.models';
 
 /**
  * Transaction State Interface
- * 
- * Manages transactions with smart caching:
- * - Stores pages of transactions in a map (pageNumber -> transactions[])
- * - Tracks current filters and pagination
- * - Handles loading and error states
- * - Supports filter-based reinitialization and pagination-based appending
  */
 export interface TransactionsState {
-  /** Map of page numbers to transaction data for caching */
-  transactionPages: Map<number, GimacTransaction[]>;
+  /** All loaded transactions (cached across pages) */
+  transactions: GimacTransaction[];
   
-  /** All transactions as flat array (derived from pages) */
-  allTransactions: GimacTransaction[];
-  
-  /** Current active filters */
-  currentFilters: GimacTransactionFilterParams;
-  
-  /** Pagination information */
-  pagination: PaginationInfo | null;
-  
-  /** Total count of transactions matching filters */
-  totalCount: number;
-  
-  /** Count of transactions in current response */
-  count: number;
+  /** Currently displayed transactions (current page only) */
+  currentPageTransactions: GimacTransaction[];
   
   /** Loading state */
   loading: boolean;
@@ -35,131 +21,170 @@ export interface TransactionsState {
   /** Error message if any */
   error: string | null;
   
-  /** Selected transaction for detail view */
-  selectedTransaction: GimacTransaction | null;
+  /** Current filter parameters */
+  filters: GimacTransactionFilterParams;
   
-  /** Indicates if initial load has completed */
-  initialized: boolean;
+  /** Pagination information */
+  pagination: {
+    currentPageNumber: number;
+    totalPages: number;
+    previousPageNumber: number;
+    nextPageNumber: number;
+  } | null;
+  
+  /** Total count of transactions matching filters */
+  totalCount: number;
+  
+  /** Cache of loaded pages (page number -> transaction IDs) */
+  pageCache: Map<number, number[]>;
 }
 
 /**
- * Initial state for transactions feature
+ * Initial State
  */
 export const initialState: TransactionsState = {
-  transactionPages: new Map(),
-  allTransactions: [],
-  currentFilters: {
-    limit: 20,
-    pageNumber: 1
+  transactions: [],
+  currentPageTransactions: [],
+  loading: false,
+  error: null,
+  filters: {
+    pageNumber: 1,
+    limit: 20
   },
   pagination: null,
   totalCount: 0,
-  count: 0,
-  loading: false,
-  error: null,
-  selectedTransaction: null,
-  initialized: false
+  pageCache: new Map()
 };
 
 /**
- * Feature selector for transactions state
+ * Feature Selector
  */
 export const selectTransactionsState = createFeatureSelector<TransactionsState>('transactions');
 
 /**
- * Selector to get all transactions from pages
- * Flattens the cached pages into a single array
- * 
- * @returns Array of all cached transactions
+ * Basic Selectors
  */
 export const selectAllTransactions = createSelector(
   selectTransactionsState,
-  (state: TransactionsState) => state.allTransactions
+  (state) => state.transactions
+);
+
+export const selectCurrentPageTransactions = createSelector(
+  selectTransactionsState,
+  (state) => state.currentPageTransactions
+);
+
+export const selectTransactionsLoading = createSelector(
+  selectTransactionsState,
+  (state) => state.loading
+);
+
+export const selectTransactionsError = createSelector(
+  selectTransactionsState,
+  (state) => state.error
+);
+
+export const selectCurrentFilters = createSelector(
+  selectTransactionsState,
+  (state) => state.filters
+);
+
+export const selectTransactionsPagination = createSelector(
+  selectTransactionsState,
+  (state) => state.pagination
+);
+
+export const selectTransactionsTotalCount = createSelector(
+  selectTransactionsState,
+  (state) => state.totalCount
+);
+
+export const selectPageCache = createSelector(
+  selectTransactionsState,
+  (state) => state.pageCache
 );
 
 /**
- * Selector to get current page transactions
- * Returns only transactions for the current page
- * 
- * @returns Array of transactions for current page
+ * Derived Selectors
  */
-export const selectCurrentPageTransactions = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => {
-    const currentPage = state.currentFilters.pageNumber || 1;
-    return state.transactionPages.get(currentPage) || [];
+
+/**
+ * Select current page size
+ */
+export const selectCurrentPageSize = createSelector(
+  selectCurrentFilters,
+  (filters) => filters.limit || 20
+);
+
+/**
+ * Select current page number
+ */
+export const selectCurrentPageNumber = createSelector(
+  selectCurrentFilters,
+  (filters) => filters.pageNumber || 1
+);
+
+/**
+ * Check if a specific page is cached
+ */
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => cache.has(pageNumber)
+);
+
+/**
+ * Select transactions for a specific page from cache
+ */
+export const selectTransactionsByPage = (pageNumber: number) => createSelector(
+  selectAllTransactions,
+  selectPageCache,
+  (transactions, cache) => {
+    const transactionIds = cache.get(pageNumber);
+    if (!transactionIds) return [];
+    
+    return transactionIds
+      .map(id => transactions.find(t => t.id === id))
+      .filter((t): t is GimacTransaction => t !== undefined);
   }
 );
 
 /**
- * Selector to get loading state
- * @returns true if transactions are being fetched
+ * Select unreconciled transactions count
  */
-export const selectTransactionsLoading = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.loading
+export const selectUnreconciledCount = createSelector(
+  selectAllTransactions,
+  (transactions) => 
+    transactions.filter(t => {
+      const status = typeof t.status === 'object' ? (t.status as any).value : t.status;
+      return !t.reconciledAt && status === 'completed';
+    }).length
 );
 
 /**
- * Selector to get error state
- * @returns Error message or null
+ * Select transactions by status
  */
-export const selectTransactionsError = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.error
+export const selectTransactionsByStatus = (status: string) => createSelector(
+  selectAllTransactions,
+  (transactions) => 
+    transactions.filter(t => {
+      const txStatus = typeof t.status === 'object' ? (t.status as any).value : t.status;
+      return txStatus === status;
+    })
 );
 
 /**
- * Selector to get pagination info
- * @returns Pagination metadata
+ * Check if filters are applied
  */
-export const selectTransactionsPagination = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.pagination
-);
-
-/**
- * Selector to get total count
- * @returns Total number of transactions matching filters
- */
-export const selectTransactionsTotalCount = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.totalCount
-);
-
-/**
- * Selector to get current filters
- * @returns Active filter parameters
- */
-export const selectCurrentFilters = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.currentFilters
-);
-
-/**
- * Selector to get selected transaction
- * @returns Selected transaction for detail view
- */
-export const selectSelectedTransaction = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.selectedTransaction
-);
-
-/**
- * Selector to check if initialized
- * @returns true if initial load completed
- */
-export const selectTransactionsInitialized = createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.initialized
-);
-
-/**
- * Selector to check if a specific page is cached
- * @param pageNumber - Page number to check
- * @returns true if page data exists in cache
- */
-export const selectIsPageCached = (pageNumber: number) => createSelector(
-  selectTransactionsState,
-  (state: TransactionsState) => state.transactionPages.has(pageNumber)
+export const selectHasActiveFilters = createSelector(
+  selectCurrentFilters,
+  (filters) => {
+    return !!(
+      filters.status ||
+      filters.keyword ||
+      filters.dateFrom ||
+      filters.dateTo ||
+      filters.senderAccountIdentifier ||
+      filters.receiverAccountIdentifier
+    );
+  }
 );

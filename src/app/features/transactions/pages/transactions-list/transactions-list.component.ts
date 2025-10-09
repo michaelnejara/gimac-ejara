@@ -23,11 +23,11 @@ import { MatDividerModule } from '@angular/material/divider';
 // Shared
 import { DataTable } from '@shared/components/data-table/data-table';
 import { TableColumnDirective, TableActionsDirective } from '@shared/components/data-table/data-table-directives';
-import { 
-  TableConfig, 
-  TableColumn, 
+import {
+  TableConfig,
+  TableColumn,
   TablePageEvent,
-  TableSortEvent 
+  TableSortEvent
 } from '@core/models/table-config.models';
 
 // Store
@@ -39,9 +39,9 @@ import {
   selectTransactionsTotalCount,
   selectCurrentFilters
 } from '@store/transactions/transactions.state';
-import { 
-  GimacTransaction, 
-  GimacTransactionFilterParams 
+import {
+  GimacTransaction,
+  GimacTransactionFilterParams
 } from '@core/models/transaction.models';
 
 interface FilterOption {
@@ -86,7 +86,7 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
   currentFilters$: Observable<GimacTransactionFilterParams>;
 
   searchControl = new FormControl('');
-  
+
   activeStatusFilter: string = 'all';
   statusFilters: FilterOption[] = [
     { value: 'all', label: 'All' },
@@ -147,7 +147,7 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
     this.transactions$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(transactions => {
-      this.unreconciledCount = transactions.filter(t => 
+      this.unreconciledCount = transactions.filter(t =>
         !t.reconciledAt && this.getStatusValue(t.status) === 'completed'
       ).length;
     });
@@ -259,7 +259,7 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
   // Event Handlers
   onStatusFilterChange(status: string): void {
     this.activeStatusFilter = status;
-    
+
     const filters: GimacTransactionFilterParams = {
       status: status === 'all' ? undefined : status,
       pageNumber: 1,
@@ -281,9 +281,28 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(event: TablePageEvent): void {
+    const currentPageSize = this.tableConfig.pagination?.pageSize || 20;
+  
+  // Check if page size changed
+  if (event.pageSize !== currentPageSize) {
+    // Dispatch page size change action
+    this.onPageSizeChange(event.pageSize)
+    // this.store.dispatch(TransactionsActions.changePageSize({ 
+    //   pageSize: event.pageSize 
+    // }));
+  } else {
+    // Just a page number change
     this.store.dispatch(TransactionsActions.changePage({ 
       pageNumber: event.pageIndex + 1
     }));
+  }
+  }
+
+  /**
+ * Handle page size change
+ */
+  onPageSizeChange(pageSize: number): void {
+    this.store.dispatch(TransactionsActions.changePageSize({ pageSize }));
   }
 
   onSortChange(event: TableSortEvent): void {
@@ -410,20 +429,20 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
   formatDate(dateString: string): string {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   }
 
   formatTime(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   }
 }

@@ -1,88 +1,87 @@
-// src/app/store/transactions/transactions.actions.ts
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { GimacTransaction, GimacTransactionFilterParams, GimacTransactionResponse } from '@core/models/transaction.models';
+import { 
+  GimacTransaction, 
+  GimacTransactionResponse, 
+  GimacTransactionFilterParams 
+} from '@core/models/transaction.models';
 
 /**
- * Transaction Actions Group
+ * Transaction Actions
  * 
- * Actions:
- * - Load Transactions: Fetch transactions with filters
- * - Load Transactions Success: Store fetched transactions
- * - Load Transactions Failure: Handle fetch errors
- * - Apply Filters: Update filters and reinitialize store
- * - Change Page: Navigate to different page (use cache if available)
- * - Select Transaction: Set selected transaction for detail view
- * - Clear Selected: Clear selected transaction
- * - Reset State: Reset to initial state
+ * Actions for managing transaction state including:
+ * - Loading transactions
+ * - Filtering transactions
+ * - Pagination (page changes and page size changes)
+ * - Error handling
  */
 export const TransactionsActions = createActionGroup({
   source: 'Transactions',
   events: {
     /**
      * Load Transactions
-     * Initiates fetching of transactions with current filters
+     * Triggers fetching transactions from API with current filters
      * 
-     * @param reinitialize - If true, clears cache before loading
+     * @param reinitialize - If true, clears cache and starts fresh
      */
-    'Load Transactions': props<{ reinitialize?: boolean }>(),
-    
+    'Load Transactions': props<{ reinitialize: boolean }>(),
+
     /**
      * Load Transactions Success
-     * Dispatched when transactions are successfully fetched
+     * Dispatched when transactions are successfully loaded
      * 
-     * @param response - API response with transactions and pagination
-     * @param pageNumber - Page number that was fetched
-     * @param append - If true, append to existing data instead of replace
+     * @param response - API response with transaction data
+     * @param pageNumber - Current page number
+     * @param append - If true, appends to existing data (for caching)
      */
     'Load Transactions Success': props<{ 
       response: GimacTransactionResponse;
       pageNumber: number;
       append: boolean;
     }>(),
-    
+
     /**
      * Load Transactions Failure
-     * Dispatched when transaction fetch fails
+     * Dispatched when loading transactions fails
      * 
      * @param error - Error message
      */
     'Load Transactions Failure': props<{ error: string }>(),
-    
+
     /**
      * Apply Filters
-     * Updates filter parameters and reloads transactions
-     * Clears cache unless only date filters changed
+     * Updates filter criteria and triggers new data load
+     * Resets to page 1 and clears cache
      * 
      * @param filters - New filter parameters
      */
     'Apply Filters': props<{ filters: GimacTransactionFilterParams }>(),
-    
+
     /**
      * Change Page
-     * Navigates to a different page
-     * Uses cache if available, otherwise fetches from API
+     * Navigates to a different page with current filters
      * 
-     * @param pageNumber - Target page number
+     * @param pageNumber - Target page number (1-indexed)
      */
     'Change Page': props<{ pageNumber: number }>(),
-    
+
     /**
-     * Select Transaction
-     * Sets a transaction as selected for detail view
+     * Change Page Size
+     * Updates the number of items per page
+     * Resets to page 1 and clears cache
      * 
-     * @param transaction - Transaction to select
+     * @param pageSize - New page size (10, 20, 50, 100, etc.)
      */
-    'Select Transaction': props<{ transaction: GimacTransaction }>(),
-    
+    'Change Page Size': props<{ pageSize: number }>(),
+
     /**
-     * Clear Selected Transaction
-     * Removes selected transaction
+     * Clear Filters
+     * Resets all filters to default values
      */
-    'Clear Selected': emptyProps(),
-    
+    'Clear Filters': emptyProps(),
+
     /**
      * Reset State
-     * Clears all data and returns to initial state
+     * Resets entire transaction state to initial values
      */
     'Reset State': emptyProps()
   }

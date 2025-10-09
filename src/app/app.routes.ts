@@ -47,6 +47,7 @@ export const routes: Routes = [
       // Bond Management (protected)
       {
         path: 'bonds',
+        data: { breadcrumb: 'Bonds' },
         canActivate: [authGuard],
         loadChildren: () => import('./features/bonds/bonds.routes').then((m) => m.bondsRoutes),
       },

@@ -282,20 +282,20 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
 
   onPageChange(event: TablePageEvent): void {
     const currentPageSize = this.tableConfig.pagination?.pageSize || 20;
-  
-  // Check if page size changed
-  if (event.pageSize !== currentPageSize) {
-    // Dispatch page size change action
-    this.onPageSizeChange(event.pageSize)
-    // this.store.dispatch(TransactionsActions.changePageSize({ 
-    //   pageSize: event.pageSize 
-    // }));
-  } else {
-    // Just a page number change
-    this.store.dispatch(TransactionsActions.changePage({ 
-      pageNumber: event.pageIndex + 1
-    }));
-  }
+
+    // Check if page size changed
+    if (event.pageSize !== currentPageSize) {
+      // Dispatch page size change action
+      this.onPageSizeChange(event.pageSize)
+      // this.store.dispatch(TransactionsActions.changePageSize({ 
+      //   pageSize: event.pageSize 
+      // }));
+    } else {
+      // Just a page number change
+      this.store.dispatch(TransactionsActions.changePage({
+        pageNumber: event.pageIndex + 1
+      }));
+    }
   }
 
   /**
@@ -310,11 +310,11 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
   }
 
   viewTransaction(transaction: GimacTransaction): void {
-    this.router.navigate(['/transactions', transaction.id]);
+    this.router.navigate(['/transactions/details', transaction.id]);
   }
 
   editTransaction(transaction: GimacTransaction): void {
-    this.router.navigate(['/transactions', transaction.id, 'edit']);
+    this.router.navigate(['/transactions/details', transaction.id, 'edit']);
   }
 
   reconcileTransaction(transaction: GimacTransaction): void {
@@ -327,6 +327,40 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
 
   exportTransactions(): void {
     console.log('Export transactions');
+  }
+
+  /**
+ * Duplicate transaction
+ */
+duplicateTransaction(transaction: GimacTransaction): void {
+  console.log('Duplicate transaction:', transaction);
+  // Navigate to create page with pre-filled data
+  this.router.navigate(['/transactions/create'], {
+    queryParams: { duplicate: transaction.id }
+  });
+}
+
+/**
+ * Export single transaction
+ */
+exportTransaction(transaction: GimacTransaction): void {
+  console.log('Export transaction:', transaction);
+  // TODO: Implement export logic (download as PDF, CSV, etc.)
+}
+
+/**
+ * Copy transaction reference
+ */
+  copyReference(transaction: GimacTransaction): void {
+    const reference = transaction.internalReference || transaction.externalReference;
+    if (reference) {
+      navigator.clipboard.writeText(reference).then(() => {
+        console.log('Reference copied to clipboard:', reference);
+        // You might want to show a toast notification here
+      }).catch(err => {
+        console.error('Failed to copy reference:', err);
+      });
+    }
   }
 
   openFilters(): void {

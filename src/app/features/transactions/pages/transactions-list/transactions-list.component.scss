@@ -422,3 +422,111 @@
     }
   }
 }
+
+
+// src/app/features/transactions/pages/transactions-list/transactions-list.component.scss
+
+// ... existing styles ...
+
+// Actions Menu
+.delete-action {
+  color: #dc3545;
+
+  .menu-icon {
+    color: #dc3545;
+  }
+}
+
+// Menu icon styling
+::ng-deep {
+  .mat-mdc-menu-content {
+    .mat-mdc-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      min-height: 48px;
+
+      .menu-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #6c757d;
+      }
+
+      span {
+        flex: 1;
+      }
+
+      &:hover {
+        background-color: #f8f9fa;
+
+        .menu-icon {
+          color: #495057;
+        }
+      }
+
+      &.delete-action {
+        &:hover {
+          background-color: #fff5f5;
+          
+          .menu-icon {
+            color: #dc3545;
+          }
+
+          span {
+            color: #dc3545;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Quick action buttons (alternative to menu - optional)
+.quick-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    min-width: 32px;
+    line-height: 32px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+    }
+  }
+
+  .view-btn {
+    color: #1976d2;
+    
+    &:hover {
+      background-color: #e3f2fd;
+    }
+  }
+
+  .edit-btn {
+    color: #ed6c02;
+    
+    &:hover {
+      background-color: #fff4e5;
+    }
+  }
+
+  .delete-btn {
+    color: #dc3545;
+    
+    &:hover {
+      background-color: #fff5f5;
+    }
+  }
+}
+
+// ... rest of existing styles ...

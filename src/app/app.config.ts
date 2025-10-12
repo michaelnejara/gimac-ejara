@@ -21,6 +21,16 @@ import { dashboardReducer } from '@store/dashboard/dashboard.reducer';
 import { authReducer } from '@store/auth/auth.reducer';
 import { TransactionsEffects } from '@store/transactions/transactions.effects';
 import { transactionsReducer } from '@store/transactions/transactions.reducer';
+import { transactionDetailReducer } from '@store/transactions/transaction-detail/transaction-detail.reducer';
+import { TransactionDetailEffects } from '@store/transactions/transaction-detail/transaction-detail.effects';
+import { PartnersEffects } from '@store/partners/partners.effects';
+import { partnersReducer } from '@store/partners/partners.reducer';
+import { bondsReducer } from '@store/bonds/bonds.reducer';
+import { BondsEffects } from '@store/bonds/bonds.effects';
+import { CustomersEffects } from '@store/customers/customers.effects';
+import { BondTransactionsEffects } from '@store/bond-transactions/bond-transaction.effects';
+import { customersReducer } from '@store/customers/customers.reducer';
+import { bondTransactionsReducer } from '@store/bond-transactions/bond-transactions.reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -48,14 +58,24 @@ export const appConfig: ApplicationConfig = {
       {
         auth: authReducer,
         dashboard: dashboardReducer,
-        transactions: transactionsReducer
+        transactions: transactionsReducer,
+        transactionDetail: transactionDetailReducer,
+        partners: partnersReducer,
+        bonds: bondsReducer,
+        customers: customersReducer,
+        bondTransactions: bondTransactionsReducer
       }
     ),
     // provideState(authFeature),
     provideEffects([
       AuthEffects,
       DashboardEffects,
-      TransactionsEffects
+      TransactionsEffects,
+      TransactionDetailEffects,
+      PartnersEffects,
+      BondsEffects,
+      CustomersEffects,
+      BondTransactionsEffects
     ]),
     provideStoreDevtools({
       maxAge: 25, // Retains last 25 states

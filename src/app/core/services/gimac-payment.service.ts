@@ -29,7 +29,7 @@ import { addInterceptorMarker, INTERCEPTOR_MARKERS } from '@core/constants/inter
 })
 export class GimacPaymentService {
   private http = inject(HttpClient);
-  private apiUrl = environment.gimacPayment.apiUrl;
+  private apiUrl = environment.gimacTbB2B.apiUrl;
 
   /**
    * Fetch dashboard statistics from the API

@@ -44,7 +44,7 @@ export class TransactionsEffects {
       withLatestFrom(this.store.select(selectCurrentFilters)),
       switchMap(([{ reinitialize }, filters]) => {
         // Select appropriate service based on environment
-        const useMockData = environment.gimacPayment.useMockData;
+        const useMockData = environment.gimacTbB2B.useMockData;
         const source$ = useMockData 
           ? this.mockTransactionsService.getTransactions(filters)
           : this.transactionsService.getTransactions(filters);

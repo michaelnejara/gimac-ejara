@@ -59,7 +59,7 @@ export class DashboardEffects {
       // Switch to new API call, canceling previous if still pending
       switchMap(() => {
         // Use mock data flag from environment
-        const useMockData = environment.gimacPayment.useMockData;
+        const useMockData = environment.gimacTbB2B.useMockData;
 
         // Select appropriate service based on environment
         const source$ = useMockData 

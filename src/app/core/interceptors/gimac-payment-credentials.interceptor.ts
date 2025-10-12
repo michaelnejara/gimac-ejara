@@ -71,8 +71,8 @@ export const GimacPaymentCredentialsInterceptor: HttpInterceptorFn = (req, next)
     const clonedRequest = req.clone({
       url: cleanUrl,
       setHeaders: {
-        'client-key': environment.gimacPayment.clientKey,
-        'client-secret': environment.gimacPayment.clientSecret
+        'client-key': environment.gimacTbB2B.clientKey,
+        'client-secret': environment.gimacTbB2B.clientSecret
       }
     });
 

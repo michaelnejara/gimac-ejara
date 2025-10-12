@@ -17,7 +17,7 @@ import { addInterceptorMarker, INTERCEPTOR_MARKERS } from '@core/constants/inter
 })
 export class TransactionsService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.gimacPayment.apiUrl}/admin/transactions`;
+    private apiUrl = `${environment.gimacTbB2B.apiUrl}/admin/transactions`;
 
     /**
      * Get Transactions with Filters

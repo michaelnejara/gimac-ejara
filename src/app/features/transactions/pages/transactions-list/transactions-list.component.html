@@ -1,6 +1,5 @@
 <!-- src/app/features/transactions/pages/transactions-list/transactions-list.component.html -->
 <div class="transactions-page">
-  
   <!-- Page Header -->
   <div class="page-header">
     <div class="breadcrumbs">
@@ -10,23 +9,24 @@
       <mat-icon>chevron_right</mat-icon>
       <span class="current">Transactions</span>
     </div>
-    
+
     <h1 class="page-title">Transactions</h1>
   </div>
 
   <!-- Filters and Actions Bar -->
   <div class="filters-bar">
-    
     <!-- Status Filter Chips -->
     <div class="status-filters">
-      <mat-chip-listbox 
+      <mat-chip-listbox
         [value]="activeStatusFilter"
         (change)="onStatusFilterChange($event.value)"
-        aria-label="Status filter">
-        <mat-chip-option 
-          *ngFor="let filter of statusFilters" 
+        aria-label="Status filter"
+      >
+        <mat-chip-option
+          *ngFor="let filter of statusFilters"
           [value]="filter.value"
-          [class.active]="activeStatusFilter === filter.value">
+          [class.active]="activeStatusFilter === filter.value"
+        >
           {{ filter.label }}
           <span class="count" *ngIf="filter.value === 'all'">
             {{ (totalCount$ | async) || 0 }}
@@ -37,63 +37,46 @@
 
     <!-- Actions Row -->
     <div class="actions-row">
-      
       <!-- Search -->
       <mat-form-field class="search-field" appearance="outline">
         <mat-icon matPrefix>search</mat-icon>
-        <input 
-          matInput 
-          placeholder="Search a User"
-          [formControl]="searchControl">
+        <input matInput placeholder="Search a User" [formControl]="searchControl" />
       </mat-form-field>
 
       <!-- Right Actions -->
       <div class="right-actions">
-        
         <!-- Reconciliation CTA -->
-        <button 
-          mat-raised-button 
+        <button
+          mat-raised-button
           color="accent"
           class="reconcile-btn"
           *ngIf="unreconciledCount > 0"
-          (click)="bulkReconcile()">
+          (click)="bulkReconcile()"
+        >
           <mat-icon>account_balance</mat-icon>
           <span>Reconcile ({{ unreconciledCount }})</span>
         </button>
 
         <!-- Export Button -->
-        <button 
-          mat-button 
-          class="action-btn"
-          (click)="exportTransactions()">
+        <button mat-button class="action-btn" (click)="exportTransactions()">
           <mat-icon>file_download</mat-icon>
           <span>Export</span>
         </button>
 
         <!-- Fields Button -->
-        <button 
-          mat-button 
-          class="action-btn"
-          (click)="openFieldsSelector()">
+        <button mat-button class="action-btn" (click)="openFieldsSelector()">
           <mat-icon>view_column</mat-icon>
           <span>Fields</span>
         </button>
 
         <!-- Filters Button -->
-        <button 
-          mat-button 
-          class="action-btn"
-          (click)="openFilters()">
+        <button mat-button class="action-btn" (click)="openFilters()">
           <mat-icon>filter_list</mat-icon>
           <span>Filters</span>
         </button>
 
         <!-- Add Payment Type Button -->
-        <button 
-          mat-raised-button 
-          color="primary"
-          class="add-btn"
-          (click)="addTransaction()">
+        <button mat-raised-button color="primary" class="add-btn" (click)="addTransaction()">
           <mat-icon>add</mat-icon>
           <span>Add Payment Type</span>
         </button>
@@ -107,8 +90,8 @@
       [data]="(transactions$ | async) || []"
       [config]="tableConfig"
       (pageChange)="onPageChange($event)"
-      (sortChange)="onSortChange($event)">
-      
+      (sortChange)="onSortChange($event)"
+    >
       <!-- Custom Template: Username with Avatar -->
       <ng-template appTableColumn="username" let-row>
         <div class="username-cell">
@@ -174,49 +157,79 @@
 
       <!-- Custom Actions Template -->
       <ng-template appTableActions let-row>
-        <button 
-          mat-icon-button 
+        <button
+          mat-icon-button
           [matMenuTriggerFor]="actionsMenu"
-          (click)="$event.stopPropagation()">
+          (click)="$event.stopPropagation()"
+          matTooltip="Actions"
+        >
           <mat-icon>more_vert</mat-icon>
         </button>
-        
+
         <mat-menu #actionsMenu="matMenu">
+          <!-- View Details -->
           <button mat-menu-item (click)="viewTransaction(row)">
-            <mat-icon>visibility</mat-icon>
+            <mat-icon class="menu-icon">visibility</mat-icon>
             <span>View Details</span>
           </button>
-          
-          <button 
-            mat-menu-item 
+
+          <!-- Edit -->
+          <button
+            mat-menu-item
             (click)="editTransaction(row)"
-            *ngIf="getStatusValue(row.status) !== 'completed' && getStatusValue(row.status) !== 'cancelled'">
-            <mat-icon>edit</mat-icon>
+            *ngIf="
+              getStatusValue(row.status) !== 'completed' &&
+              getStatusValue(row.status) !== 'cancelled'
+            "
+          >
+            <mat-icon class="menu-icon">edit</mat-icon>
             <span>Edit</span>
           </button>
-          
-          <button 
-            mat-menu-item 
+
+          <!-- Duplicate -->
+          <button mat-menu-item (click)="duplicateTransaction(row)">
+            <mat-icon class="menu-icon">content_copy</mat-icon>
+            <span>Duplicate</span>
+          </button>
+
+          <mat-divider></mat-divider>
+
+          <!-- Reconcile -->
+          <button
+            mat-menu-item
             (click)="reconcileTransaction(row)"
-            *ngIf="!row.reconciledAt && getStatusValue(row.status) === 'completed'">
-            <mat-icon>account_balance</mat-icon>
+            *ngIf="!row.reconciledAt && getStatusValue(row.status) === 'completed'"
+          >
+            <mat-icon class="menu-icon">account_balance</mat-icon>
             <span>Reconcile</span>
           </button>
-          
+
+          <!-- Export -->
+          <button mat-menu-item (click)="exportTransaction(row)">
+            <mat-icon class="menu-icon">file_download</mat-icon>
+            <span>Export</span>
+          </button>
+
+          <!-- Copy Reference -->
+          <button mat-menu-item (click)="copyReference(row)">
+            <mat-icon class="menu-icon">content_paste</mat-icon>
+            <span>Copy Reference</span>
+          </button>
+
           <mat-divider></mat-divider>
-          
-          <button 
-            mat-menu-item 
+
+          <!-- Delete -->
+          <button
+            mat-menu-item
             class="delete-action"
             (click)="deleteTransaction(row)"
-            *ngIf="getStatusValue(row.status) !== 'completed'">
-            <mat-icon>delete</mat-icon>
+            *ngIf="getStatusValue(row.status) !== 'completed'"
+          >
+            <mat-icon class="menu-icon">delete</mat-icon>
             <span>Delete</span>
           </button>
         </mat-menu>
       </ng-template>
-
     </app-data-table>
   </div>
-
 </div>

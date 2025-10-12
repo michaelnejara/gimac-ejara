@@ -9,25 +9,15 @@ export const bondsRoutes: Routes = [
     redirectTo: 'list',
     pathMatch: 'full'
   },
-   {
-    path: 'bond-management',
+  {
+    path: 'list',
     loadComponent: () => import('./pages/bonds-list/bonds-list.component').then(m => m.BondsListComponent),
     title: 'Bonds - Ejara Admin Panel'
-  },
-   {
-    path: 'bond-transactions',
-    loadComponent: () => import('./pages/bond-transactions/bond-transactions').then(m => m.BondTransactionsComponent),
-    title: 'Bonds - Transactions'
   },
   {
-    path: 'partner-management',
-    loadComponent: () => import('./pages/bonds-list/bonds-list.component').then(m => m.BondsListComponent),
-    title: 'Bonds - Ejara Admin Panel'
-  },
-   {
-    path: 'customer-management',
-    loadComponent: () => import('./pages/customer-management/customer-management.component').then(m => m.CustomerManagementComponent),
-    title: 'Bonds - Ejara Admin Panel'
+    path: 'add-bond',
+    loadComponent: () => import('./pages/add-bond/add-bond').then(m => m.AddBond),
+    title: 'New Bond - Ejara Admin Panel'
   },
   {
     path: 'details/:id',

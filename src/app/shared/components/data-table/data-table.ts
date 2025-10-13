@@ -114,9 +114,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     // CRITICAL FIX: Rebuild displayed columns now that we have access to actionsTemplate
     this.displayedColumns = this.buildDisplayedColumns();
     
-    console.log('After content init - actionsTemplate:', !!this.actionsTemplate);
-    console.log('After content init - displayedColumns:', this.displayedColumns);
-    
     // Trigger change detection to update the view
     this.cdr.detectChanges();
   }

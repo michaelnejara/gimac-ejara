@@ -112,7 +112,8 @@ export const customersReducer = createReducer(
     ...state,
     filters: {
       limit: state.filters.limit,
-      offset: 0
+      offset: 0,
+      // kycStatus: ''
     }
   })),
 

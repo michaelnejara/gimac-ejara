@@ -40,10 +40,16 @@ export interface BondTransaction {
   bondCode: string;
   
   // Financial Details
+  units?: number;
+  pricePerUnit?: number;
   amount: number;
   fee: number;
   totalAmount: number;
   currency: string;
+  commission?:number;
+  commissionRate?:number;
+  fees?:number;
+  netAmount?:number;
   
   // Payment Details
   paymentStatus: PaymentStatus;
@@ -107,8 +113,12 @@ export interface TransactionStats {
   totalPurchases: number;
   totalWithdrawals: number;
   totalVolume: number;
+  withdrawalVolume?:number;
+  purchaseVolume?:number;
   averageTransactionSize: number;
   pendingCount: number;
   confirmedCount: number;
   failedCount: number;
+  processingCount:number;
+  averageTransactionAmount?:number;
 }

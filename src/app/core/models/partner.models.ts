@@ -29,6 +29,11 @@ export interface Partner {
   postalCode?: string;
   dateCreated: string;
   lastUpdated: string;
+
+  totalTransactions?: number;
+  totalVolume?: number;
+  activeCustomers?:number;
+  lastTransactionAt?:string;
 }
 
 /**
@@ -117,6 +122,10 @@ export interface PartnerFilterParams {
   offset?: number;
   sortBy?: 'dateCreated' | 'name';
   sortOrder?: 'asc' | 'desc';
+
+  minCommissionRate?: number;
+  maxCommissionRate?: number;
+  bondId?: number;
 }
 
 /**
@@ -148,4 +157,14 @@ export interface StatusUpdateResponse {
     status: PartnerStatus;
     updatedAt: string;
   };
+}
+
+export interface PartnerStatistics {
+  totalTransactions:number;
+  totalVolume:number;
+  averageTransactionAmount:number;
+  activeCustomers: number;
+  totalCommissionEarned:number;
+  monthlyGrowth:number;
+  successRate:number;
 }

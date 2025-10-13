@@ -1,1 +1,407 @@
-<p>add-partner works!</p>
+<div class="partner-form-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="breadcrumbs">
+      <a routerLink="/">Home</a>
+      <mat-icon>chevron_right</mat-icon>
+      <a routerLink="/partners">Partners</a>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="current">{{ isEditMode ? 'Edit Partner' : 'New Partner' }}</span>
+    </div>
+
+    <div class="header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? 'Edit Partner' : 'Create New Partner' }}
+      </h1>
+      <p class="page-description">
+        {{
+          isEditMode
+            ? 'Update partner information and configuration'
+            : 'Set up a new B2B partner with API access and bond permissions'
+        }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading Bar -->
+  @if ((creating$ | async) || (updating$ | async)) {
+  <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
+  }
+
+  <!-- Error Alert -->
+  @if (error$ | async; as error) {
+  <mat-card class="error-alert">
+    <div class="alert-content">
+      <mat-icon>error_outline</mat-icon>
+      <div class="alert-text">
+        <h4>Error</h4>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+  </mat-card>
+  }
+
+  <!-- Form -->
+  <form [formGroup]="partnerForm" (ngSubmit)="onSubmit()">
+    <div class="form-container">
+      <!-- Basic Information -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="header-icon">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="header-text">
+              <h2>Basic Information</h2>
+              <p>Partner identification and description</p>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Partner Name</mat-label>
+              <input matInput formControlName="name" placeholder="Enter partner company name" />
+              <mat-icon matPrefix>badge</mat-icon>
+              @if (hasError('name', 'required')) {
+              <mat-error>Partner name is required</mat-error>
+              } @if (hasError('name', 'maxlength')) {
+              <mat-error>Maximum 300 characters</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea
+                matInput
+                formControlName="description"
+                placeholder="Brief description of partner business"
+                rows="3"
+              ></textarea>
+              <mat-icon matPrefix>description</mat-icon>
+              <mat-hint>Optional: Additional information about the partner</mat-hint>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Configuration & Security -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="header-icon">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <div class="header-text">
+              <h2>Configuration & Security</h2>
+              <p>API settings, webhooks, and access control</p>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Webhook URL -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Webhook URL</mat-label>
+              <input
+                matInput
+                formControlName="webhookUrl"
+                placeholder="https://partner.example.com/webhook"
+              />
+              <mat-icon matPrefix>webhook</mat-icon>
+              @if (hasError('webhookUrl', 'pattern')) {
+              <mat-error>Please enter a valid URL (http:// or https://)</mat-error>
+              }
+              <mat-hint>Endpoint to receive transaction notifications</mat-hint>
+            </mat-form-field>
+
+            <!-- Allowed Bonds -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Allowed Bonds</mat-label>
+              <mat-select formControlName="allowedBonds" multiple>
+                <mat-select-trigger>
+                  @if ((partnerForm.get('allowedBonds')?.value?.length || 0) > 0) {
+                  <span>{{ partnerForm.get('allowedBonds')?.value?.length }} bond(s) selected</span>
+                  } @else {
+                  <span>Select bonds</span>
+                  }
+                </mat-select-trigger>
+
+                <!-- Search input -->
+                <div class="select-search">
+                  <mat-form-field appearance="outline" class="search-field">
+                    <mat-icon matPrefix>search</mat-icon>
+                    <input
+                      matInput
+                      [formControl]="bondSearchControl"
+                      placeholder="Search bonds..."
+                      (click)="$event.stopPropagation()"
+                    />
+                  </mat-form-field>
+                </div>
+
+                @if (bondsLoading$ | async) {
+                <div class="loading-options">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading bonds...</span>
+                </div>
+                } @for (bond of (filteredBonds$ | async); track bond.id) {
+                <mat-option [value]="bond.id">
+                  <div class="bond-option">
+                    <div class="bond-info">
+                      <span class="bond-name">{{ bond.name }}</span>
+                      <span class="bond-code">{{ bond.code }}</span>
+                    </div>
+                    <span class="bond-rate">{{ bond.interestRate }}%</span>
+                  </div>
+                </mat-option>
+                } @empty {
+                <div class="no-options">
+                  <mat-icon>inbox</mat-icon>
+                  <p>No bonds found</p>
+                  <button mat-button type="button" (click)="loadMoreBonds()">Load more</button>
+                </div>
+                }
+              </mat-select>
+              <mat-icon matPrefix>account_balance</mat-icon>
+              @if (hasError('allowedBonds', 'required')) {
+              <mat-error>At least one bond must be selected</mat-error>
+              }
+              <mat-hint>Bonds this partner can access</mat-hint>
+            </mat-form-field>
+
+            <!-- IP Whitelist -->
+            <div class="ip-section full-width">
+              <label class="section-label">Allowed IP Addresses</label>
+              <p class="section-hint">Whitelist IP addresses for API access (optional)</p>
+
+              <div class="ip-input-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>IP Address</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="newIpAddress"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="192.168.1.1 or IPv6"
+                    (keyup.enter)="addIpAddress()"
+                  />
+                  <mat-icon matPrefix>computer</mat-icon>
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  type="button"
+                  class="add-ip-btn"
+                  (click)="addIpAddress()"
+                  [disabled]="!newIpAddress.trim()"
+                >
+                  <mat-icon>add</mat-icon>
+                  Add
+                </button>
+              </div>
+
+              @if (ipAddresses.length > 0) {
+              <div class="ip-chips">
+                <mat-chip-set>
+                  @for (ip of ipAddresses.controls; track $index) {
+                  <mat-chip class="ip-chip" [removable]="true" (removed)="removeIpAddress($index)">
+                    <mat-icon class="chip-icon">computer</mat-icon>
+                    {{ ip.value }}
+                    <button matChipRemove>
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+              }
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Financial Settings -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="header-icon">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="header-text">
+              <h2>Financial Settings</h2>
+              <p>Commission rates and transaction limits</p>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Commission & Settlement -->
+            <mat-form-field appearance="outline">
+              <mat-label>Commission Rate (%)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="commissionRate"
+                step="0.1"
+                min="0"
+                max="100"
+              />
+              <mat-icon matPrefix>percent</mat-icon>
+              <span matTextSuffix>%</span>
+              @if (hasError('commissionRate', 'required')) {
+              <mat-error>Required</mat-error>
+              } @if (hasError('commissionRate', 'min') || hasError('commissionRate', 'max')) {
+              <mat-error>Must be 0-100</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Settlement Account</mat-label>
+              <input matInput formControlName="settlementAccount" placeholder="ACC123456" />
+              <mat-icon matPrefix>account_balance_wallet</mat-icon>
+              <mat-hint>Optional</mat-hint>
+            </mat-form-field>
+
+            <!-- Transaction Amounts -->
+            <div class="subsection-header full-width">
+              <mat-icon>monetization_on</mat-icon>
+              <span>Transaction Amount Limits</span>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Minimum Amount</mat-label>
+              <input matInput type="number" formControlName="minTransactionAmount" min="0" />
+              <span matTextPrefix>XAF&nbsp;</span>
+              @if (hasError('minTransactionAmount', 'required')) {
+              <mat-error>Required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Maximum Amount</mat-label>
+              <input matInput type="number" formControlName="maxTransactionAmount" min="0" />
+              <span matTextPrefix>XAF&nbsp;</span>
+              <mat-hint>Optional</mat-hint>
+            </mat-form-field>
+
+            @if (partnerForm.hasError('maxLessThanMin')) {
+            <div class="form-error full-width">
+              <mat-icon>error_outline</mat-icon>
+              Maximum amount must be greater than minimum amount
+            </div>
+            }
+
+            <!-- Transaction Volume -->
+            <div class="subsection-header full-width">
+              <mat-icon>trending_up</mat-icon>
+              <span>Transaction Volume Limits</span>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Daily Limit</mat-label>
+              <input matInput type="number" formControlName="dailyTransactionLimit" min="0" />
+              <span matTextPrefix>XAF&nbsp;</span>
+              <mat-hint>Optional</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Monthly Limit</mat-label>
+              <input matInput type="number" formControlName="monthlyTransactionLimit" min="0" />
+              <span matTextPrefix>XAF&nbsp;</span>
+              <mat-hint>Optional</mat-hint>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Address Information -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <div class="header-icon">
+              <mat-icon>location_on</mat-icon>
+            </div>
+            <div class="header-text">
+              <h2>Address Information</h2>
+              <p>Physical location details (optional)</p>
+            </div>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Street Address</mat-label>
+              <input matInput formControlName="address" placeholder="123 Business Street" />
+              <mat-icon matPrefix>home</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="city" placeholder="Douala" />
+              <mat-icon matPrefix>location_city</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>State/Region</mat-label>
+              <input matInput formControlName="state" placeholder="Littoral" />
+              <mat-icon matPrefix>map</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label>
+              <mat-select formControlName="country">
+                <mat-option [value]="null">Select Country</mat-option>
+                @for (country of countries; track country.code) {
+                <mat-option [value]="country.code">
+                  {{ country.name }}
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>public</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Postal Code</mat-label>
+              <input matInput formControlName="postalCode" placeholder="00237" />
+              <mat-icon matPrefix>markunread_mailbox</mat-icon>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button
+          mat-stroked-button
+          type="button"
+          class="cancel-btn"
+          (click)="onCancel()"
+          [disabled]="(creating$ | async) || (updating$ | async)"
+        >
+          Cancel
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="submit-btn"
+          [disabled]="partnerForm.invalid || (creating$ | async) || (updating$ | async)"
+        >
+          @if ((creating$ | async) || (updating$ | async)) {
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+          } @else {
+          <ng-container>
+            <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            <span>{{ isEditMode ? 'Update Partner' : 'Create Partner' }}</span>
+          </ng-container>
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

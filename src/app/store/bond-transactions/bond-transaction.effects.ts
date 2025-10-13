@@ -2,11 +2,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { BondTransactionsService } from '@core/services/bond-transactions.service';
+import { BondTransactionsService } from '@core/services/bond-transactions/bond-transactions.service';
 import { BondTransactionsActions } from './bond-transactions.actions';
 import { selectFilters } from './bond-transactions.state';
 import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '@environments/environment';
+import { BondTransactionsMockService } from '@core/services/bond-transactions/bond-transactions-mock.service';
 
 /**
  * Bond Transactions Effects
@@ -16,6 +18,9 @@ export class BondTransactionsEffects {
   private actions$ = inject(Actions);
   private store = inject(Store);
   private transactionsService = inject(BondTransactionsService);
+  
+  private mockBondTransactionsService = inject(BondTransactionsMockService);
+  private useMockData = environment.gimacTbB2B.useMockData;
 
   /**
    * Load Transactions List
@@ -24,7 +29,12 @@ export class BondTransactionsEffects {
     this.actions$.pipe(
       ofType(BondTransactionsActions.loadTransactions),
       switchMap(({ filters }) => {
-        return this.transactionsService.getTransactions(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondTransactionsService.getTransactions(filters)
+          : this.transactionsService.getTransactions(filters);
+
+        return source$.pipe(
           map(response => BondTransactionsActions.loadTransactionsSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load transactions';
@@ -42,13 +52,18 @@ export class BondTransactionsEffects {
     this.actions$.pipe(
       ofType(BondTransactionsActions.loadTransaction),
       switchMap(({ transactionId }) => {
-        return this.transactionsService.getTransactionById(transactionId).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondTransactionsService.getTransactionById(transactionId)
+          : this.transactionsService.getTransactionById(transactionId);
+
+        return source$.pipe(
           map(transaction => BondTransactionsActions.loadTransactionSuccess({ transaction })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load transaction';
-            return of(BondTransactionsActions.loadTransactionFailure({ 
-              transactionId, 
-              error: errorMessage 
+            return of(BondTransactionsActions.loadTransactionFailure({
+              transactionId,
+              error: errorMessage
             }));
           })
         );
@@ -63,7 +78,12 @@ export class BondTransactionsEffects {
     this.actions$.pipe(
       ofType(BondTransactionsActions.loadStats),
       switchMap(({ filters }) => {
-        return this.transactionsService.getTransactionStats(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondTransactionsService.getTransactionStats(filters)
+          : this.transactionsService.getTransactionStats(filters);
+
+        return source$.pipe(
           map(stats => BondTransactionsActions.loadStatsSuccess({ stats })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load statistics';
@@ -121,13 +141,13 @@ export class BondTransactionsEffects {
   /**
  * Set Transaction Type Filter - Reload Transactions
  */
-setTransactionTypeFilter$ = createEffect(() =>
-  this.actions$.pipe(
-    ofType(BondTransactionsActions.setTransactionTypeFilter),
-    withLatestFrom(this.store.select(selectFilters)),
-    map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-  )
-);
+  setTransactionTypeFilter$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondTransactionsActions.setTransactionTypeFilter),
+      withLatestFrom(this.store.select(selectFilters)),
+      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
+    )
+  );
 
   /**
    * Set Bond Filter - Reload Transactions

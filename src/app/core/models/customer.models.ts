@@ -17,6 +17,14 @@ export interface Customer {
   activeBondsCount: number;
   dateCreated: string;
   lastActivity: string;
+
+  country?: string;
+  city?: string;
+  kycStatus?: string;
+
+  activeBonds: number[];
+  totalTransactions: number;
+  lastTransactionDate: string
 }
 
 /**

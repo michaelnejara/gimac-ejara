@@ -2,11 +2,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { BondsService } from '@core/services/bonds.service';
+import { BondsService } from '@core/services/bonds/bonds.service';
 import { BondsActions } from './bonds.actions';
 import { selectFilters, selectViewMode, selectActivePartnerId } from './bonds.state';
 import { catchError, map, switchMap, withLatestFrom, tap, filter } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '@environments/environment';
+import { BondsMockService } from '@core/services/bonds/bonds-mock.service';
 
 /**
  * Bonds Effects
@@ -17,6 +19,9 @@ export class BondsEffects {
   private store = inject(Store);
   private bondsService = inject(BondsService);
 
+  private mockBondsService = inject(BondsMockService);
+  private useMockData = environment.gimacTbB2B.useMockData;
+
   /**
    * Load All Bonds (Admin)
    */
@@ -24,7 +29,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.loadBonds),
       switchMap(({ filters }) => {
-        return this.bondsService.getBonds(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.getBonds(filters)
+          : this.bondsService.getBonds(filters);
+
+        return source$.pipe(
           map(response => BondsActions.loadBondsSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load bonds';
@@ -42,7 +52,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.loadBond),
       switchMap(({ bondId }) => {
-        return this.bondsService.getBondById(bondId).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.getBondById(bondId)
+          : this.bondsService.getBondById(bondId);
+
+        return source$.pipe(
           map(bond => BondsActions.loadBondSuccess({ bond })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load bond';
@@ -60,7 +75,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.createBond),
       switchMap(({ bondData }) => {
-        return this.bondsService.createBond(bondData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.createBond(bondData)
+          : this.bondsService.createBond(bondData);
+
+        return source$.pipe(
           map(bond => BondsActions.createBondSuccess({ bond })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to create bond';
@@ -78,7 +98,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.updateBond),
       switchMap(({ bondId, bondData }) => {
-        return this.bondsService.updateBond(bondId, bondData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.updateBond(bondId, bondData)
+          : this.bondsService.updateBond(bondId, bondData);
+
+        return source$.pipe(
           map(bond => BondsActions.updateBondSuccess({ bond })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to update bond';
@@ -96,7 +121,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.deleteBond),
       switchMap(({ bondId }) => {
-        return this.bondsService.deleteBond(bondId).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.deleteBond(bondId)
+          : this.bondsService.deleteBond(bondId);
+
+        return source$.pipe(
           map(() => BondsActions.deleteBondSuccess({ bondId })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to delete bond';
@@ -114,6 +144,11 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.loadPartnerBonds),
       switchMap(({ filters }) => {
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.getPartnerBonds(filters)
+          : this.bondsService.getPartnerBonds(filters);
+
         return this.bondsService.getPartnerBonds(filters).pipe(
           map(response => BondsActions.loadPartnerBondsSuccess({ 
             partnerId: filters.partnerId,
@@ -138,7 +173,12 @@ export class BondsEffects {
     this.actions$.pipe(
       ofType(BondsActions.loadCustomerBonds),
       switchMap(({ filters }) => {
-        return this.bondsService.getCustomerBonds(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondsService.getCustomerBonds(filters)
+          : this.bondsService.getCustomerBonds(filters);
+
+        return source$.pipe(
           map(response => BondsActions.loadCustomerBondsSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load customer bonds';

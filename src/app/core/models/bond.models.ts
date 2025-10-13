@@ -37,6 +37,23 @@ export interface Bond {
   riskLevel?: BondRiskLevel;
   dateCreated: string;
   lastUpdated: string;
+
+  type?: string;
+  currency?:string;
+  faceValue?:number;
+  currentValue?:number;
+  minimumInvestment?:number;
+  maximumInvestment?:number;
+  totalIssued?:number;
+  totalSubscribed?:number;
+  availableUnits?:number;
+  features?:string[];
+  earlyRedemptionAllowed?: boolean;
+  earlyRedemptionPenalty?: number; // percentage
+  partnerCount?: number;
+  customerCount?: number;
+  // createdAt?: string;
+  // updatedAt?: string;
 }
 
 /**
@@ -98,6 +115,9 @@ export interface BondFilterParams {
   endMaturityDate?: string;
   limit?: number;
   offset?: number;
+
+  minValue?: number;
+  maxValue?: number;
 }
 
 /**
@@ -109,6 +129,9 @@ export interface PartnerBondFilterParams {
   keyword?: string;
   limit?: number;
   offset?: number;
+
+  bondCode?:string;
+  bondName?:string;
 }
 
 /**

@@ -2,11 +2,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { PartnersService } from '@core/services/partners.service';
+import { PartnersService } from '@core/services/partners/partners.service';
 import { PartnersActions } from './partners.actions';
 import { selectFilters } from './partners.state';
 import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { PartnersMockService } from '@core/services/partners/partners-mock.service';
+import { environment } from '@environments/environment';
 
 /**
  * Partners Effects
@@ -17,6 +19,9 @@ export class PartnersEffects {
   private store = inject(Store);
   private partnersService = inject(PartnersService);
 
+  private mockPartnersService = inject(PartnersMockService);
+  private useMockData = environment.gimacTbB2B.useMockData;
+
   /**
    * Load Partners List
    */
@@ -24,7 +29,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.loadPartners),
       switchMap(({ filters }) => {
-        return this.partnersService.getPartners(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.getPartners(filters)
+          : this.partnersService.getPartners(filters);
+
+        return source$.pipe(
           map(response => PartnersActions.loadPartnersSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load partners';
@@ -42,7 +52,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.loadPartner),
       switchMap(({ partnerId }) => {
-        return this.partnersService.getPartnerById(partnerId).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.getPartnerById(partnerId)
+          : this.partnersService.getPartnerById(partnerId);
+
+        return source$.pipe(
           map(partner => PartnersActions.loadPartnerSuccess({ partner })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load partner';
@@ -60,7 +75,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.createPartner),
       switchMap(({ partnerData }) => {
-        return this.partnersService.createPartner(partnerData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.createPartner(partnerData)
+          : this.partnersService.createPartner(partnerData);
+
+        return source$.pipe(
           map(partner => PartnersActions.createPartnerSuccess({ partner })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to create partner';
@@ -78,7 +98,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.updatePartner),
       switchMap(({ partnerId, partnerData }) => {
-        return this.partnersService.updatePartner(partnerId, partnerData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.updatePartner(partnerId, partnerData)
+          : this.partnersService.updatePartner(partnerId, partnerData);
+
+        return source$.pipe(
           map(partner => PartnersActions.updatePartnerSuccess({ partner })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to update partner';
@@ -96,6 +121,11 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.updatePartnerStatus),
       switchMap(({ partnerId, status }) => {
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.updatePartnerStatus(partnerId, status)
+          : this.partnersService.updatePartnerStatus(partnerId, status);
+
         return this.partnersService.updatePartnerStatus(partnerId, status).pipe(
           map(response => PartnersActions.updatePartnerStatusSuccess({
             partnerId,
@@ -118,6 +148,11 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.deletePartner),
       switchMap(({ partnerId }) => {
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.deletePartner(partnerId)
+          : this.partnersService.deletePartner(partnerId);
+
         return this.partnersService.deletePartner(partnerId).pipe(
           map(() => PartnersActions.deletePartnerSuccess({ partnerId })),
           catchError(error => {

@@ -4,9 +4,9 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { DashboardActions } from './dashboard.actions';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { GimacPaymentService } from '@core/services/gimac-payment.service';
+import { GimacPaymentService } from '@core/services/g-payments/gimac-payment.service';
 import { environment } from '@environments/environment';
-import { GimacPaymentMockDataService } from '@core/services/gimac-payment-mock-data.service';
+import { GimacPaymentMockDataService } from '@core/services/g-payments/gimac-payment-mock-data.service';
 
 /**
  * Dashboard Effects

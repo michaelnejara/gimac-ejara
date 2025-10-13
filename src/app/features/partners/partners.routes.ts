@@ -20,6 +20,11 @@ export const partnersRoutes: Routes = [
     title: 'New Partner - Ejara Admin Panel'
   },
   {
+    path: 'update-partner/:id',
+    loadComponent: () => import('./pages/add-partner/add-partner').then(m => m.AddPartner),
+    title: 'Update Partner - Ejara Admin Panel'
+  },
+  {
     path: 'details/:id',
     loadComponent: () => import('./pages/partner-details/partner-details').then(m => m.PartnerDetails),
     title: 'Partner Details - Ejara Admin Panel'

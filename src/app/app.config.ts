@@ -14,7 +14,7 @@ import { errorInterceptor } from '@core/interceptors/error/error-interceptor';
 import { provideEffects } from '@ngrx/effects';
 import { AuthEffects } from '@store/auth/auth.effects';
 import { environment } from '@environments/environment';
-import { ErrorBoundaryService } from '@core/services/error-boundary.service';
+import { ErrorBoundaryService } from '@core/services/error-boundary/error-boundary.service';
 import { GimacPaymentCredentialsInterceptor } from '@core/interceptors/gimac-payment-credentials.interceptor';
 import { DashboardEffects } from '@store/dashboard/dashboard.effects';
 import { dashboardReducer } from '@store/dashboard/dashboard.reducer';

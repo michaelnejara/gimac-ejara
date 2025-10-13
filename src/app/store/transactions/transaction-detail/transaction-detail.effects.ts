@@ -2,8 +2,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { TransactionsService } from '@core/services/transactions.service';
-import { MockTransactionsService } from '@core/services/mock-transactions.service';
+import { TransactionsService } from '@core/services/transactions/transactions.service';
+import { MockTransactionsService } from '@core/services/transactions/mock-transactions.service';
 import { TransactionDetailActions } from './transaction-detail.actions';
 import { 
   selectTransactionExists,

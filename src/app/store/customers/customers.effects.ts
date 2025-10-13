@@ -2,11 +2,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { CustomersService } from '@core/services/customers.service';
+import { CustomersService } from '@core/services/customers/customers.service';
 import { CustomersActions } from './customers.actions';
 import { selectFilters } from './customers.state';
 import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '@environments/environment';
+import { CustomersMockService } from '@core/services/customers/customers-mock.service';
 
 /**
  * Customers Effects
@@ -17,6 +19,9 @@ export class CustomersEffects {
   private store = inject(Store);
   private customersService = inject(CustomersService);
 
+  private mockCustomersService = inject(CustomersMockService);
+  private useMockData = environment.gimacTbB2B.useMockData;
+
   /**
    * Load Customers List
    */
@@ -24,7 +29,12 @@ export class CustomersEffects {
     this.actions$.pipe(
       ofType(CustomersActions.loadCustomers),
       switchMap(({ filters }) => {
-        return this.customersService.getCustomers(filters).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockCustomersService.getCustomers(filters!)
+          : this.customersService.getCustomers(filters);
+
+        return source$.pipe(
           map(response => CustomersActions.loadCustomersSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load customers';
@@ -42,7 +52,12 @@ export class CustomersEffects {
     this.actions$.pipe(
       ofType(CustomersActions.loadCustomer),
       switchMap(({ customerId }) => {
-        return this.customersService.getCustomerById(customerId).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockCustomersService.getCustomerById(customerId)
+          : this.customersService.getCustomerById(customerId);
+
+        return source$.pipe(
           map(customer => CustomersActions.loadCustomerSuccess({ customer })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load customer';

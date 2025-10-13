@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { catchError, retry, timer } from 'rxjs';
 import { throwError } from 'rxjs';
 import { NotificationService } from '@core/services/notification/notification.service';
-import { ErrorLoggingService } from '@core/services/error-logging.service';
+import { ErrorLoggingService } from '@core/services/error-boundary/error-logging.service';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '@store/auth/auth.actions';

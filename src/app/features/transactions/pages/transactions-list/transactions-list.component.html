@@ -1,4 +1,3 @@
-<!-- src/app/features/transactions/pages/transactions-list/transactions-list.component.html -->
 <div class="transactions-page">
   <!-- Page Header -->
   <div class="page-header">
@@ -22,16 +21,19 @@
         (change)="onStatusFilterChange($event.value)"
         aria-label="Status filter"
       >
-        <mat-chip-option
-          *ngFor="let filter of statusFilters"
-          [value]="filter.value"
-          [class.active]="activeStatusFilter === filter.value"
-        >
-          {{ filter.label }}
-          <span class="count" *ngIf="filter.value === 'all'">
-            {{ (totalCount$ | async) || 0 }}
-          </span>
-        </mat-chip-option>
+        @for (filter of statusFilters; track filter.value) {
+          <mat-chip-option
+            [value]="filter.value"
+            [class.active]="activeStatusFilter === filter.value"
+          >
+            {{ filter.label }}
+            @if (filter.value === 'all') {
+              <span class="count">
+                {{ (totalCount$ | async) || 0 }}
+              </span>
+            }
+          </mat-chip-option>
+        }
       </mat-chip-listbox>
     </div>
 
@@ -46,16 +48,17 @@
       <!-- Right Actions -->
       <div class="right-actions">
         <!-- Reconciliation CTA -->
-        <button
-          mat-raised-button
-          color="accent"
-          class="reconcile-btn"
-          *ngIf="unreconciledCount > 0"
-          (click)="bulkReconcile()"
-        >
-          <mat-icon>account_balance</mat-icon>
-          <span>Reconcile ({{ unreconciledCount }})</span>
-        </button>
+        @if (unreconciledCount > 0) {
+          <button
+            mat-raised-button
+            color="accent"
+            class="reconcile-btn"
+            (click)="bulkReconcile()"
+          >
+            <mat-icon>account_balance</mat-icon>
+            <span>Reconcile ({{ unreconciledCount }})</span>
+          </button>
+        }
 
         <!-- Export Button -->
         <button mat-button class="action-btn" (click)="exportTransactions()">
@@ -174,17 +177,12 @@
           </button>
 
           <!-- Edit -->
-          <button
-            mat-menu-item
-            (click)="editTransaction(row)"
-            *ngIf="
-              getStatusValue(row.status) !== 'completed' &&
-              getStatusValue(row.status) !== 'cancelled'
-            "
-          >
-            <mat-icon class="menu-icon">edit</mat-icon>
-            <span>Edit</span>
-          </button>
+          @if (getStatusValue(row.status) !== 'completed' && getStatusValue(row.status) !== 'cancelled') {
+            <button mat-menu-item (click)="editTransaction(row)">
+              <mat-icon class="menu-icon">edit</mat-icon>
+              <span>Edit</span>
+            </button>
+          }
 
           <!-- Duplicate -->
           <button mat-menu-item (click)="duplicateTransaction(row)">
@@ -195,14 +193,12 @@
           <mat-divider></mat-divider>
 
           <!-- Reconcile -->
-          <button
-            mat-menu-item
-            (click)="reconcileTransaction(row)"
-            *ngIf="!row.reconciledAt && getStatusValue(row.status) === 'completed'"
-          >
-            <mat-icon class="menu-icon">account_balance</mat-icon>
-            <span>Reconcile</span>
-          </button>
+          @if (!row.reconciledAt && getStatusValue(row.status) === 'completed') {
+            <button mat-menu-item (click)="reconcileTransaction(row)">
+              <mat-icon class="menu-icon">account_balance</mat-icon>
+              <span>Reconcile</span>
+            </button>
+          }
 
           <!-- Export -->
           <button mat-menu-item (click)="exportTransaction(row)">
@@ -219,15 +215,16 @@
           <mat-divider></mat-divider>
 
           <!-- Delete -->
-          <button
-            mat-menu-item
-            class="delete-action"
-            (click)="deleteTransaction(row)"
-            *ngIf="getStatusValue(row.status) !== 'completed'"
-          >
-            <mat-icon class="menu-icon">delete</mat-icon>
-            <span>Delete</span>
-          </button>
+          @if (getStatusValue(row.status) !== 'completed') {
+            <button
+              mat-menu-item
+              class="delete-action"
+              (click)="deleteTransaction(row)"
+            >
+              <mat-icon class="menu-icon">delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          }
         </mat-menu>
       </ng-template>
     </app-data-table>

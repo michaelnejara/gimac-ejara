@@ -142,6 +142,9 @@ export interface PaginationConfig {
 export interface TableConfig<T = any> {
   /** Column definitions */
   columns: TableColumn<T>[];
+
+  /** Actions column width */
+  actionsWidth?: string;
   
   /** Action buttons */
   actions?: TableAction<T>[];

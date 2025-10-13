@@ -439,6 +439,9 @@
 
 // Menu icon styling
 ::ng-deep {
+  .mat-mdc-menu-panel {
+    background-color: var(--color-background) !important;
+  }
   .mat-mdc-menu-content {
     .mat-mdc-menu-item {
       display: flex;

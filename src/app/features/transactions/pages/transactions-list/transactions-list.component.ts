@@ -105,11 +105,11 @@ export class TransactionsListComponent implements OnInit, OnDestroy {
     this.totalCount$ = this.store.select(selectTransactionsTotalCount);
     this.pagination$ = this.store.select(selectTransactionsPagination);
     this.currentFilters$ = this.store.select(selectCurrentFilters);
-
-    this.tableConfig = this.buildTableConfig();
   }
 
   ngOnInit(): void {
+    // Initialize table config
+    this.tableConfig = this.buildTableConfig();
     this.loadTransactions();
 
     this.searchControl.valueChanges.pipe(

@@ -8,6 +8,7 @@ import {
   OnChanges,
   AfterContentInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef, // ADD THIS
   ContentChildren,
   QueryList,
   TemplateRef,
@@ -37,47 +38,6 @@ import {
 // Directives (for ContentChildren queries only)
 import { TableColumnDirective, TableActionsDirective } from './data-table-directives';
 
-/**
- * Reusable Data Table Component
- * 
- * A flexible, feature-rich table component built on Angular Material.
- * 
- * Features:
- * - Configurable columns with multiple types
- * - Custom column templates via appTableColumn directive
- * - Custom cell renderers
- * - Sorting
- * - Pagination
- * - Row actions (icon buttons or regular buttons)
- * - Custom actions template via appTableActions directive
- * - Row selection
- * - Loading states
- * - Empty states
- * - Custom formatters
- * - Badge rendering
- * - Sticky columns
- * 
- * @example
- * ```html
- * <app-data-table
- *   [data]="transactions"
- *   [config]="tableConfig"
- *   (pageChange)="onPageChange($event)"
- *   (sortChange)="onSortChange($event)">
- *   
- *   <!-- Custom column template -->
- *   <ng-template appTableColumn="fullName" let-row>
- *     <strong>{{ row.firstName }} {{ row.lastName }}</strong>
- *   </ng-template>
- *   
- *   <!-- Custom actions template -->
- *   <ng-template appTableActions let-row>
- *     <button mat-button (click)="onEdit(row)">Edit</button>
- *     <button mat-button (click)="onDelete(row)">Delete</button>
- *   </ng-template>
- * </app-data-table>
- * ```
- */
 @Component({
   selector: 'app-data-table',
   standalone: true,
@@ -102,59 +62,40 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
   // INPUTS & OUTPUTS
   // ==================
   
-  /** Table data */
   @Input() data: T[] = [];
-  
-  /** Table configuration */
   @Input() config!: TableConfig<T>;
   
-  /** Page change event */
   @Output() pageChange = new EventEmitter<TablePageEvent>();
-  
-  /** Sort change event */
   @Output() sortChange = new EventEmitter<TableSortEvent>();
-  
-  /** Selection change event */
   @Output() selectionChange = new EventEmitter<TableSelectionEvent<T>>();
-  
-  /** Row click event */
   @Output() rowClick = new EventEmitter<T>();
 
   // ==================
   // CONTENT CHILDREN
   // ==================
   
-  /** Custom column templates */
   @ContentChildren(TableColumnDirective) columnTemplates!: QueryList<TableColumnDirective>;
-  
-  /** Custom actions template */
   @ContentChild(TableActionsDirective) actionsTemplate?: TableActionsDirective;
 
   // ==================
   // VIEW CHILDREN
   // ==================
   
-  /** Material table data source */
   dataSource = new MatTableDataSource<T>();
-  
-  /** Selection model for checkbox selection */
   selection = new SelectionModel<T>(true, []);
   
-  /** Paginator reference */
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
-  /** Sort reference */
   @ViewChild(MatSort) sort!: MatSort;
   
   // ==================
   // COMPONENT STATE
   // ==================
   
-  /** Displayed column keys */
   displayedColumns: string[] = [];
-  
-  /** Map of column keys to templates */
   private columnTemplateMap = new Map<string, TemplateRef<any>>();
+
+  // ADD THIS: constructor to inject ChangeDetectorRef
+  constructor(private cdr: ChangeDetectorRef) {}
 
   // ==================
   // LIFECYCLE HOOKS
@@ -169,32 +110,39 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     this.columnTemplates.forEach(directive => {
       this.columnTemplateMap.set(directive.columnKey, directive.template);
     });
+
+    // CRITICAL FIX: Rebuild displayed columns now that we have access to actionsTemplate
+    this.displayedColumns = this.buildDisplayedColumns();
+    
+    console.log('After content init - actionsTemplate:', !!this.actionsTemplate);
+    console.log('After content init - displayedColumns:', this.displayedColumns);
+    
+    // Trigger change detection to update the view
+    this.cdr.detectChanges();
   }
 
   ngOnChanges(): void {
     this.updateDataSource();
+    
+    // Also rebuild columns on config changes (after content init)
+    if (this.columnTemplates && this.columnTemplates.length > 0) {
+      this.displayedColumns = this.buildDisplayedColumns();
+    }
   }
 
   // ==================
   // PRIVATE METHODS
   // ==================
 
-  /**
-   * Initialize table configuration
-   */
   private initializeTable(): void {
-    // Build displayed columns array
+    // Initial build - will be rebuilt in ngAfterContentInit
     this.displayedColumns = this.buildDisplayedColumns();
-    
-    // Update data source
     this.updateDataSource();
   }
 
-  /**
-   * Build array of displayed column keys
-   * Includes selection column and actions column if configured
-   */
   private buildDisplayedColumns(): string[] {
+    if (!this.config) return [];
+
     const columns: string[] = [];
     
     // Add selection column
@@ -205,36 +153,39 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     // Add data columns
     const dataColumns = this.config.columns
       .filter((col) => !col.hidden)
-      .map((col: { key: any; }) => col.key);
+      .map((col) => col.key);
     columns.push(...dataColumns);
     
     // Add actions column
-    if (this.config.showActions && (this.config.actions?.length || this.actionsTemplate)) {
+    // Check if showActions is true AND either:
+    // 1. There are config actions, OR
+    // 2. There is an actions template from parent
+    if (this.config.showActions) {
+      const hasConfigActions = this.config.actions && this.config.actions.length > 0;
+      const hasActionsTemplate = !!this.actionsTemplate;
+      
+      console.log('Building columns - showActions:', this.config.showActions);
+      console.log('Building columns - hasConfigActions:', hasConfigActions);
+      console.log('Building columns - hasActionsTemplate:', hasActionsTemplate);
+      
+      // Always add actions column if showActions is true
+      // The template will handle showing appropriate content
       columns.push('actions');
     }
     
     return columns;
   }
 
-  /**
-   * Update data source with new data
-   */
   private updateDataSource(): void {
     this.dataSource.data = this.data;
   }
 
-  /**
-   * Format date value
-   */
   private formatDate(value: any): string {
     if (!value) return '-';
     const date = new Date(value);
     return date.toLocaleDateString();
   }
 
-  /**
-   * Format currency value
-   */
   private formatCurrency(value: any): string {
     if (value === null || value === undefined) return '-';
     return new Intl.NumberFormat('en-US', {
@@ -243,17 +194,11 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     }).format(value);
   }
 
-  /**
-   * Format number value
-   */
   private formatNumber(value: any): string {
     if (value === null || value === undefined) return '-';
     return new Intl.NumberFormat('en-US').format(value);
   }
 
-  /**
-   * Emit selection change event
-   */
   private emitSelectionChange(): void {
     this.selectionChange.emit({
       selected: this.selection.selected
@@ -264,53 +209,36 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
   // PUBLIC METHODS
   // ==================
 
-  /**
-   * Get column configuration by key
-   */
   getColumn(key: string): TableColumn<T> | undefined {
-    return this.config.columns.find((col: { key: string; }) => col.key === key);
+    return this.config.columns.find((col) => col.key === key);
   }
 
-  /**
-   * Get custom template for column
-   */
   getColumnTemplate(columnKey: string): TemplateRef<any> | null {
     const column = this.getColumn(columnKey);
     
-    // Check if column has templateRef
     if (column?.templateRef) {
       return column.templateRef;
     }
     
-    // Check content children templates
     return this.columnTemplateMap.get(columnKey) || null;
   }
 
-  /**
-   * Check if column has custom template
-   */
   hasCustomTemplate(columnKey: string): boolean {
     const column = this.getColumn(columnKey);
     return column?.type === 'template' || !!this.getColumnTemplate(columnKey);
   }
 
-  /**
-   * Get formatted cell value
-   */
   getCellValue(row: T, column: TableColumn<T>): any {
-    // Use cell renderer if provided
     if (column.cellRenderer) {
       return column.cellRenderer(row);
     }
     
     const value = (row as any)[column.key];
     
-    // Use custom formatter if provided
     if (column.formatter) {
       return column.formatter(value, row);
     }
     
-    // Apply type-based formatting
     switch (column.type) {
       case 'date':
         return this.formatDate(value);
@@ -325,9 +253,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     }
   }
 
-  /**
-   * Get badge color for value
-   */
   getBadgeColor(column: TableColumn<T>, value: any): string {
     if (!column.badgeConfig) return 'default';
     
@@ -340,9 +265,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return defaultColor || 'default';
   }
 
-  /**
-   * Get badge display value
-   */
   getBadgeValue(column: TableColumn<T>, value: any): string {
     if (!column.badgeConfig || !column.badgeConfig.transform) {
       return value;
@@ -351,9 +273,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return column.badgeConfig.transform(value);
   }
 
-  /**
-   * Get visible actions for row
-   */
   getVisibleActions(row: T): TableAction<T>[] {
     if (!this.config.actions) return [];
     
@@ -365,9 +284,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     });
   }
 
-  /**
-   * Check if action is disabled for row
-   */
   isActionDisabled(action: TableAction<T>, row: T): boolean {
     if (action.disabled) {
       return action.disabled(row);
@@ -375,16 +291,10 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return false;
   }
 
-  /**
-   * Get column alignment class
-   */
   getColumnAlignClass(column: TableColumn<T>): string {
     return `text-${column.align || 'left'}`;
   }
 
-  /**
-   * Get row CSS class
-   */
   getRowClass(row: T): string {
     if (!this.config.rowCssClass) return '';
     
@@ -395,15 +305,11 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return this.config.rowCssClass;
   }
 
-  /**
-   * Get tooltip text for column header
-   */
   getHeaderTooltip(column: TableColumn<T>): string {
     if (!column.tooltip) {
       return '';
     }
 
-    // Only show tooltip on header if it's a static string
     if (typeof column.tooltip === 'string') {
       return column.tooltip;
     }
@@ -411,9 +317,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return '';
   }
 
-  /**
-   * Get cell tooltip
-   */
   getCellTooltip(column: TableColumn<T>, row: T): string {
     if (!column.tooltip) {
       return '';
@@ -426,9 +329,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return column.tooltip;
   }
 
-  /**
-   * Get button type class
-   */
   getActionButtonType(action: TableAction<T>): string {
     return action.type || 'icon';
   }
@@ -437,9 +337,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
   // EVENT HANDLERS
   // ==================
 
-  /**
-   * Handle row click
-   */
   onRowClick(row: T): void {
     if (this.config.rowClickHandler) {
       this.config.rowClickHandler(row);
@@ -447,9 +344,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     this.rowClick.emit(row);
   }
 
-  /**
-   * Handle page change
-   */
   onPageChange(event: PageEvent): void {
     this.pageChange.emit({
       pageIndex: event.pageIndex,
@@ -458,9 +352,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     });
   }
 
-  /**
-   * Handle sort change
-   */
   onSortChange(sort: Sort): void {
     this.sortChange.emit({
       active: sort.active,
@@ -468,9 +359,6 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     });
   }
 
-  /**
-   * Handle action button click
-   */
   onActionClick(action: TableAction<T>, row: T, event: Event): void {
     event.stopPropagation();
     action.handler(row);
@@ -480,18 +368,12 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
   // SELECTION METHODS
   // ==================
 
-  /**
-   * Whether all rows are selected
-   */
   isAllSelected(): boolean {
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSource.data.length;
     return numSelected === numRows;
   }
 
-  /**
-   * Toggle all rows selection
-   */
   toggleAllRows(): void {
     if (this.isAllSelected()) {
       this.selection.clear();
@@ -502,24 +384,15 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     this.emitSelectionChange();
   }
 
-  /**
-   * Toggle single row selection
-   */
   toggleRow(row: T): void {
     this.selection.toggle(row);
     this.emitSelectionChange();
   }
 
-  /**
-   * Check if row is selected
-   */
   isRowSelected(row: T): boolean {
     return this.selection.isSelected(row);
   }
 
-  /**
-   * Get checkbox label
-   */
   checkboxLabel(row?: T): string {
     if (!row) {
       return `${this.isAllSelected() ? 'deselect' : 'select'} all`;

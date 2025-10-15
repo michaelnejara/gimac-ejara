@@ -1,1 +1,374 @@
-<p>partners-list works!</p>
+<!-- src/app/features/partners/pages/partners-list/partners-list.component.html -->
+<div class="partners-list-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">business</mat-icon>
+          Partners Management
+        </h1>
+        <p class="page-description">
+          Manage B2B partners, configure access, and monitor performance
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button mat-raised-button color="primary" class="add-partner-btn" (click)="addNewPartner()">
+          <mat-icon>add</mat-icon>
+          Add New Partner
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    @if (total$ | async; as total) {
+    <!-- Stats Cards - Updated to use correct observables -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>business</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total Partners</div>
+          <div class="stat-value">{{ (total$ | async) || 0 }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Active Partners</div>
+          <div class="stat-value">
+            {{ (activePartners$ | async)?.length || 0 }}
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon suspended">
+          <mat-icon>pause_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Suspended</div>
+          <div class="stat-value">
+            {{ (suspendedPartners$ | async)?.length || 0 }}
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon inactive">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Inactive</div>
+          <div class="stat-value">
+            {{ (inactivePartners$ | async)?.length || 0 }}
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Filter Block -->
+  <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
+    <mat-card-header>
+      <div class="filter-header">
+        <div class="filter-header-left">
+          <button
+            mat-icon-button
+            class="toggle-btn"
+            (click)="toggleFilters()"
+            [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'"
+          >
+            <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+
+          <div class="filter-title">
+            <mat-icon>filter_list</mat-icon>
+            <span>Filters</span>
+            @if (activeFiltersCount$ | async; as count) { @if (count > 0) {
+            <mat-chip class="active-filters-chip">{{ count }}</mat-chip>
+            } } @if (hasUnappliedFilters) {
+            <mat-chip class="unapplied-chip">Not Applied</mat-chip>
+            }
+          </div>
+        </div>
+
+        <div class="filter-header-right">
+          @if (filtersExpanded) {
+          <button
+            mat-button
+            class="clear-header-btn"
+            (click)="resetFilters()"
+            [disabled]="(activeFiltersCount$ | async) === 0"
+          >
+            <mat-icon>clear_all</mat-icon>
+            <span>Clear</span>
+          </button>
+          }
+        </div>
+      </div>
+    </mat-card-header>
+
+    <div class="filter-content-wrapper" [class.show]="showFiltersContent">
+      <mat-card-content>
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filter-grid">
+            <!-- Keyword Search -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Search</mat-label>
+              <input
+                matInput
+                formControlName="keyword"
+                placeholder="Partner name, code, or account"
+              />
+              <mat-icon matPrefix>search</mat-icon>
+              @if (filterForm.get('keyword')?.value) {
+              <button
+                matSuffix
+                mat-icon-button
+                (click)="filterForm.patchValue({ keyword: '' })"
+                type="button"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+              }
+            </mat-form-field>
+
+            <!-- Status Filter -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                @for (option of statusOptions; track option.value) {
+                <mat-option [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>toggle_on</mat-icon>
+            </mat-form-field>
+
+            <!-- Partner Code -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Partner Code</mat-label>
+              <input matInput formControlName="code" placeholder="FTS-001, DPC-002" />
+              <mat-icon matPrefix>tag</mat-icon>
+            </mat-form-field>
+
+            <!-- Partner Name -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Partner Name</mat-label>
+              <input matInput formControlName="name" placeholder="Search by name" />
+              <mat-icon matPrefix>business</mat-icon>
+            </mat-form-field>
+
+            <!-- Min Commission Rate -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Min Commission (%)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="minCommissionRate"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+              <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <!-- Max Commission Rate -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Max Commission (%)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="maxCommissionRate"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+              <mat-icon matPrefix>percent</mat-icon>
+            </mat-form-field>
+
+            <!-- Bond ID Filter -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Filter by Bond ID</mat-label>
+              <input matInput type="number" formControlName="bondId" placeholder="Enter bond ID" />
+              <mat-icon matPrefix>account_balance</mat-icon>
+              <mat-hint>Show partners with specific bond</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Filter Actions -->
+          <div class="filter-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              class="clear-btn"
+              (click)="resetFilters()"
+              [disabled]="(activeFiltersCount$ | async) === 0"
+            >
+              <mat-icon>clear_all</mat-icon>
+              Clear All
+            </button>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="apply-btn"
+              (click)="applyFilters()"
+              [disabled]="!hasUnappliedFilters"
+            >
+              <mat-icon>check</mat-icon>
+              Apply Filters
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </div>
+  </mat-card>
+
+  <!-- Error Alert -->
+  @if (error$ | async; as error) {
+  <mat-card class="error-alert">
+    <div class="alert-content">
+      <mat-icon>error_outline</mat-icon>
+      <div class="alert-text">
+        <h4>Error Loading Partners</h4>
+        <p>{{ error }}</p>
+      </div>
+      <button mat-button (click)="loadPartners()">Retry</button>
+    </div>
+  </mat-card>
+  }
+
+  <!-- Partners Table -->
+  <mat-card class="table-card">
+    <app-data-table
+      [data]="(partners$ | async) || []"
+      [config]="tableConfig"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+    >
+      <!-- Custom Template: Partner Name with Avatar -->
+      <ng-template appTableColumn="name" let-row>
+        <div class="partner-name-cell">
+          <div class="partner-avatar">
+            {{ getInitials(row.name) }}
+          </div>
+          <div class="partner-info">
+            <div class="name">{{ row.name }}</div>
+            @if (row.description) {
+            <div class="description">{{ row.description | slice : 0 : 40 }}...</div>
+            }
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Template: Status Badge -->
+      <ng-template appTableColumn="status" let-row>
+        <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+          {{ row.status | titlecase }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Template: Commission Rate -->
+      <ng-template appTableColumn="commissionRate" let-row>
+        <span class="commission-value">{{ row.commissionRate }}%</span>
+      </ng-template>
+
+      <!-- Custom Template: Bonds Count -->
+      <ng-template appTableColumn="allowedBonds" let-row>
+        <div class="bonds-cell">
+          <mat-chip class="bond-count-chip">
+            {{ row.allowedBonds?.length || 0 }}
+          </mat-chip>
+        </div>
+      </ng-template>
+
+      <!-- Custom Template: Customers Count -->
+      <ng-template appTableColumn="activeCustomers" let-row>
+        <span class="customer-count">
+          {{ formatNumber(row.activeCustomers || 0) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Template: Total Volume -->
+      <ng-template appTableColumn="totalVolume" let-row>
+        <span class="volume-value">
+          {{ formatCurrency(row.totalVolume || 0) }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Template: Date Created -->
+      <ng-template appTableColumn="dateCreated" let-row>
+        <div class="date-cell">
+          <div class="date">{{ formatDate(row.dateCreated) }}</div>
+          <div class="time">{{ formatTime(row.dateCreated) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableActions let-row>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="actionsMenu"
+          (click)="$event.stopPropagation()"
+          matTooltip="Actions"
+        >
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <mat-menu #actionsMenu="matMenu">
+          <!-- View Details -->
+          <button mat-menu-item (click)="viewPartner(row)">
+            <mat-icon class="menu-icon">visibility</mat-icon>
+            <span>View Details</span>
+          </button>
+
+          <!-- View Bonds -->
+          <button mat-menu-item (click)="viewPartnerBonds(row)">
+            <mat-icon class="menu-icon">account_balance</mat-icon>
+            <span>View Bonds</span>
+          </button>
+
+          <!-- Edit Partner -->
+          <button mat-menu-item (click)="editPartner(row)">
+            <mat-icon class="menu-icon">edit</mat-icon>
+            <span>Edit Partner</span>
+          </button>
+
+          <mat-divider></mat-divider>
+
+          <!-- Manage Status -->
+          <button mat-menu-item (click)="manageStatus(row)">
+            <mat-icon class="menu-icon">toggle_on</mat-icon>
+            <span>Manage Status</span>
+          </button>
+
+          <!-- Assign Bonds -->
+          <button mat-menu-item (click)="assignBonds(row)">
+            <mat-icon class="menu-icon">add_circle</mat-icon>
+            <span>Assign Bonds</span>
+          </button>
+
+          <mat-divider></mat-divider>
+
+          <!-- Delete -->
+          @if (row.status !== 'active') {
+          <button mat-menu-item class="delete-action" (click)="deletePartner(row)">
+            <mat-icon class="menu-icon">delete</mat-icon>
+            <span>Delete</span>
+          </button>
+          }
+        </mat-menu>
+      </ng-template>
+    </app-data-table>
+  </mat-card>
+</div>

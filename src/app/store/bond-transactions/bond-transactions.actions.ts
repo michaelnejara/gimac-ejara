@@ -1,4 +1,3 @@
-// src/app/store/bond-transactions/bond-transactions.actions.ts
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { 
   BondTransaction,
@@ -45,6 +44,18 @@ export const BondTransactionsActions = createActionGroup({
     // Selection
     'Select Transaction': props<{ transactionId: number | null }>(),
     'Clear Selection': emptyProps(),
+
+    // Change Transaction Status
+    'Change Transaction Status': props<{ 
+      transactionId: number; 
+      status: string;
+      reason?: string;
+    }>(),
+    'Change Transaction Status Success': props<{ transaction: BondTransaction }>(),
+    'Change Transaction Status Failure': props<{ 
+      transactionId: number; 
+      error: string 
+    }>(),
 
     // UI State
     'Set Loading': props<{ loading: boolean }>(),

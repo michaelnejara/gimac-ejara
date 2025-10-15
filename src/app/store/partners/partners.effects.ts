@@ -126,7 +126,7 @@ export class PartnersEffects {
           ? this.mockPartnersService.updatePartnerStatus(partnerId, status)
           : this.partnersService.updatePartnerStatus(partnerId, status);
 
-        return this.partnersService.updatePartnerStatus(partnerId, status).pipe(
+        return source$.pipe(
           map(response => PartnersActions.updatePartnerStatusSuccess({
             partnerId,
             status: response.data.status,
@@ -267,7 +267,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.assignBonds),
       switchMap(({ partnerId, bondsData }) => {
-        return this.partnersService.assignBonds(partnerId, bondsData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.assignBonds(partnerId, bondsData)
+          : this.partnersService.assignBonds(partnerId, bondsData);
+
+        return source$.pipe(
           map(response => PartnersActions.assignBondsSuccess({ partnerId, response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to assign bonds';
@@ -285,7 +290,12 @@ export class PartnersEffects {
     this.actions$.pipe(
       ofType(PartnersActions.removeBonds),
       switchMap(({ partnerId, bondsData }) => {
-        return this.partnersService.removeBonds(partnerId, bondsData).pipe(
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockPartnersService.removeBonds(partnerId, bondsData)
+          : this.partnersService.removeBonds(partnerId, bondsData);
+
+        return source$.pipe(
           map(response => PartnersActions.removeBondsSuccess({ partnerId, response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to remove bonds';

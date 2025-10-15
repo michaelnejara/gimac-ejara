@@ -1,0 +1,89 @@
+<div class="status-modal">
+  <div class="modal-header">
+    <div class="header-content">
+      <mat-icon class="header-icon">swap_horiz</mat-icon>
+      <div class="header-text">
+        <h2>Change Transaction Status</h2>
+        <p>Update the status for transaction: <strong>{{ transaction.reference }}</strong></p>
+      </div>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="statusForm" (ngSubmit)="onSubmit()">
+    <div class="modal-body">
+      <!-- Current Status Info -->
+      <div class="current-status-box">
+        <div class="status-label">Current Status</div>
+        <div class="status-badge" [style.backgroundColor]="getStatusOption(transaction.status)?.color">
+          <mat-icon>{{ getStatusOption(transaction.status)?.icon }}</mat-icon>
+          <span>{{ getStatusOption(transaction.status)?.label }}</span>
+        </div>
+      </div>
+
+      <!-- New Status Selection -->
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>New Status</mat-label>
+        <mat-select formControlName="status" required>
+          @for (status of availableStatusOptions; track status.value) {
+            <mat-option [value]="status.value">
+              <div class="status-option">
+                <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
+                <span>{{ status.label }}</span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>toggle_on</mat-icon>
+        @if (statusForm.get('status')?.invalid && statusForm.get('status')?.touched) {
+          <mat-error>Please select a status</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Reason Field -->
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Reason for Status Change</mat-label>
+        <textarea 
+          matInput 
+          formControlName="reason"
+          rows="4"
+          placeholder="Provide a detailed reason for this status change..."
+          required></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        @if (statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched) {
+          <mat-error>Reason is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Warning Message -->
+      <div class="warning-box">
+        <mat-icon>warning</mat-icon>
+        <div class="warning-text">
+          <strong>Important:</strong> Changing the transaction status will be recorded in the system audit log. Make sure you have the proper authorization to perform this action.
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button 
+        mat-stroked-button 
+        type="button"
+        class="cancel-btn"
+        (click)="onCancel()">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <button 
+        mat-raised-button 
+        color="primary"
+        type="submit"
+        class="submit-btn"
+        [disabled]="statusForm.invalid">
+        <mat-icon>check</mat-icon>
+        Update Status
+      </button>
+    </div>
+  </form>
+</div>

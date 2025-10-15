@@ -1,1 +1,447 @@
-<p>bond-transactions works!</p>
+<div class="bond-transactions-page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="breadcrumbs">
+        <a routerLink="/">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a routerLink="/bond-transactions">Bond Transactions</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="current">All Transactions</span>
+      </div>
+
+      <div class="header-content">
+        <div class="title-section">
+          <div class="title-wrapper">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">swap_horiz</mat-icon>
+              <span>Bond Transactions</span>
+            </h1>
+            <p class="page-description">
+              Monitor and manage all bond purchase and withdrawal transactions
+              @if (fromPartnerPage) {
+                <span class="partner-badge"> - Filtered by Partner</span>
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards with Abbreviation and Tooltips -->
+      @if (stats$ | async; as stats) {
+        <div class="stats-cards">
+          <div class="stat-card total">
+            <div class="stat-icon">
+              <mat-icon>receipt_long</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Total Transactions</label>
+              <div class="stat-value" 
+                   [matTooltip]="shouldAbbreviate(stats.totalTransactions) ? formatNumberFull(stats.totalTransactions) : ''"
+                   matTooltipPosition="above">
+                {{ formatNumberShort(stats.totalTransactions) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card purchases">
+            <div class="stat-icon">
+              <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Purchases</label>
+              <div class="stat-value"
+                   [matTooltip]="shouldAbbreviate(stats.totalPurchases) ? formatNumberFull(stats.totalPurchases) : ''"
+                   matTooltipPosition="above">
+                {{ formatNumberShort(stats.totalPurchases) }}
+              </div>
+              <div class="stat-subtext"
+                   [matTooltip]="shouldAbbreviate(stats.purchaseVolume || 0) ? formatCurrency(stats.purchaseVolume || 0) : ''"
+                   matTooltipPosition="above">
+                {{ formatCurrency(stats.purchaseVolume || 0) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card withdrawals">
+            <div class="stat-icon">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Withdrawals</label>
+              <div class="stat-value"
+                   [matTooltip]="shouldAbbreviate(stats.totalWithdrawals) ? formatNumberFull(stats.totalWithdrawals) : ''"
+                   matTooltipPosition="above">
+                {{ formatNumberShort(stats.totalWithdrawals) }}
+              </div>
+              <div class="stat-subtext"
+                   [matTooltip]="shouldAbbreviate(stats.withdrawalVolume || 0) ? formatCurrency(stats.withdrawalVolume || 0) : ''"
+                   matTooltipPosition="above">
+                {{ formatCurrency(stats.withdrawalVolume || 0) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card volume">
+            <div class="stat-icon">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Total Volume</label>
+              <div class="stat-value"
+                   [matTooltip]="shouldAbbreviate(stats.totalVolume) ? formatCurrency(stats.totalVolume) : ''"
+                   matTooltipPosition="above">
+                {{ formatCurrency(stats.totalVolume) }}
+              </div>
+              <div class="stat-subtext"
+                   [matTooltip]="shouldAbbreviate(stats.averageTransactionSize) ? formatCurrency(stats.averageTransactionSize) : ''"
+                   matTooltipPosition="above">
+                Avg: {{ formatCurrency(stats.averageTransactionSize) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card pending">
+            <div class="stat-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Pending</label>
+              <div class="stat-value"
+                   [matTooltip]="shouldAbbreviate(stats.pendingCount) ? formatNumberFull(stats.pendingCount) : ''"
+                   matTooltipPosition="above">
+                {{ formatNumberShort(stats.pendingCount) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card confirmed">
+            <div class="stat-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Confirmed</label>
+              <div class="stat-value"
+                   [matTooltip]="shouldAbbreviate(stats.confirmedCount) ? formatNumberFull(stats.confirmedCount) : ''"
+                   matTooltipPosition="above">
+                {{ formatNumberShort(stats.confirmedCount) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Filter Block -->
+    <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
+      <mat-card-header>
+        <div class="filter-header">
+          <div class="filter-header-left">
+            <button 
+              mat-icon-button 
+              class="toggle-btn"
+              (click)="toggleFilters()"
+              [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
+              <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            
+            <div class="filter-title">
+              <mat-icon>filter_list</mat-icon>
+              <span>Filters</span>
+              @if (activeFiltersCount$ | async; as count) {
+                @if (count > 0) {
+                  <mat-chip class="active-filters-chip">{{ count }}</mat-chip>
+                }
+              }
+              @if (hasUnappliedFilters) {
+                <mat-chip class="unapplied-chip">Not Applied</mat-chip>
+              }
+            </div>
+          </div>
+
+          <div class="filter-header-right">
+            @if (filtersExpanded) {
+              <button 
+                mat-button 
+                class="clear-header-btn"
+                (click)="resetFilters()"
+                [disabled]="(activeFiltersCount$ | async) === 0">
+                <mat-icon>clear_all</mat-icon>
+                <span>Clear</span>
+              </button>
+            }
+          </div>
+        </div>
+      </mat-card-header>
+
+      <div class="filter-content-wrapper" [class.show]="showFiltersContent">
+        <mat-card-content>
+          <form [formGroup]="filterForm" class="filter-form">
+            <div class="filter-grid">
+              <!-- Status Filter -->
+              <mat-form-field appearance="fill" class="filter-field">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  @for (option of statusOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>toggle_on</mat-icon>
+              </mat-form-field>
+
+              <!-- Type Filter -->
+              <mat-form-field appearance="fill" class="filter-field">
+                <mat-label>Transaction Type</mat-label>
+                <mat-select formControlName="type">
+                  @for (option of typeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>category</mat-icon>
+              </mat-form-field>
+
+              <!-- Bond Search (Autocomplete) -->
+              <mat-form-field appearance="fill" class="filter-field">
+                <mat-label>Bond</mat-label>
+                <input 
+                  matInput 
+                  formControlName="bondSearch"
+                  [matAutocomplete]="bondAuto"
+                  placeholder="Search bond by name or code">
+                <mat-icon matPrefix>account_balance</mat-icon>
+                <mat-autocomplete 
+                  #bondAuto="matAutocomplete"
+                  [displayWith]="displayBond"
+                  (optionSelected)="onBondSelected($event.option.value)">
+                  @for (bond of filteredBonds$ | async; track bond.id) {
+                    <mat-option [value]="bond">
+                      <div class="autocomplete-option">
+                        <span class="option-name">{{ bond.name }}</span>
+                        <span class="option-code">{{ bond.code }}</span>
+                      </div>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <!-- Partner Search (Autocomplete) - Disabled if from partner page -->
+              <mat-form-field appearance="fill" class="filter-field">
+                <mat-label>Partner</mat-label>
+                <input 
+                  matInput 
+                  formControlName="partnerSearch"
+                  [matAutocomplete]="partnerAuto"
+                  placeholder="Search partner by name or code"
+                  [readonly]="fromPartnerPage">
+                <mat-icon matPrefix>business</mat-icon>
+                @if (fromPartnerPage) {
+                  <mat-icon matSuffix matTooltip="Partner filter is locked when coming from partner page">lock</mat-icon>
+                }
+                <mat-autocomplete 
+                  #partnerAuto="matAutocomplete"
+                  [displayWith]="displayPartner"
+                  (optionSelected)="onPartnerSelected($event.option.value)">
+                  @for (partner of filteredPartners$ | async; track partner.id) {
+                    <mat-option [value]="partner">
+                      <div class="autocomplete-option">
+                        <span class="option-name">{{ partner.name }}</span>
+                        <span class="option-code">{{ partner.code }}</span>
+                      </div>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <!-- Customer Search (Autocomplete) -->
+              <mat-form-field appearance="fill" class="filter-field">
+                <mat-label>Customer</mat-label>
+                <input 
+                  matInput 
+                  formControlName="customerSearch"
+                  [matAutocomplete]="customerAuto"
+                  placeholder="Search customer by name or email">
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-autocomplete 
+                  #customerAuto="matAutocomplete"
+                  [displayWith]="displayCustomer"
+                  (optionSelected)="onCustomerSelected($event.option.value)">
+                  @for (customer of filteredCustomers$ | async; track customer.id) {
+                    <mat-option [value]="customer">
+                      <div class="autocomplete-option">
+                        <span class="option-name">{{ customer.firstName }} {{ customer.lastName }}</span>
+                        <span class="option-code">{{ customer.email }}</span>
+                      </div>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <!-- Date Range Picker -->
+              <mat-form-field appearance="fill" class="filter-field date-range-field">
+                <mat-label>Date Range</mat-label>
+                <mat-date-range-input 
+                  [rangePicker]="dateRangePicker"
+                  [max]="maxDate"
+                  formGroupName="dateRange">
+                  <input 
+                    matStartDate 
+                    formControlName="start"
+                    placeholder="Start date">
+                  <input 
+                    matEndDate 
+                    formControlName="end"
+                    placeholder="End date">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matIconSuffix [for]="dateRangePicker"></mat-datepicker-toggle>
+                <mat-date-range-picker #dateRangePicker></mat-date-range-picker>
+                <mat-icon matPrefix>date_range</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="filter-actions">
+              <button 
+                mat-stroked-button 
+                type="button"
+                class="clear-btn"
+                (click)="resetFilters()"
+                [disabled]="(activeFiltersCount$ | async) === 0">
+                <mat-icon>clear_all</mat-icon>
+                Clear All
+              </button>
+
+              <button 
+                mat-raised-button 
+                color="primary"
+                type="button"
+                class="apply-btn"
+                (click)="applyFilters()"
+                [disabled]="!hasUnappliedFilters">
+                <mat-icon>check</mat-icon>
+                Apply Filters
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </div>
+    </mat-card>
+
+    <!-- Error Alert -->
+    @if (error$ | async; as error) {
+      <mat-card class="error-alert">
+        <div class="alert-content">
+          <mat-icon>error_outline</mat-icon>
+          <div class="alert-text">
+            <h4>Error Loading Transactions</h4>
+            <p>{{ error }}</p>
+          </div>
+          <button mat-button (click)="loadTransactions()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      </mat-card>
+    }
+
+    <!-- Data Table -->
+    <div class="table-section">
+      <app-data-table
+        [data]="(transactions$ | async) || []"
+        [config]="tableConfig"
+        (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)">
+        
+        <!-- Reference Template -->
+        <ng-template appTableColumn="reference" let-row>
+          <div class="reference-cell">
+            <div class="reference-code">{{ row.reference }}</div>
+            <div class="partner-name">{{ row.partnerName }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Customer Template -->
+        <ng-template appTableColumn="customerName" let-row>
+          <div class="customer-cell">
+            <div class="customer-avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="customer-info">
+              <div class="name">{{ row.customerName }}</div>
+              <div class="email">{{ row.customerEmail }}</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Bond Template -->
+        <ng-template appTableColumn="bondName" let-row>
+          <div class="bond-cell">
+            <div class="bond-icon">
+              <mat-icon>account_balance</mat-icon>
+            </div>
+            <div class="bond-info">
+              <div class="name">{{ row.bondName }}</div>
+              <div class="code">{{ row.bondCode }}</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Amount Template -->
+        <ng-template appTableColumn="amount" let-row>
+          <div class="amount-cell" [class.positive]="row.type === 'purchase'" [class.negative]="row.type === 'withdrawal'">
+            <div class="amount">
+              {{ row.type === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency) }}
+            </div>
+            @if (row.units) {
+              <div class="units">{{ row.units }} units @ {{ formatCurrency(row.pricePerUnit || 0, row.currency) }}</div>
+            }
+          </div>
+        </ng-template>
+
+        <!-- Fee Template -->
+        <ng-template appTableColumn="fee" let-row>
+          <div class="fee-cell">
+            <div class="fee">{{ formatCurrency(row.fee, row.currency) }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Date Template -->
+        <ng-template appTableColumn="dateCreated" let-row>
+          <div class="date-cell">
+            <mat-icon class="date-icon">schedule</mat-icon>
+            <span>{{ formatDate(row.dateCreated) }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Custom Actions Template -->
+        <ng-template appTableActions let-row>
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="actionsMenu"
+            (click)="$event.stopPropagation()"
+            matTooltip="Actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #actionsMenu="matMenu">
+            <!-- Change Status - Only for non-confirmed transactions -->
+            @if (canChangeStatus(row)) {
+              <button mat-menu-item (click)="changeStatus(row)">
+                <mat-icon class="menu-icon">swap_horiz</mat-icon>
+                <span>Change Status</span>
+              </button>
+            }
+            @if (!canChangeStatus(row)) {
+              <button mat-menu-item disabled>
+                <mat-icon class="menu-icon">check_circle</mat-icon>
+                <span>Transaction Confirmed</span>
+              </button>
+            }
+          </mat-menu>
+        </ng-template>
+
+      </app-data-table>
+    </div>
+
+  </div><!-- /.page-container -->
+</div>

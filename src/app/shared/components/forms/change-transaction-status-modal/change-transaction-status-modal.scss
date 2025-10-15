@@ -1,0 +1,319 @@
+// src/app/shared/components/modals/change-transaction-status-modal/change-transaction-status-modal.component.scss
+
+.status-modal {
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 600px;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 24px 20px 24px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+
+    .header-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      flex: 1;
+
+      .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 32px;
+        color: var(--primary-color, #1976d2);
+        background: rgba(25, 118, 210, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .header-text {
+        flex: 1;
+
+        h2 {
+          margin: 0 0 8px 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: rgba(0, 0, 0, 0.87);
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+          color: rgba(0, 0, 0, 0.6);
+          line-height: 1.5;
+
+          strong {
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+
+      mat-icon {
+        color: rgba(0, 0, 0, 0.54);
+      }
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .current-status-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+
+      .status-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .status-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      span {
+        font-size: 14px;
+      }
+    }
+
+    .warning-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 152, 0, 0.08);
+      border-radius: 12px;
+      border-left: 4px solid #ff9800;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: #ff9800;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .warning-text {
+        flex: 1;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.7);
+        line-height: 1.6;
+
+        strong {
+          color: rgba(0, 0, 0, 0.87);
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px 24px 24px;
+    border-top: 2px solid rgba(0, 0, 0, 0.06);
+
+    button {
+      min-width: 120px;
+      height: 44px;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      &.cancel-btn {
+        color: rgba(0, 0, 0, 0.7);
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+        }
+      }
+
+      &.submit-btn {
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+
+        &:hover:not(:disabled) {
+          box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+}
+
+// Material Form Field Customizations
+::ng-deep {
+  .status-modal {
+    .mat-mdc-form-field {
+      &.mat-form-field-appearance-fill {
+        .mat-mdc-text-field-wrapper {
+          background: rgba(0, 0, 0, 0.04);
+          border-radius: 12px 12px 0 0;
+
+          .mdc-text-field {
+            background: transparent;
+            border-radius: 12px 12px 0 0;
+            padding: 0 !important;
+
+            &:hover {
+              background: rgba(0, 0, 0, 0.06);
+            }
+          }
+
+          .mdc-line-ripple {
+            display: none;
+          }
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: transparent;
+            transition: all 0.3s ease;
+          }
+        }
+
+        &.mat-focused {
+          .mat-mdc-text-field-wrapper {
+            background: rgba(25, 118, 210, 0.08);
+
+            &::after {
+              background: var(--primary-color, #1976d2);
+            }
+          }
+        }
+      }
+    }
+
+    .mat-mdc-form-field-icon-prefix {
+      color: rgba(0, 0, 0, 0.54);
+      margin-right: 12px;
+      padding-left: 16px;
+    }
+
+    .mat-mdc-input-element,
+    .mat-mdc-select {
+      padding: 12px 16px 12px 0 !important;
+      font-size: 15px;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    textarea.mat-mdc-input-element {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .mat-mdc-floating-label {
+      font-size: 14px;
+      font-weight: 500;
+      top: 24px !important;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .status-modal {
+    min-width: 100%;
+    max-width: 100%;
+
+    .modal-header {
+      padding: 20px 20px 16px 20px;
+
+      .header-content {
+        gap: 12px;
+
+        .header-icon {
+          width: 36px;
+          height: 36px;
+          font-size: 28px;
+        }
+
+        .header-text h2 {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 16px 20px 20px 20px;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

@@ -1,4 +1,3 @@
-// src/app/store/bond-transactions/bond-transactions.reducer.ts
 import { createReducer, on } from '@ngrx/store';
 import { BondTransactionsActions } from './bond-transactions.actions';
 import { initialState } from './bond-transactions.state';
@@ -216,6 +215,67 @@ export const bondTransactionsReducer = createReducer(
     ...state,
     selectedId: null
   })),
+
+  // Change Transaction Status
+  on(BondTransactionsActions.changeTransactionStatus, (state, { transactionId }) => {
+    const entity = state.entities[transactionId];
+    return {
+      ...state,
+      entities: {
+        ...state.entities,
+        [transactionId]: {
+          ...entity,
+          data: entity?.data || {} as any,
+          loading: true,
+          error: null,
+          loadedAt: entity?.loadedAt || 0
+        }
+      },
+      loading: true,
+      error: null
+    };
+  }),
+
+  on(BondTransactionsActions.changeTransactionStatusSuccess, (state, { transaction }) => {
+    const currentPageTransactions = state.currentPageTransactions.map(t => 
+      t.id === transaction.id ? transaction : t
+    );
+
+    return {
+      ...state,
+      entities: {
+        ...state.entities,
+        [transaction.id]: {
+          data: transaction,
+          loading: false,
+          error: null,
+          loadedAt: Date.now()
+        }
+      },
+      currentPageTransactions,
+      loading: false,
+      error: null
+    };
+  }),
+
+  on(BondTransactionsActions.changeTransactionStatusFailure, (state, { transactionId, error }) => {
+    const entity = state.entities[transactionId];
+    return {
+      ...state,
+      entities: {
+        ...state.entities,
+        [transactionId]: {
+          ...entity,
+          data: entity?.data || {} as any,
+          loading: false,
+          error,
+          loadedAt: entity?.loadedAt || 0
+        }
+      },
+      loading: false,
+      error
+    };
+  }),
 
   // UI State
   on(BondTransactionsActions.setLoading, (state, { loading }) => ({

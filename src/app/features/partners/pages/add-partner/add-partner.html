@@ -392,13 +392,15 @@
           [disabled]="partnerForm.invalid || (creating$ | async) || (updating$ | async)"
         >
           @if ((creating$ | async) || (updating$ | async)) {
-          <mat-spinner diameter="20"></mat-spinner>
+          <div class="action-a">
+            <mat-spinner diameter="20"></mat-spinner>
           <span>{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+          </div>
           } @else {
-          <ng-container>
+          <div class="action-b">
             <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
             <span>{{ isEditMode ? 'Update Partner' : 'Create Partner' }}</span>
-          </ng-container>
+          </div>
           }
         </button>
       </div>

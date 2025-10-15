@@ -205,6 +205,32 @@ export class BondTransactionsEffects {
   );
 
   /**
+   * Change Transaction Status
+   */
+  changeTransactionStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondTransactionsActions.changeTransactionStatus),
+      switchMap(({ transactionId, status, reason }) => {
+        // Select appropriate service based on environment
+        const source$ = this.useMockData
+          ? this.mockBondTransactionsService.changeTransactionStatus(transactionId, status, reason)
+          : this.transactionsService.changeTransactionStatus(transactionId, status, reason);
+
+        return source$.pipe(
+          map(transaction => BondTransactionsActions.changeTransactionStatusSuccess({ transaction })),
+          catchError(error => {
+            const errorMessage = error?.error?.message || 'Failed to change transaction status';
+            return of(BondTransactionsActions.changeTransactionStatusFailure({
+              transactionId,
+              error: errorMessage
+            }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
    * Load Stats After Transactions Load
    */
   loadStatsAfterTransactions$ = createEffect(() =>

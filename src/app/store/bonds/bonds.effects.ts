@@ -149,7 +149,7 @@ export class BondsEffects {
           ? this.mockBondsService.getPartnerBonds(filters)
           : this.bondsService.getPartnerBonds(filters);
 
-        return this.bondsService.getPartnerBonds(filters).pipe(
+        return source$.pipe(
           map(response => BondsActions.loadPartnerBondsSuccess({ 
             partnerId: filters.partnerId,
             response 

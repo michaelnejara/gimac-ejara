@@ -1,238 +1,325 @@
+// src/app/core/services/bond-transactions/bond-transactions-mock.service.ts
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { delay } from 'rxjs/operators';
+
+// Models
 import {
-    BondTransaction,
-    TransactionsResponse,
-    TransactionFilterParams,
-    TransactionStats
+  BondTransaction,
+  TransactionsResponse,
+  TransactionFilterParams,
+  TransactionStats,
+  TransactionStatus
 } from '@core/models/bond-transaction.models';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class BondTransactionsMockService {
-    private mockTransactions: BondTransaction[] = this.generateMockTransactions();
+  private mockTransactions: BondTransaction[] = [
+    {
+      id: 1,
+      reference: 'TXN-2025-001',
+      type: 'purchase',
+      status: 'confirmed',
+      partnerId: 1,
+      partnerName: 'First Capital Partners',
+      customerId: 101,
+      customerName: 'John Doe',
+      customerEmail: 'john.doe@example.com',
+      bondId: 1,
+      bondName: 'Government Treasury Bond 2030',
+      bondCode: 'GTB-2030',
+      units: 100,
+      pricePerUnit: 10000,
+      amount: 1000000,
+      fee: 5000,
+      totalAmount: 1005000,
+      currency: 'XAF',
+      commission: 25000,
+      commissionRate: 2.5,
+      fees: 5000,
+      netAmount: 975000,
+      paymentStatus: 'completed',
+      paymentMethod: 'Bank Transfer',
+      paymentReference: 'PAY-001',
+      blockchainStatus: 'confirmed',
+      blockchainTxHash: '0x1234...abcd',
+      blockchainConfirmations: 12,
+      dateCreated: '2025-01-15T10:30:00Z',
+      dateConfirmed: '2025-01-15T10:45:00Z',
+      dateCompleted: '2025-01-15T11:00:00Z',
+      lastUpdated: '2025-01-15T11:00:00Z'
+    },
+    {
+      id: 2,
+      reference: 'TXN-2025-002',
+      type: 'purchase',
+      status: 'pending',
+      partnerId: 2,
+      partnerName: 'Secure Investment Group',
+      customerId: 102,
+      customerName: 'Jane Smith',
+      customerEmail: 'jane.smith@example.com',
+      bondId: 2,
+      bondName: 'Corporate Bond Series A',
+      bondCode: 'CBA-2025',
+      units: 50,
+      pricePerUnit: 15000,
+      amount: 750000,
+      fee: 3750,
+      totalAmount: 753750,
+      currency: 'XAF',
+      commission: 18750,
+      commissionRate: 2.5,
+      fees: 3750,
+      netAmount: 731250,
+      paymentStatus: 'pending',
+      paymentMethod: 'Mobile Money',
+      blockchainStatus: 'pending',
+      dateCreated: '2025-01-16T14:20:00Z',
+      lastUpdated: '2025-01-16T14:20:00Z'
+    },
+    {
+      id: 3,
+      reference: 'TXN-2025-003',
+      type: 'withdrawal',
+      status: 'confirmed',
+      partnerId: 1,
+      partnerName: 'First Capital Partners',
+      customerId: 101,
+      customerName: 'John Doe',
+      customerEmail: 'john.doe@example.com',
+      bondId: 1,
+      bondName: 'Government Treasury Bond 2030',
+      bondCode: 'GTB-2030',
+      units: 25,
+      pricePerUnit: 10500,
+      amount: 262500,
+      fee: 1312.50,
+      totalAmount: 261187.50,
+      currency: 'XAF',
+      paymentStatus: 'completed',
+      paymentMethod: 'Bank Transfer',
+      paymentReference: 'WTH-001',
+      blockchainStatus: 'confirmed',
+      blockchainTxHash: '0x5678...efgh',
+      blockchainConfirmations: 8,
+      dateCreated: '2025-01-17T09:00:00Z',
+      dateConfirmed: '2025-01-17T09:15:00Z',
+      dateCompleted: '2025-01-17T09:30:00Z',
+      lastUpdated: '2025-01-17T09:30:00Z'
+    },
+    {
+      id: 4,
+      reference: 'TXN-2025-004',
+      type: 'purchase',
+      status: 'processing',
+      partnerId: 3,
+      partnerName: 'Global Finance Solutions',
+      customerId: 103,
+      customerName: 'Michael Johnson',
+      customerEmail: 'michael.j@example.com',
+      bondId: 3,
+      bondName: 'Infrastructure Development Bond',
+      bondCode: 'IDB-2028',
+      units: 200,
+      pricePerUnit: 8000,
+      amount: 1600000,
+      fee: 8000,
+      totalAmount: 1608000,
+      currency: 'XAF',
+      commission: 40000,
+      commissionRate: 2.5,
+      fees: 8000,
+      netAmount: 1560000,
+      paymentStatus: 'pending',
+      paymentMethod: 'Credit Card',
+      blockchainStatus: 'pending',
+      dateCreated: '2025-01-18T11:45:00Z',
+      lastUpdated: '2025-01-18T11:50:00Z'
+    },
+    {
+      id: 5,
+      reference: 'TXN-2025-005',
+      type: 'purchase',
+      status: 'failed',
+      partnerId: 2,
+      partnerName: 'Secure Investment Group',
+      customerId: 104,
+      customerName: 'Sarah Williams',
+      customerEmail: 'sarah.w@example.com',
+      bondId: 2,
+      bondName: 'Corporate Bond Series A',
+      bondCode: 'CBA-2025',
+      units: 75,
+      pricePerUnit: 15000,
+      amount: 1125000,
+      fee: 5625,
+      totalAmount: 1130625,
+      currency: 'XAF',
+      paymentStatus: 'failed',
+      paymentMethod: 'Bank Transfer',
+      blockchainStatus: 'failed',
+      dateCreated: '2025-01-19T08:30:00Z',
+      lastUpdated: '2025-01-19T08:45:00Z'
+    }
+  ];
 
-    /**
-     * Get bond transactions with filtering and pagination
-     */
-    getTransactions(params: TransactionFilterParams = {}): Observable<TransactionsResponse> {
-        return of(null).pipe(
-            delay(800),
-            map(() => {
-                let filtered = [...this.mockTransactions];
+  /**
+   * Get all transactions with optional filters
+   */
+  getTransactions(filters?: TransactionFilterParams): Observable<TransactionsResponse> {
+    let filteredTransactions = [...this.mockTransactions];
 
-                // Apply filters
-                if (params.status) {
-                    filtered = filtered.filter(t => t.status === params.status);
-                }
-
-                if (params.type) {
-                    filtered = filtered.filter(t => t.type === params.type);
-                }
-
-                if (params.bondId) {
-                    filtered = filtered.filter(t => t.bondId === params.bondId);
-                }
-
-                if (params.partnerId) {
-                    filtered = filtered.filter(t => t.partnerId === params.partnerId);
-                }
-
-                if (params.customerId) {
-                    filtered = filtered.filter(t => t.customerId === params.customerId);
-                }
-
-                if (params.dateFrom) {
-                    filtered = filtered.filter(t => new Date(t.dateCreated) >= new Date(params.dateFrom!));
-                }
-
-                if (params.dateTo) {
-                    filtered = filtered.filter(t => new Date(t.dateCreated) <= new Date(params.dateTo!));
-                }
-
-                // Sort
-                filtered.sort((a, b) => {
-                    const dateA = new Date(a.dateCreated).getTime();
-                    const dateB = new Date(b.dateCreated).getTime();
-                    return dateB - dateA;
-                });
-
-                // Pagination
-                const limit = params.limit || 20;
-                const offset = params.offset || 0;
-                const total = filtered.length;
-                const paginated = filtered.slice(offset, offset + limit);
-
-                return {
-                    message: "Bond transactions successfuly loaded",
-                    data: paginated,
-                    total,
-                    limit,
-                    offset
-                };
-            })
+    if (filters) {
+      if (filters.bondId) {
+        filteredTransactions = filteredTransactions.filter(t => t.bondId === filters.bondId);
+      }
+      if (filters.partnerId) {
+        filteredTransactions = filteredTransactions.filter(t => t.partnerId === filters.partnerId);
+      }
+      if (filters.customerId) {
+        filteredTransactions = filteredTransactions.filter(t => t.customerId === filters.customerId);
+      }
+      if (filters.status) {
+        filteredTransactions = filteredTransactions.filter(t => t.status === filters.status);
+      }
+      if (filters.type) {
+        filteredTransactions = filteredTransactions.filter(t => t.type === filters.type);
+      }
+      if (filters.dateFrom) {
+        filteredTransactions = filteredTransactions.filter(
+          t => new Date(t.dateCreated) >= new Date(filters.dateFrom!)
         );
-    }
-
-    /**
-     * Get transaction by ID
-     */
-    getTransactionById(transactionId: number): Observable<BondTransaction> {
-        return of(null).pipe(
-            delay(500),
-            map(() => {
-                const transaction = this.mockTransactions.find(t => t.id === transactionId);
-                if (!transaction) {
-                    throw new Error('Transaction not found');
-                }
-                return transaction;
-            })
+      }
+      if (filters.dateTo) {
+        filteredTransactions = filteredTransactions.filter(
+          t => new Date(t.dateCreated) <= new Date(filters.dateTo!)
         );
+      }
     }
 
-    /**
-     * Get transaction statistics
-     */
-    getTransactionStats(params: TransactionFilterParams = {}): Observable<TransactionStats> {
-        return of(null).pipe(
-            delay(600),
-            map(() => {
-                let filtered = [...this.mockTransactions];
+    const total = filteredTransactions.length;
+    const limit = filters?.limit || 20;
+    const offset = filters?.offset || 0;
+    const paginatedTransactions = filteredTransactions.slice(offset, offset + limit);
 
-                // Apply same filters as getTransactions
-                if (params.bondId) {
-                    filtered = filtered.filter(t => t.bondId === params.bondId);
-                }
+    return of({
+      message: 'Transactions retrieved successfully',
+      data: paginatedTransactions,
+      total,
+      limit,
+      offset
+    }).pipe(delay(500));
+  }
 
-                if (params.partnerId) {
-                    filtered = filtered.filter(t => t.partnerId === params.partnerId);
-                }
+  /**
+   * Get transaction by ID
+   */
+  getTransactionById(transactionId: number): Observable<BondTransaction> {
+    const transaction = this.mockTransactions.find(t => t.id === transactionId);
+    
+    if (transaction) {
+      return of(transaction).pipe(delay(300));
+    }
+    
+    return throwError(() => ({
+      error: { message: 'Transaction not found' }
+    })).pipe(delay(300));
+  }
 
-                if (params.customerId) {
-                    filtered = filtered.filter(t => t.customerId === params.customerId);
-                }
+  /**
+   * Get transaction statistics
+   */
+  getTransactionStats(filters?: TransactionFilterParams): Observable<TransactionStats> {
+    let transactions = [...this.mockTransactions];
 
-                if (params.dateFrom) {
-                    filtered = filtered.filter(t => new Date(t.dateCreated) >= new Date(params.dateFrom!));
-                }
-
-                if (params.dateTo) {
-                    filtered = filtered.filter(t => new Date(t.dateCreated) <= new Date(params.dateTo!));
-                }
-
-                const totalTransactions = filtered.length;
-                const totalVolume = filtered.reduce((sum, t) => sum + t.amount, 0);
-                const pendingCount = filtered.filter(t => t.status === 'pending').length;
-                const confirmedCount = filtered.filter(t => t.status === 'confirmed').length;
-                const failedCount = filtered.filter(t => t.status === 'failed').length;
-                const purchaseVolume = filtered
-                    .filter(t => t.type === 'purchase')
-                    .reduce((sum, t) => sum + t.amount, 0);
-                const withdrawalVolume = filtered
-                    .filter(t => t.type === 'withdrawal')
-                    .reduce((sum, t) => sum + t.amount, 0);
-
-                return {
-                    totalPurchases:200000,
-                    totalTransactions,
-                    totalVolume,
-                    pendingCount,
-                    confirmedCount,
-                    failedCount,
-                    processingCount: filtered.filter(t => t.status === 'processing').length,
-                    purchaseVolume,
-                    withdrawalVolume,
-                    totalWithdrawals:90499,
-                    averageTransactionAmount: totalVolume / totalTransactions || 0,
-                    averageTransactionSize: 8990
-                };
-            })
-        );
+    // Apply filters if provided
+    if (filters) {
+      if (filters.bondId) {
+        transactions = transactions.filter(t => t.bondId === filters.bondId);
+      }
+      if (filters.partnerId) {
+        transactions = transactions.filter(t => t.partnerId === filters.partnerId);
+      }
+      if (filters.customerId) {
+        transactions = transactions.filter(t => t.customerId === filters.customerId);
+      }
+      if (filters.status) {
+        transactions = transactions.filter(t => t.status === filters.status);
+      }
+      if (filters.type) {
+        transactions = transactions.filter(t => t.type === filters.type);
+      }
     }
 
-    /**
-     * Generate mock transactions
-     */
-    private generateMockTransactions(): BondTransaction[] {
-        const transactions: BondTransaction[] = [];
-        const statuses: Array<'pending' | 'confirmed' | 'failed' | 'processing'> = ['pending', 'confirmed', 'failed', 'processing'];
-        const types: Array<'purchase' | 'withdrawal'> = ['purchase', 'withdrawal'];
+    const totalTransactions = transactions.length;
+    const totalPurchases = transactions.filter(t => t.type === 'purchase').length;
+    const totalWithdrawals = transactions.filter(t => t.type === 'withdrawal').length;
+    
+    const totalVolume = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const purchaseVolume = transactions
+      .filter(t => t.type === 'purchase')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const withdrawalVolume = transactions
+      .filter(t => t.type === 'withdrawal')
+      .reduce((sum, t) => sum + t.amount, 0);
 
-        const bonds = [
-            { id: 1, name: 'Government Treasury Bond 2024', code: 'GTB2024' },
-            { id: 2, name: 'Corporate Infrastructure Bond', code: 'CIB2024' },
-            { id: 3, name: 'Green Energy Investment Bond', code: 'GEB2024' },
-            { id: 4, name: 'Municipal Development Bond', code: 'MDB2024' },
-            { id: 6, name: 'Agricultural Development Bond', code: 'ADB2024' }
-        ];
+    const stats: TransactionStats = {
+      totalTransactions,
+      totalPurchases,
+      totalWithdrawals,
+      totalVolume,
+      purchaseVolume,
+      withdrawalVolume,
+      averageTransactionSize: totalTransactions > 0 ? totalVolume / totalTransactions : 0,
+      averageTransactionAmount: totalTransactions > 0 ? totalVolume / totalTransactions : 0,
+      pendingCount: transactions.filter(t => t.status === 'pending').length,
+      confirmedCount: transactions.filter(t => t.status === 'confirmed').length,
+      failedCount: transactions.filter(t => t.status === 'failed').length,
+      processingCount: transactions.filter(t => t.status === 'processing').length
+    };
 
-        const partners = [
-            { id: 1, name: 'FinTech Solutions Ltd' },
-            { id: 2, name: 'Digital Payments Corp' },
-            { id: 3, name: 'MobileMoney Gateway' },
-            { id: 4, name: 'Investment Platform Inc' },
-            { id: 6, name: 'AgriFinance Solutions' }
-        ];
+    return of(stats).pipe(delay(400));
+  }
 
-        const customers = [
-            { id: 1, name: 'Jean Kamga', email: 'jean.kamga@email.com' },
-            { id: 2, name: 'Marie Ngono', email: 'marie.ngono@email.com' },
-            { id: 3, name: 'Paul Mbarga', email: 'paul.mbarga@email.com' },
-            { id: 5, name: 'Daniel Fouda', email: 'daniel.fouda@email.com' },
-            { id: 7, name: 'Eric Tchoua', email: 'eric.tchoua@email.com' }
-        ];
-
-        // Generate 100 transactions
-        for (let i = 1; i <= 100; i++) {
-            const bond = bonds[Math.floor(Math.random() * bonds.length)];
-            const partner = partners[Math.floor(Math.random() * partners.length)];
-            const customer = customers[Math.floor(Math.random() * customers.length)];
-            const type = types[Math.floor(Math.random() * types.length)];
-            const status = statuses[Math.floor(Math.random() * statuses.length)];
-            const amount = Math.floor(Math.random() * 4900000) + 100000; // 100K to 5M
-            const units = Math.floor(amount / 10000);
-
-            // Generate date within last 90 days
-            const daysAgo = Math.floor(Math.random() * 90);
-            const createdDate = new Date();
-            createdDate.setDate(createdDate.getDate() - daysAgo);
-
-            const transaction: BondTransaction = {
-                id: i,
-                reference: `BT${String(i).padStart(6, '0')}`,
-                type,
-                status,
-                bondId: bond.id,
-                bondName: bond.name,
-                bondCode: bond.code,
-                partnerId: partner.id,
-                partnerName: partner.name,
-                customerId: customer.id,
-                customerName: customer.name,
-                customerEmail: customer.email,
-                amount,
-                units,
-                pricePerUnit: 10000,
-                currency: 'XAF',
-                commission: amount * 0.025,
-                commissionRate: 2.5,
-                fees: amount * 0.005,
-                netAmount: type === 'purchase' ? amount + (amount * 0.005) : amount - (amount * 0.005),
-                paymentMethod: Math.random() > 0.5 ? 'mobile_money' : 'bank_transfer',
-                paymentReference: `PAY${String(i).padStart(8, '0')}`,
-                dateCreated: createdDate.toISOString(),
-                lastUpdated: createdDate.toISOString(),
-                fee: 0,
-                totalAmount: 0,
-                paymentStatus: 'pending',
-                blockchainStatus: 'pending'
-            };
-
-            transactions.push(transaction);
-        }
-
-        return transactions;
+  /**
+   * Change transaction status (Admin only)
+   */
+  changeTransactionStatus(
+    transactionId: number,
+    status: string,
+    reason?: string
+  ): Observable<BondTransaction> {
+    const transactionIndex = this.mockTransactions.findIndex(t => t.id === transactionId);
+    
+    if (transactionIndex === -1) {
+      return throwError(() => ({
+        error: { message: 'Transaction not found' }
+      })).pipe(delay(300));
     }
+
+    // Validate status
+    const validStatuses: TransactionStatus[] = ['pending', 'confirmed', 'failed', 'processing'];
+    if (!validStatuses.includes(status as TransactionStatus)) {
+      return throwError(() => ({
+        error: { message: 'Invalid transaction status' }
+      })).pipe(delay(300));
+    }
+
+    // Update transaction
+    const updatedTransaction = {
+      ...this.mockTransactions[transactionIndex],
+      status: status as TransactionStatus,
+      lastUpdated: new Date().toISOString(),
+      ...(status === 'confirmed' && { dateConfirmed: new Date().toISOString() }),
+      ...(status === 'confirmed' && { dateCompleted: new Date().toISOString() }),
+      ...(reason && { metadata: { ...this.mockTransactions[transactionIndex].metadata, statusChangeReason: reason } })
+    };
+
+    this.mockTransactions[transactionIndex] = updatedTransaction;
+
+    return of(updatedTransaction).pipe(delay(500));
+  }
 }

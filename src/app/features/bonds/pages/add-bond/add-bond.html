@@ -1,1 +1,432 @@
-<p>add-bond works!</p>
+<div class="add-bond-page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+    <div class="breadcrumbs">
+      <a routerLink="/">Home</a>
+      <mat-icon>chevron_right</mat-icon>
+      <a routerLink="/bonds">Bonds</a>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="current">{{ isEditMode ? 'Edit Bond' : 'Add New Bond' }}</span>
+    </div>
+
+    <div class="header-content">
+      <div class="title-section">
+        <button 
+          mat-icon-button 
+          class="back-btn"
+          (click)="onCancel()"
+          matTooltip="Back to Bonds">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="title-wrapper">
+          <h1 class="page-title">
+            <mat-icon class="title-icon">
+              {{ isEditMode ? 'edit' : 'add_circle' }}
+            </mat-icon>
+            <span>{{ isEditMode ? 'Edit Bond' : 'Add New Bond' }}</span>
+          </h1>
+          <p class="page-description">
+            {{ isEditMode ? 'Update bond information and settings' : 'Create a new bond in the system' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <mat-card class="form-card">
+    <form [formGroup]="bondForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>info</mat-icon>
+          <h2>Basic Information</h2>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="form-grid">
+          <!-- Bond Name -->
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Bond Name</mat-label>
+            <input 
+              matInput 
+              formControlName="name" 
+              placeholder="Enter bond name"
+              [class.error-input]="hasError('name')">
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-error *ngIf="hasError('name')">
+              {{ getErrorMessage('name') }}
+            </mat-error>
+            <mat-hint>Full name of the bond</mat-hint>
+          </mat-form-field>
+
+          <!-- Bond Code -->
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Bond Code</mat-label>
+            <input 
+              matInput 
+              formControlName="code" 
+              placeholder="Enter bond code"
+              [class.error-input]="hasError('code')">
+            <mat-icon matPrefix>tag</mat-icon>
+            <mat-error *ngIf="hasError('code')">
+              {{ getErrorMessage('code') }}
+            </mat-error>
+            <mat-hint>
+              {{ isEditMode ? 'Bond code cannot be changed' : 'Unique identifier for the bond' }}
+            </mat-hint>
+          </mat-form-field>
+
+          <!-- Description -->
+          <mat-form-field appearance="fill" class="full-width span-2">
+            <mat-label>Description</mat-label>
+            <textarea 
+              matInput 
+              formControlName="description" 
+              placeholder="Enter bond description"
+              rows="3"
+              [class.error-input]="hasError('description')"></textarea>
+            <mat-icon matPrefix>description</mat-icon>
+            <mat-error *ngIf="hasError('description')">
+              {{ getErrorMessage('description') }}
+            </mat-error>
+            <mat-hint>Optional detailed description of the bond</mat-hint>
+          </mat-form-field>
+
+          <!-- Issuer -->
+          <mat-form-field appearance="fill" class="full-width span-2">
+            <mat-label>Issuer</mat-label>
+            <input 
+              matInput 
+              formControlName="issuer" 
+              placeholder="Enter issuer name"
+              [class.error-input]="hasError('issuer')">
+            <mat-icon matPrefix>business</mat-icon>
+            <mat-error *ngIf="hasError('issuer')">
+              {{ getErrorMessage('issuer') }}
+            </mat-error>
+            <mat-hint>Organization or entity issuing the bond</mat-hint>
+          </mat-form-field>
+
+          <!-- Status -->
+          <mat-form-field appearance="fill">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>toggle_on</mat-icon>
+            <mat-error *ngIf="hasError('status')">
+              {{ getErrorMessage('status') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Risk Level -->
+          <mat-form-field appearance="fill">
+            <mat-label>Risk Level</mat-label>
+            <mat-select formControlName="riskLevel">
+              <mat-option *ngFor="let option of riskLevelOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>warning</mat-icon>
+            <mat-error *ngIf="hasError('riskLevel')">
+              {{ getErrorMessage('riskLevel') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Financial Information Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>attach_money</mat-icon>
+          <h2>Financial Information</h2>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="form-grid">
+          <!-- Currency -->
+          <mat-form-field appearance="fill">
+            <mat-label>Currency</mat-label>
+            <mat-select formControlName="fiatCurrency">
+              <mat-option *ngFor="let option of currencyOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>payments</mat-icon>
+            <mat-error *ngIf="hasError('fiatCurrency')">
+              {{ getErrorMessage('fiatCurrency') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Principal Amount -->
+          <mat-form-field appearance="fill">
+            <mat-label>Principal Amount</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="principalAmount" 
+              placeholder="0.00"
+              [class.error-input]="hasError('principalAmount')">
+            <mat-icon matPrefix>monetization_on</mat-icon>
+            <mat-error *ngIf="hasError('principalAmount')">
+              {{ getErrorMessage('principalAmount') }}
+            </mat-error>
+            <mat-hint>Face value of the bond</mat-hint>
+          </mat-form-field>
+
+          <!-- Interest Rate -->
+          <mat-form-field appearance="fill">
+            <mat-label>Interest Rate (%)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              step="0.01"
+              formControlName="interestRate" 
+              placeholder="0.00"
+              [class.error-input]="hasError('interestRate')">
+            <mat-icon matPrefix>percent</mat-icon>
+            <span matSuffix>%</span>
+            <mat-error *ngIf="hasError('interestRate')">
+              {{ getErrorMessage('interestRate') }}
+            </mat-error>
+            <mat-hint>Annual interest rate</mat-hint>
+          </mat-form-field>
+
+          <!-- Coupon Rate -->
+          <mat-form-field appearance="fill">
+            <mat-label>Coupon Rate (%)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              step="0.01"
+              formControlName="couponRate" 
+              placeholder="0.00"
+              [class.error-input]="hasError('couponRate')">
+            <mat-icon matPrefix>receipt</mat-icon>
+            <span matSuffix>%</span>
+            <mat-error *ngIf="hasError('couponRate')">
+              {{ getErrorMessage('couponRate') }}
+            </mat-error>
+            <mat-hint>Periodic interest payment rate</mat-hint>
+          </mat-form-field>
+
+          <!-- Minimum Purchase Amount -->
+          <mat-form-field appearance="fill">
+            <mat-label>Minimum Purchase Amount</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="minPurchaseAmount" 
+              placeholder="0.00"
+              [class.error-input]="hasError('minPurchaseAmount')">
+            <mat-icon matPrefix>minimize</mat-icon>
+            <mat-error *ngIf="hasError('minPurchaseAmount')">
+              {{ getErrorMessage('minPurchaseAmount') }}
+            </mat-error>
+            <mat-hint>Minimum amount per purchase</mat-hint>
+          </mat-form-field>
+
+          <!-- Maximum Purchase Amount -->
+          <mat-form-field appearance="fill">
+            <mat-label>Maximum Purchase Amount</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="maxPurchaseAmount" 
+              placeholder="0.00 (Optional)"
+              [class.error-input]="hasError('maxPurchaseAmount')">
+            <mat-icon matPrefix>maximize</mat-icon>
+            <mat-error *ngIf="hasError('maxPurchaseAmount')">
+              {{ getErrorMessage('maxPurchaseAmount') }}
+            </mat-error>
+            <mat-hint>Maximum amount per purchase (optional)</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Date & Tenor Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon>calendar_today</mat-icon>
+          <h2>Dates & Duration</h2>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="form-grid">
+          <!-- Issue Date -->
+          <mat-form-field appearance="fill">
+            <mat-label>Issue Date</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="issuePicker"
+              formControlName="issueDate"
+              [min]="minIssueDate"
+              placeholder="Select issue date"
+              [class.error-input]="hasError('issueDate')">
+            <mat-datepicker-toggle matIconSuffix [for]="issuePicker"></mat-datepicker-toggle>
+            <mat-datepicker #issuePicker></mat-datepicker>
+            <mat-icon matPrefix>event</mat-icon>
+            <mat-error *ngIf="hasError('issueDate')">
+              {{ getErrorMessage('issueDate') }}
+            </mat-error>
+            <mat-hint>Date when bond is issued</mat-hint>
+          </mat-form-field>
+
+          <!-- Maturity Date -->
+          <mat-form-field appearance="fill">
+            <mat-label>Maturity Date</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="maturityPicker"
+              formControlName="maturityDate"
+              [min]="minMaturityDate"
+              placeholder="Select maturity date"
+              [class.error-input]="hasError('maturityDate')">
+            <mat-datepicker-toggle matIconSuffix [for]="maturityPicker"></mat-datepicker-toggle>
+            <mat-datepicker #maturityPicker></mat-datepicker>
+            <mat-icon matPrefix>event_available</mat-icon>
+            <mat-error *ngIf="hasError('maturityDate')">
+              {{ getErrorMessage('maturityDate') }}
+            </mat-error>
+            <mat-hint>Date when bond matures</mat-hint>
+          </mat-form-field>
+
+          <!-- Value Date -->
+          <mat-form-field appearance="fill">
+            <mat-label>Value Date</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="valuePicker"
+              formControlName="valueDate"
+              [min]="minValueDate"
+              placeholder="Select value date"
+              [class.error-input]="hasError('valueDate')">
+            <mat-datepicker-toggle matIconSuffix [for]="valuePicker"></mat-datepicker-toggle>
+            <mat-datepicker #valuePicker></mat-datepicker>
+            <mat-icon matPrefix>today</mat-icon>
+            <mat-error *ngIf="hasError('valueDate')">
+              {{ getErrorMessage('valueDate') }}
+            </mat-error>
+            <mat-hint>Date of value/settlement</mat-hint>
+          </mat-form-field>
+
+          <!-- Tenor -->
+          <mat-form-field appearance="fill">
+            <mat-label>Tenor (Months)</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="tenor" 
+              placeholder="Enter tenor in months"
+              [class.error-input]="hasError('tenor')">
+            <mat-icon matPrefix>schedule</mat-icon>
+            <span matSuffix>months</span>
+            <mat-error *ngIf="hasError('tenor')">
+              {{ getErrorMessage('tenor') }}
+            </mat-error>
+            <mat-hint>
+              {{ bondForm.get('tenor')?.value ? formatTenor(bondForm.get('tenor')?.value) : 'Duration of the bond' }}
+            </mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Summary Section (Show calculated values) -->
+      <div class="form-section summary-section">
+        <div class="section-header">
+          <mat-icon>summarize</mat-icon>
+          <h2>Summary</h2>
+        </div>
+        <mat-divider></mat-divider>
+
+        <div class="summary-grid">
+          <div class="summary-item">
+            <label>Principal Amount</label>
+            <div class="value">
+              {{ formatCurrency(bondForm.get('principalAmount')?.value || 0, bondForm.get('fiatCurrency')?.value) }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <label>Interest Rate</label>
+            <div class="value">{{ bondForm.get('interestRate')?.value || 0 }}%</div>
+          </div>
+
+          <div class="summary-item">
+            <label>Coupon Rate</label>
+            <div class="value">{{ bondForm.get('couponRate')?.value || 0 }}%</div>
+          </div>
+
+          <div class="summary-item">
+            <label>Tenor</label>
+            <div class="value">
+              {{ formatTenor(bondForm.get('tenor')?.value || 0) }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <label>Min Purchase</label>
+            <div class="value">
+              {{ formatCurrency(bondForm.get('minPurchaseAmount')?.value || 0, bondForm.get('fiatCurrency')?.value) }}
+            </div>
+          </div>
+
+          <div class="summary-item">
+            <label>Max Purchase</label>
+            <div class="value">
+              {{ bondForm.get('maxPurchaseAmount')?.value 
+                 ? formatCurrency(bondForm.get('maxPurchaseAmount')?.value, bondForm.get('fiatCurrency')?.value) 
+                 : 'No limit' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button 
+          mat-button 
+          type="button"
+          class="cancel-btn"
+          (click)="onCancel()">
+          <mat-icon>close</mat-icon>
+          Cancel
+        </button>
+
+        <button 
+          mat-stroked-button 
+          type="button"
+          class="reset-btn"
+          (click)="onReset()">
+          <mat-icon>refresh</mat-icon>
+          Reset
+        </button>
+
+        <button 
+          mat-raised-button 
+          color="primary"
+          type="submit"
+          class="submit-btn"
+          [disabled]="bondForm.invalid || (creating$ | async) || (updating$ | async)">
+          <mat-icon>{{ isEditMode ? 'save' : 'add_circle' }}</mat-icon>
+          <span *ngIf="!(creating$ | async) && !(updating$ | async)">
+            {{ isEditMode ? 'Update Bond' : 'Create Bond' }}
+          </span>
+          <mat-spinner 
+            *ngIf="(creating$ | async) || (updating$ | async)"
+            diameter="20"
+            class="button-spinner"></mat-spinner>
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  </div><!-- /.page-container -->
+</div>

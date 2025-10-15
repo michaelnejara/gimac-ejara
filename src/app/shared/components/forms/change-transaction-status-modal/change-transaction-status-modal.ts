@@ -1,0 +1,83 @@
+// src/app/shared/components/modals/change-transaction-status-modal/change-transaction-status-modal.component.ts
+import { Component, inject, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+
+import { BondTransaction, TransactionStatus } from '@core/models/bond-transaction.models';
+
+export interface ChangeTransactionStatusData {
+  transaction: BondTransaction;
+  availableStatuses: TransactionStatus[];
+}
+
+@Component({
+  selector: 'app-change-transaction-status-modal',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatIconModule
+  ],
+  templateUrl: './change-transaction-status-modal.html',
+  styleUrl: './change-transaction-status-modal.scss'
+})
+export class ChangeTransactionStatusModal {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject(MatDialogRef<ChangeTransactionStatusModal>);
+
+  statusForm!: FormGroup;
+  transaction: BondTransaction;
+  availableStatuses: TransactionStatus[];
+
+  statusOptions = [
+    { value: 'pending', label: 'Pending', icon: 'schedule', color: '#ff9800' },
+    { value: 'processing', label: 'Processing', icon: 'sync', color: '#2196f3' },
+    { value: 'confirmed', label: 'Confirmed', icon: 'check_circle', color: '#4caf50' },
+    { value: 'failed', label: 'Failed', icon: 'error', color: '#f44336' }
+  ];
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ChangeTransactionStatusData) {
+    this.transaction = data.transaction;
+    this.availableStatuses = data.availableStatuses;
+
+    this.initializeForm();
+  }
+
+  private initializeForm(): void {
+    this.statusForm = this.fb.group({
+      status: [this.transaction.status, Validators.required],
+      reason: ['', Validators.required]
+    });
+  }
+
+  get availableStatusOptions() {
+    return this.statusOptions.filter(opt => 
+      this.availableStatuses.includes(opt.value as TransactionStatus)
+    );
+  }
+
+  getStatusOption(status: string) {
+    return this.statusOptions.find(opt => opt.value === status);
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
+  onSubmit(): void {
+    if (this.statusForm.valid) {
+      this.dialogRef.close(this.statusForm.value);
+    }
+  }
+}

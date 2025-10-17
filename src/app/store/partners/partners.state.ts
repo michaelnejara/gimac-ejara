@@ -1,13 +1,14 @@
 // src/app/store/partners/partners.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Partner, PartnerFilterParams } from '@core/models/partner.models';
+import { Partner, PartnerDetail, PartnerFilterParams } from '@core/models/partner.models';
 
 /**
  * Partner Entity
  * Wraps partner with metadata
+ * Can store either Partner (from listing) or PartnerDetail (from get by id)
  */
 export interface PartnerEntity {
-  data: Partner;
+  data: Partner | PartnerDetail;
   loading: boolean;
   error: string | null;
   loadedAt: number;

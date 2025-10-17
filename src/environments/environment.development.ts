@@ -27,8 +27,8 @@ export const environment = {
     },
     gimacTbB2B: {
         apiUrl: 'https://testbox-tokenized-bonds.ejaraapis.xyz/api',
-        clientKey: '',
-        clientSecret: '',
-        useMockData: true
+        clientKey: '9de009d90b',
+        clientSecret: 'B0]zMDdCBkUQUMGth]NpX!*mw',
+        useMockData: false
     }
 };

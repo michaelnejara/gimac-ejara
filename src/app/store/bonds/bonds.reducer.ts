@@ -16,11 +16,11 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.loadBondsSuccess, (state, { response }) => {
+  on(BondsActions.loadBondsSuccess, (state, { bonds, total, limit, offset }) => {
     const entities = { ...state.entities };
     const newIds: number[] = [];
 
-    response.data.forEach(bond => {
+    bonds.forEach(bond => {
       newIds.push(bond.id);
       entities[bond.id] = {
         data: bond,
@@ -34,10 +34,10 @@ export const bondsReducer = createReducer(
       ...state,
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      currentPageBonds: bonds,
+      total,
+      limit,
+      offset,
       loading: false,
       error: null
     };
@@ -105,20 +105,11 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.createBondSuccess, (state, { bond }) => ({
+  on(BondsActions.createBondSuccess, (state) => ({
     ...state,
-    entities: {
-      ...state.entities,
-      [bond.id]: {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
-    ids: [...state.ids, bond.id],
     creating: false,
     error: null
+    // Note: Bond will be added when list is reloaded
   })),
 
   on(BondsActions.createBondFailure, (state, { error }) => ({
@@ -134,19 +125,11 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.updateBondSuccess, (state, { bond }) => ({
+  on(BondsActions.updateBondSuccess, (state) => ({
     ...state,
-    entities: {
-      ...state.entities,
-      [bond.id]: {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
     updating: false,
     error: null
+    // Note: Bond will be updated when list is reloaded
   })),
 
   on(BondsActions.updateBondFailure, (state, { error }) => ({
@@ -189,28 +172,32 @@ export const bondsReducer = createReducer(
     viewMode: 'partner' as const
   })),
 
-  on(BondsActions.loadPartnerBondsSuccess, (state, { partnerId, response }) => {
+  on(BondsActions.loadPartnerBondsSuccess, (state, { partnerId, bonds, total, limit, offset }) => {
     const entities = { ...state.entities };
     const newIds: number[] = [];
 
-    response.data.forEach(bond => {
-      newIds.push(bond.id);
-      entities[bond.id] = {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
+    bonds.forEach((bond: any) => {
+      // Partner bonds have bondId instead of id
+      const id = bond.bondId || bond.id;
+      if (id) {
+        newIds.push(id);
+        entities[id] = {
+          data: bond,
+          loading: false,
+          error: null,
+          loadedAt: Date.now()
+        };
+      }
     });
 
     return {
       ...state,
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      currentPageBonds: bonds,
+      total,
+      limit,
+      offset,
       loading: false,
       error: null,
       activePartnerId: partnerId
@@ -231,12 +218,12 @@ export const bondsReducer = createReducer(
     viewMode: 'customer' as const
   })),
 
-  on(BondsActions.loadCustomerBondsSuccess, (state, { response }) => ({
+  on(BondsActions.loadCustomerBondsSuccess, (state, { customerBonds, total, limit, offset }) => ({
     ...state,
-    customerBonds: response.data,
-    total: response.total,
-    limit: response.limit,
-    offset: response.offset,
+    customerBonds,
+    total,
+    limit,
+    offset,
     loading: false,
     error: null
   })),

@@ -45,7 +45,7 @@
   width: 100%;
   
   th {
-    background: #8658ff;//#f8f9fa;
+    background: #8658ff !important;//#f8f9fa;
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
@@ -222,4 +222,8 @@
     flex-direction: column;
     gap: 2px;
   }
+}
+
+.mat-mdc-form-field .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-form-field-infix {
+  padding: 0px 10px;
 }

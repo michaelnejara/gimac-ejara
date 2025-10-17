@@ -1,7 +1,7 @@
 // src/app/store/customers/customers.actions.ts
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { 
-  Customer,
+import {
+  CustomerDetails,
   CustomersResponse,
   CustomerFilterParams
 } from '@core/models/customer.models';
@@ -19,7 +19,7 @@ export const CustomersActions = createActionGroup({
 
     // Load Single Customer
     'Load Customer': props<{ customerId: number }>(),
-    'Load Customer Success': props<{ customer: Customer }>(),
+    'Load Customer Success': props<{ customer: CustomerDetails }>(),
     'Load Customer Failure': props<{ customerId: number; error: string }>(),
 
     // Filter & Search

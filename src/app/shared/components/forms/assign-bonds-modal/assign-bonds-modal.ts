@@ -121,7 +121,8 @@ export class AssignBondsModal implements OnInit, OnDestroy {
     this.filteredBonds = this.availableBonds.filter(bond =>
       bond.name.toLowerCase().includes(term) ||
       bond.code.toLowerCase().includes(term) ||
-      bond.issuer.toLowerCase().includes(term)
+      bond.issuerNameEn.toLowerCase().includes(term) ||
+      bond.issuerNameFr.toLowerCase().includes(term)
     );
   }
 
@@ -251,19 +252,26 @@ export class AssignBondsModal implements OnInit, OnDestroy {
   }
 
   /**
-   * Format tenor
+   * Format lifetime (in days) to human-readable format
    */
-  formatTenor(months: number): string {
-    if (months < 12) {
-      return `${months}m`;
+  formatLifetime(days: number): string {
+    if (!days) return '-';
+
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      }
+      return `${years}y ${months}m`;
     }
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
-    
-    if (remainingMonths === 0) {
-      return `${years}y`;
-    }
-    return `${years}y ${remainingMonths}m`;
   }
 
   /**

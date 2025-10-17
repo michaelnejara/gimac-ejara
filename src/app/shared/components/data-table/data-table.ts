@@ -12,7 +12,8 @@ import {
   ContentChildren,
   QueryList,
   TemplateRef,
-  ContentChild
+  ContentChild,
+  ViewEncapsulation
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -54,7 +55,8 @@ import { TableColumnDirective, TableActionsDirective } from './data-table-direct
   ],
   templateUrl: './data-table.html',
   styleUrl: './data-table.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
   

@@ -4,7 +4,7 @@ import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil, filter } from 'rxjs/operators';
+import { takeUntil, map } from 'rxjs/operators';
 
 // Material
 import { MatButtonModule } from '@angular/material/button';
@@ -25,11 +25,10 @@ import {
 } from '@store/partners/partners.state';
 
 // Models
-import { Partner, PartnerStatus } from '@core/models/partner.models';
-import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/change-status-modal';
+import { SinglePartner, PartnerStatus } from '@core/models/partner.models';
 
 // Components
-// import { ChangeStatusModalComponent } from '../../components/change-status-modal/change-status-modal.component';
+import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/change-status-modal';
 
 @Component({
   selector: 'app-partner-details',
@@ -57,7 +56,8 @@ export class PartnerDetails implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   partnerId: number | null = null;
-  partner$!: Observable<Partner | undefined>;
+  // Partner details page always loads SinglePartner (from GET /partners/:id)
+  partner$!: Observable<SinglePartner | undefined>;
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
 
@@ -84,7 +84,10 @@ export class PartnerDetails implements OnInit, OnDestroy {
   private loadPartner(): void {
     if (!this.partnerId) return;
 
-    this.partner$ = this.store.select(selectPartnerById(this.partnerId));
+    // Cast to SinglePartner as details endpoint returns SinglePartner
+    this.partner$ = this.store.select(selectPartnerById(this.partnerId)).pipe(
+      map(partner => partner as SinglePartner | undefined)
+    );
     this.loading$ = this.store.select(selectPartnerLoading(this.partnerId));
     this.error$ = this.store.select(selectPartnerError(this.partnerId));
 
@@ -111,7 +114,7 @@ export class PartnerDetails implements OnInit, OnDestroy {
   /**
    * Open change status modal
    */
-  changeStatus(partner: Partner): void {
+  changeStatus(partner: SinglePartner): void {
     const dialogRef = this.dialog.open(ChangeStatusModal, {
       width: '500px',
       maxWidth: '90vw',
@@ -133,6 +136,34 @@ export class PartnerDetails implements OnInit, OnDestroy {
   }
 
   /**
+   * Open assign bonds modal
+   */
+  assignBonds(partner: SinglePartner): void {
+    import('@shared/components/forms/assign-bonds-modal/assign-bonds-modal').then(m => {
+      const dialogRef = this.dialog.open(m.AssignBondsModal, {
+        width: '800px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        data: {
+          partnerId: partner.id,
+          partnerName: partner.name,
+          // SinglePartner doesn't include allowedBonds - modal will load them separately
+          alreadyAssignedBondIds: []
+        },
+        disableClose: false,
+        panelClass: 'assign-bonds-modal-panel'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result?.bondsAssigned) {
+          // Reload partner to get updated bond assignments
+          this.loadPartner();
+        }
+      });
+    });
+  }
+
+  /**
    * View partner bonds
    */
   viewBonds(partnerId: number): void {
@@ -144,9 +175,23 @@ export class PartnerDetails implements OnInit, OnDestroy {
   /**
    * View partner customers
    */
-  viewCustomers(partnerId: number): void {
-    this.router.navigate(['/customers/list'], {
-      queryParams: { partnerId }
+  viewCustomers(partner: SinglePartner): void {
+    // this.router.navigate(['/customers/list'], {
+    //   queryParams: { partnerId }
+    // });
+    import('@shared/components/ui/partner-customers-modal/partner-customers-modal').then(m => {
+      this.dialog.open(m.PartnerCustomersModal, {
+        width: '90vw',
+        maxWidth: '1400px',
+        height: '90vh',
+        maxHeight: '90vh',
+        disableClose: true,
+        panelClass: 'partner-customers-modal-panel',
+        data: {
+          partnerId: partner.id,
+          partnerName: partner.name
+        }
+      });
     });
   }
 
@@ -154,7 +199,7 @@ export class PartnerDetails implements OnInit, OnDestroy {
    * View bond transactions
    */
   viewTransactions(partnerId: number): void {
-    this.router.navigate(['/transactions'], {
+    this.router.navigate(['/bond-transactions'], {
       queryParams: { partnerId }
     });
   }

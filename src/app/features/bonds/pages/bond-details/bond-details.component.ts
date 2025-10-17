@@ -269,19 +269,26 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Format tenor
+   * Format lifetime (in days) to human-readable format
    */
-  formatTenor(months: number): string {
-    if (months < 12) {
-      return `${months} ${months === 1 ? 'month' : 'months'}`;
-    }
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
+  formatLifetime(days: number): string {
+    if (!days) return '-';
 
-    if (remainingMonths === 0) {
-      return `${years} ${years === 1 ? 'year' : 'years'}`;
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      }
+      return `${years}y ${months}m`;
     }
-    return `${years} year${years > 1 ? 's' : ''} ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`;
   }
 
   /**
@@ -336,11 +343,11 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
   calculateInterestEarned(bond: Bond): number {
     if (!bond || bond.status !== 'active') return 0;
 
-    const startDate = new Date(bond.issueDate || bond.dateCreated);
+    const startDate = new Date(bond.startDate || bond.dateCreated);
     const today = new Date();
     const daysElapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const yearFraction = daysElapsed / 365;
-    const interestEarned = bond.principalAmount * (bond.interestRate / 100) * yearFraction;
+    const interestEarned = bond.amount * (bond.interestValue / 100) * yearFraction;
 
     return interestEarned;
   }
@@ -349,6 +356,6 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
    * Calculate current value (principal + accrued interest)
    */
   calculateCurrentValue(bond: Bond): number {
-    return bond.principalAmount + this.calculateInterestEarned(bond);
+    return bond.amount + this.calculateInterestEarned(bond);
   }
 }

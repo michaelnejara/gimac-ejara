@@ -2,7 +2,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
@@ -56,9 +56,8 @@ import {
   BondStatus,
   CurrencyCode
 } from '@core/models/bond.models';
-import { 
-  AssignBondsRequest, 
-  RemoveBondsRequest 
+import {
+  RemoveBondsRequest
 } from '@core/models/partner.models';
 
 // Components
@@ -117,8 +116,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   activeFiltersCount$!: Observable<number>;
 
   // UI State
-  filtersExpanded = true;
-  showFiltersContent = true;
+  filtersExpanded = false;
   hasUnappliedFilters = false;
 
   // Filter Form
@@ -241,8 +239,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
         bondName: [''],
         bondCode: [''],
         status: [''],
-        fiatCurrency: [''],
-        issuer: [''],
+        defaultFiatCurrency: [''],
+        issuerNameEn: [''],
         keyword: [''],
         // Date range for creation date
         creationDateStart: [''],
@@ -418,8 +416,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'currentBalance',
-          label: 'Current Balance',
+          key: 'currentValue',
+          label: 'Current Value',
           type: 'template',
           align: 'right',
           sortable: true,
@@ -479,22 +477,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'issuer',
+          key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
           width: '220px'
         },
         {
-          key: 'principalAmount',
-          label: 'Principal',
+          key: 'amount',
+          label: 'Total Amount',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '180px'
         },
         {
-          key: 'interestRate',
+          key: 'interestValue',
           label: 'Interest Rate',
           type: 'template',
           align: 'right',
@@ -502,8 +500,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '160px'
         },
         {
-          key: 'tenor',
-          label: 'Tenor',
+          key: 'lifetime',
+          label: 'Lifetime',
           type: 'template',
           sortable: true,
           width: '150px'
@@ -547,22 +545,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'issuer',
+          key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
           width: '200px'
         },
         {
-          key: 'principalAmount',
-          label: 'Principal',
+          key: 'amount',
+          label: 'Total Amount',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '170px'
         },
         {
-          key: 'interestRate',
+          key: 'interestValue',
           label: 'Interest Rate',
           type: 'template',
           align: 'right',
@@ -570,22 +568,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '150px'
         },
         {
-          key: 'couponRate',
-          label: 'Coupon Rate',
+          key: 'maturityPercentage',
+          label: 'Maturity %',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '150px'
         },
         {
-          key: 'tenor',
-          label: 'Tenor',
+          key: 'lifetime',
+          label: 'Lifetime',
           type: 'template',
           sortable: true,
           width: '130px'
         },
         {
-          key: 'fiatCurrency',
+          key: 'defaultFiatCurrency',
           label: 'Currency',
           type: 'template',
           sortable: true,
@@ -784,7 +782,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   private countActiveFilters(filters: any): number {
     let count = 0;
     const excludeKeys = ['limit', 'offset', 'partnerId', 'customerId'];
-    
+
     Object.keys(filters).forEach(key => {
       if (!excludeKeys.includes(key) && filters[key]) {
         count++;
@@ -797,17 +795,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Toggle filters collapse/expand
    */
   toggleFilters(): void {
-    if (this.filtersExpanded) {
-      this.showFiltersContent = false;
-      setTimeout(() => {
-        this.filtersExpanded = false;
-      }, 10);
-    } else {
-      this.filtersExpanded = true;
-      setTimeout(() => {
-        this.showFiltersContent = true;
-      }, 10);
-    }
+    this.filtersExpanded = !this.filtersExpanded;
   }
 
   /**
@@ -988,10 +976,30 @@ export class BondsListComponent implements OnInit, OnDestroy {
     }
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
-    
+
     if (remainingMonths === 0) {
       return `${years} ${years === 1 ? 'year' : 'years'}`;
     }
     return `${years}y ${remainingMonths}m`;
+  }
+
+  formatLifetime(days: number): string {
+    if (!days) return '-';
+
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      }
+      return `${years}y ${months}m`;
+    }
   }
 }

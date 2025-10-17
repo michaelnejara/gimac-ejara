@@ -1,12 +1,13 @@
 // src/app/store/customers/customers.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Customer, CustomerFilterParams } from '@core/models/customer.models';
+import { Customer, CustomerDetails, CustomerFilterParams } from '@core/models/customer.models';
 
 /**
  * Customer Entity
+ * Stores either basic Customer or full CustomerDetails
  */
 export interface CustomerEntity {
-  data: Customer;
+  data: Customer | CustomerDetails;
   loading: boolean;
   error: string | null;
   loadedAt: number;

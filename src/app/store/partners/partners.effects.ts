@@ -58,7 +58,7 @@ export class PartnersEffects {
           : this.partnersService.getPartnerById(partnerId);
 
         return source$.pipe(
-          map(partner => PartnersActions.loadPartnerSuccess({ partner })),
+          map(response => PartnersActions.loadPartnerSuccess({ partner: response.data })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load partner';
             return of(PartnersActions.loadPartnerFailure({ partnerId, error: errorMessage }));
@@ -81,7 +81,7 @@ export class PartnersEffects {
           : this.partnersService.createPartner(partnerData);
 
         return source$.pipe(
-          map(partner => PartnersActions.createPartnerSuccess({ partner })),
+          map(response => PartnersActions.createPartnerSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to create partner';
             return of(PartnersActions.createPartnerFailure({ error: errorMessage }));
@@ -104,7 +104,7 @@ export class PartnersEffects {
           : this.partnersService.updatePartner(partnerId, partnerData);
 
         return source$.pipe(
-          map(partner => PartnersActions.updatePartnerSuccess({ partner })),
+          map(response => PartnersActions.updatePartnerSuccess({ response })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to update partner';
             return of(PartnersActions.updatePartnerFailure({ partnerId, error: errorMessage }));
@@ -129,8 +129,7 @@ export class PartnersEffects {
         return source$.pipe(
           map(response => PartnersActions.updatePartnerStatusSuccess({
             partnerId,
-            status: response.data.status,
-            updatedAt: response.data.updatedAt
+            response
           })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to update partner status';

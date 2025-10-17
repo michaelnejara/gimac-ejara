@@ -280,12 +280,12 @@ export const selectBondsByStatus = (status: string) => createSelector(
 
 export const selectBondsByCurrency = (currency: string) => createSelector(
   selectAllBonds,
-  (bonds) => bonds.filter(b => b.fiatCurrency === currency)
+  (bonds) => bonds.filter(b => b.defaultFiatCurrency === currency)
 );
 
 export const selectBondsByIssuer = (issuer: string) => createSelector(
   selectAllBonds,
-  (bonds) => bonds.filter(b => b.issuer.toLowerCase().includes(issuer.toLowerCase()))
+  (bonds) => bonds.filter(b => b.issuerNameEn.toLowerCase().includes(issuer.toLowerCase()) || b.issuerNameFr.toLowerCase().includes(issuer.toLowerCase())) 
 );
 
 export const selectHasFilters = createSelector(

@@ -35,9 +35,9 @@ export const customersReducer = createReducer(
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
       currentPageCustomers: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      total: response.meta.total,
+      limit: response.meta.limit,
+      offset: response.meta.offset,
       loading: false,
       error: null
     };

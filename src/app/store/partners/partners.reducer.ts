@@ -23,7 +23,7 @@ export const partnersReducer = createReducer(
     response.data.forEach(partner => {
       newIds.push(partner.id);
       entities[partner.id] = {
-        data: partner,
+        data: partner as any, // Partner type from listing
         loading: false,
         error: null,
         loadedAt: Date.now()
@@ -35,9 +35,9 @@ export const partnersReducer = createReducer(
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
       currentPagePartners: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      total: response.meta.total,
+      limit: response.meta.limit,
+      offset: response.meta.offset,
       loading: false,
       error: null
     };
@@ -72,7 +72,7 @@ export const partnersReducer = createReducer(
     entities: {
       ...state.entities,
       [partner.id]: {
-        data: partner,
+        data: partner as any, // PartnerDetail type from get by id
         loading: false,
         error: null,
         loadedAt: Date.now()
@@ -105,21 +105,15 @@ export const partnersReducer = createReducer(
     error: null
   })),
 
-  on(PartnersActions.createPartnerSuccess, (state, { partner }) => ({
-    ...state,
-    entities: {
-      ...state.entities,
-      [partner.id]: {
-        data: partner,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
-    ids: [...state.ids, partner.id],
-    creating: false,
-    error: null
-  })),
+  on(PartnersActions.createPartnerSuccess, (state, { response }) => {
+    // Note: We only get partnerId, name, code, and status from the create response
+    // We won't add to entities until we do a full load/refresh
+    return {
+      ...state,
+      creating: false,
+      error: null
+    };
+  }),
 
   on(PartnersActions.createPartnerFailure, (state, { error }) => ({
     ...state,
@@ -134,20 +128,30 @@ export const partnersReducer = createReducer(
     error: null
   })),
 
-  on(PartnersActions.updatePartnerSuccess, (state, { partner }) => ({
-    ...state,
-    entities: {
-      ...state.entities,
-      [partner.id]: {
-        data: partner,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
-    updating: false,
-    error: null
-  })),
+  on(PartnersActions.updatePartnerSuccess, (state, { response }) => {
+    const entity = state.entities[response.data.id];
+    if (!entity) return { ...state, updating: false };
+
+    return {
+      ...state,
+      entities: {
+        ...state.entities,
+        [response.data.id]: {
+          ...entity,
+          data: {
+            ...entity.data,
+            name: response.data.name,
+            updatedAt: response.data.dateUpdated
+          },
+          loading: false,
+          error: null,
+          loadedAt: Date.now()
+        }
+      },
+      updating: false,
+      error: null
+    };
+  }),
 
   on(PartnersActions.updatePartnerFailure, (state, { error }) => ({
     ...state,
@@ -171,7 +175,7 @@ export const partnersReducer = createReducer(
     };
   }),
 
-  on(PartnersActions.updatePartnerStatusSuccess, (state, { partnerId, status, updatedAt }) => {
+  on(PartnersActions.updatePartnerStatusSuccess, (state, { partnerId, response }) => {
     const entity = state.entities[partnerId];
     if (!entity) return state;
 
@@ -181,11 +185,6 @@ export const partnersReducer = createReducer(
         ...state.entities,
         [partnerId]: {
           ...entity,
-          data: {
-            ...entity.data,
-            status: status as any,
-            lastUpdated: updatedAt
-          },
           loading: false,
           error: null
         }

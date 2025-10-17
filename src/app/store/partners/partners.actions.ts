@@ -1,11 +1,15 @@
 // src/app/store/partners/partners.actions.ts
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { 
+import {
   Partner,
+  PartnerDetail,
   PartnersResponse,
   CreatePartnerRequest,
+  CreatePartnerResponse,
   UpdatePartnerRequest,
+  UpdatePartnerResponse,
   UpdatePartnerStatusRequest,
+  StatusUpdateResponse,
   PartnerFilterParams,
   AssignBondsRequest,
   BondAssignmentResponse,
@@ -27,35 +31,34 @@ export const PartnersActions = createActionGroup({
 
     // Load Single Partner
     'Load Partner': props<{ partnerId: number }>(),
-    'Load Partner Success': props<{ partner: Partner }>(),
+    'Load Partner Success': props<{ partner: PartnerDetail }>(),
     'Load Partner Failure': props<{ partnerId: number; error: string }>(),
 
     // Create Partner
     'Create Partner': props<{ partnerData: CreatePartnerRequest }>(),
-    'Create Partner Success': props<{ partner: Partner }>(),
+    'Create Partner Success': props<{ response: CreatePartnerResponse }>(),
     'Create Partner Failure': props<{ error: string }>(),
 
     // Update Partner
-    'Update Partner': props<{ 
-      partnerId: number; 
-      partnerData: UpdatePartnerRequest 
+    'Update Partner': props<{
+      partnerId: number;
+      partnerData: UpdatePartnerRequest
     }>(),
-    'Update Partner Success': props<{ partner: Partner }>(),
+    'Update Partner Success': props<{ response: UpdatePartnerResponse }>(),
     'Update Partner Failure': props<{ partnerId: number; error: string }>(),
 
     // Update Partner Status
-    'Update Partner Status': props<{ 
-      partnerId: number; 
-      status: UpdatePartnerStatusRequest 
+    'Update Partner Status': props<{
+      partnerId: number;
+      status: UpdatePartnerStatusRequest
     }>(),
-    'Update Partner Status Success': props<{ 
-      partnerId: number; 
-      status: string;
-      updatedAt: string;
+    'Update Partner Status Success': props<{
+      partnerId: number;
+      response: StatusUpdateResponse
     }>(),
-    'Update Partner Status Failure': props<{ 
-      partnerId: number; 
-      error: string 
+    'Update Partner Status Failure': props<{
+      partnerId: number;
+      error: string
     }>(),
 
     // Delete Partner

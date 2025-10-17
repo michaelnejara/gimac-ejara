@@ -33,7 +33,7 @@ import {
 import { selectAllBonds, selectLoading } from '@store/bonds/bonds.state';
 
 // Models
-import { Partner, CreatePartnerRequest, UpdatePartnerRequest } from '@core/models/partner.models';
+import { Partner, SinglePartner, CreatePartnerRequest, UpdatePartnerRequest } from '@core/models/partner.models';
 import { Bond } from '@core/models/bond.models';
 
 @Component({
@@ -72,7 +72,7 @@ export class AddPartner implements OnInit, OnDestroy {
   // State
   isEditMode = false;
   partnerId: number | null = null;
-  partner$!: Observable<Partner | undefined>;
+  partner$!: Observable<Partner | SinglePartner | undefined>;
   creating$: Observable<boolean>;
   updating$: Observable<boolean>;
   error$: Observable<string | null>;
@@ -283,7 +283,7 @@ export class AddPartner implements OnInit, OnDestroy {
   /**
    * Populate form with partner data
    */
-  private populateForm(partner: Partner): void {
+  private populateForm(partner: Partner | SinglePartner): void {
     this.ipAddresses.clear();
 
     if (partner.allowedIpAddresses) {
@@ -292,22 +292,32 @@ export class AddPartner implements OnInit, OnDestroy {
       });
     }
 
+    // Type guard to check if it's SinglePartner (has description field)
+    const isSinglePartner = (p: Partner | SinglePartner): p is SinglePartner => {
+      return 'description' in p;
+    };
+
+    // Extract allowedBonds IDs if Partner, or load from API if SinglePartner
+    const allowedBondIds = 'allowedBonds' in partner
+      ? (partner as Partner).allowedBonds.map(bond => bond.id)
+      : [];
+
     this.partnerForm.patchValue({
       name: partner.name,
-      description: partner.description || '',
+      description: isSinglePartner(partner) ? partner.description || '' : '',
       webhookUrl: partner.webhookUrl || '',
-      allowedBonds: partner.allowedBonds || [],
+      allowedBonds: allowedBondIds,
       commissionRate: partner.commissionRate,
       settlementAccount: partner.settlementAccount || '',
       minTransactionAmount: partner.minTransactionAmount,
       maxTransactionAmount: partner.maxTransactionAmount,
       dailyTransactionLimit: partner.dailyTransactionLimit,
       monthlyTransactionLimit: partner.monthlyTransactionLimit,
-      address: partner.address || '',
-      city: partner.city || '',
-      state: partner.state || '',
-      country: partner.country || '',
-      postalCode: partner.postalCode || ''
+      address: isSinglePartner(partner) ? partner.address || '' : '',
+      city: isSinglePartner(partner) ? partner.city || '' : '',
+      state: isSinglePartner(partner) ? partner.state || '' : '',
+      country: isSinglePartner(partner) ? partner.country || '' : '',
+      postalCode: isSinglePartner(partner) ? partner.postalCode || '' : ''
     });
   }
 

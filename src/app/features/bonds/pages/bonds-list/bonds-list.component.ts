@@ -157,6 +157,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Reset to first page when leaving the bonds list
+    this.store.dispatch(BondsActions.resetToFirstPage());
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -175,12 +178,18 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.context = 'customer';
         this.partnerId = +params['partnerId'];
         this.customerId = +params['customerId'];
+
+        // Reset store when entering customer context (fresh data needed)
+        this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'customer' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
       } else if (hasPartnerId && !hasCustomerId) {
         this.context = 'partner';
         this.partnerId = +params['partnerId'];
         this.customerId = null;
+
+        // Reset store when entering partner context (fresh data needed)
+        this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'partner' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
       } else {
@@ -674,6 +683,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
 
   /**
    * Load bonds based on context
+   * Note: Partner/customer contexts always load fresh data (resetForContextView already called)
+   * Default context uses cache-aware loading
    */
   loadBonds(): void {
     if (this.context === 'customer') {
@@ -688,6 +699,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for customer context (cache already cleared in initializeContext)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -700,18 +712,21 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for partner context (cache already cleared in initializeContext)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
         limit: 20,
         offset: 0
       };
-      this.store.dispatch(BondsActions.loadBonds({ filters }));
+      // Use cache-aware action for default context
+      this.store.dispatch(BondsActions.checkAndLoadBonds({ filters }));
     }
   }
 
   /**
    * Apply filters
+   * Note: When filters change, we want fresh data (bypass cache)
    */
   applyFilters(): void {
     const formValue = this.filterForm.value;
@@ -729,6 +744,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -742,6 +758,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
@@ -753,6 +770,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadBonds({ filters }));
     }
 

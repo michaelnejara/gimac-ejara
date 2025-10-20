@@ -15,32 +15,51 @@ export interface PartnerEntity {
 }
 
 /**
+ * Page Cache - Stores paginated data by page number
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Partners State Interface
  */
 export interface PartnersState {
-  // Entities (normalized by ID)
+  // Single Entity Cache (for detail views)
+  // Populated when getPartnerById is called
+  singleEntities: Record<number, PartnerEntity>;
+
+  // List Entities (for list views - deprecated, will migrate to pageCache)
   entities: Record<number, PartnerEntity>;
   ids: number[];
-  
-  // Current list view
+
+  // Page-based Cache (NEW)
+  // Structure: { 1: [...partners], 2: [...partners], ... }
+  pageCache: PageCache<Partner>;
+
+  // Current active page number
+  activePage: number;
+
+  // Current list view (deprecated - use pageCache instead)
   currentPagePartners: Partner[];
-  
+
   // Selection
   selectedId: number | null;
   selectedIds: number[];
-  
+
   // Filters & Search
   filters: PartnerFilterParams;
-  
+  previousPageSize: number; // Track page size changes
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
-  
+
   // Operation states
   creating: boolean;
   updating: boolean;
@@ -51,9 +70,20 @@ export interface PartnersState {
  * Initial State
  */
 export const initialState: PartnersState = {
+  // Single entity cache
+  singleEntities: {},
+
+  // List entities (deprecated)
   entities: {},
   ids: [],
+
+  // Page-based cache
+  pageCache: {},
+  activePage: 1,
+
+  // Current list view (deprecated)
   currentPagePartners: [],
+
   selectedId: null,
   selectedIds: [],
   filters: {
@@ -62,6 +92,7 @@ export const initialState: PartnersState = {
     sortBy: 'dateCreated',
     sortOrder: 'desc'
   },
+  previousPageSize: 20,
   total: 0,
   limit: 20,
   offset: 0,
@@ -98,19 +129,57 @@ export const selectAllPartners = createSelector(
 
 export const selectCurrentPagePartners = createSelector(
   selectPartnersState,
-  (state) => state.currentPagePartners
+  (state) => {
+    // Use page cache if available, otherwise fall back to currentPagePartners
+    const currentPage = state.activePage;
+    return state.pageCache[currentPage] || state.currentPagePartners;
+  }
 );
 
 /**
- * Single Partner Selectors
+ * Page Cache Selectors
  */
+export const selectPageCache = createSelector(
+  selectPartnersState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectPartnersState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageFromCache = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectPreviousPageSize = createSelector(
+  selectPartnersState,
+  (state) => state.previousPageSize
+);
+
+/**
+ * Single Partner Selectors (from singleEntities cache)
+ */
+export const selectSinglePartnerEntities = createSelector(
+  selectPartnersState,
+  (state) => state.singleEntities
+);
+
 export const selectPartnerById = (partnerId: number) => createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   (entities) => entities[partnerId]?.data
 );
 
 export const selectPartnerEntityById = (partnerId: number) => createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   (entities) => entities[partnerId]
 );
 
@@ -122,6 +191,11 @@ export const selectPartnerLoading = (partnerId: number) => createSelector(
 export const selectPartnerError = (partnerId: number) => createSelector(
   selectPartnerEntityById(partnerId),
   (entity) => entity?.error || null
+);
+
+export const selectIsPartnerCached = (partnerId: number) => createSelector(
+  selectSinglePartnerEntities,
+  (entities) => !!entities[partnerId]?.data
 );
 
 /**

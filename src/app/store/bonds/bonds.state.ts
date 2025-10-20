@@ -18,39 +18,60 @@ export interface BondEntity {
 export type BondViewMode = 'all' | 'partner' | 'customer';
 
 /**
+ * Page Cache - Stores paginated data by page number
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Bonds State Interface
  */
 export interface BondsState {
-  // Entities (normalized by ID)
+  // Single Entity Cache (for detail views)
+  // Populated when getBondById is called
+  singleEntities: Record<number, BondEntity>;
+
+  // List Entities (for list views - deprecated, will migrate to pageCache)
   entities: Record<number, BondEntity>;
   ids: number[];
-  
-  // Current list view
+
+  // Page-based Cache (NEW)
+  // Structure: { 1: [...bonds], 2: [...bonds], ... }
+  pageCache: PageCache<Bond>;
+  customerBondsPageCache: PageCache<CustomerBondHolding>;
+  partnerBondsPageCache: Record<number, PageCache<any>>; // Keyed by partnerId
+
+  // Current active page number
+  activePage: number;
+
+  // Current list view (deprecated - use pageCache instead)
   currentPageBonds: Bond[];
-  
+
   // Customer bonds (separate from main bonds)
   customerBonds: CustomerBondHolding[];
-  
+
   // Selection
   selectedId: number | null;
   selectedIds: number[];
-  
+
   // Filters & Search
   filters: BondFilterParams;
-  
+  previousPageSize: number; // Track page size changes
+
   // View mode and context
   viewMode: BondViewMode;
   activePartnerId: number | null;
-  
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
-  
+
   // Operation states
   creating: boolean;
   updating: boolean;
@@ -61,16 +82,30 @@ export interface BondsState {
  * Initial State
  */
 export const initialState: BondsState = {
+  // Single entity cache
+  singleEntities: {},
+
+  // List entities (deprecated)
   entities: {},
   ids: [],
+
+  // Page-based cache
+  pageCache: {},
+  customerBondsPageCache: {},
+  partnerBondsPageCache: {},
+  activePage: 1,
+
+  // Current list view (deprecated)
   currentPageBonds: [],
   customerBonds: [],
+
   selectedId: null,
   selectedIds: [],
   filters: {
     limit: 20,
     offset: 0
   },
+  previousPageSize: 20,
   viewMode: 'all',
   activePartnerId: null,
   total: 0,
@@ -109,19 +144,57 @@ export const selectAllBonds = createSelector(
 
 export const selectCurrentPageBonds = createSelector(
   selectBondsState,
-  (state) => state.currentPageBonds
+  (state) => {
+    // Use page cache if available, otherwise fall back to currentPageBonds
+    const currentPage = state.activePage;
+    return state.pageCache[currentPage] || state.currentPageBonds;
+  }
 );
 
 /**
- * Single Bond Selectors
+ * Page Cache Selectors
  */
+export const selectPageCache = createSelector(
+  selectBondsState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectBondsState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageFromCache = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectPreviousPageSize = createSelector(
+  selectBondsState,
+  (state) => state.previousPageSize
+);
+
+/**
+ * Single Bond Selectors (from singleEntities cache)
+ */
+export const selectSingleBondEntities = createSelector(
+  selectBondsState,
+  (state) => state.singleEntities
+);
+
 export const selectBondById = (bondId: number) => createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   (entities) => entities[bondId]?.data
 );
 
 export const selectBondEntityById = (bondId: number) => createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   (entities) => entities[bondId]
 );
 
@@ -133,6 +206,11 @@ export const selectBondLoading = (bondId: number) => createSelector(
 export const selectBondError = (bondId: number) => createSelector(
   selectBondEntityById(bondId),
   (entity) => entity?.error || null
+);
+
+export const selectIsBondCached = (bondId: number) => createSelector(
+  selectSingleBondEntities,
+  (entities) => !!entities[bondId]?.data
 );
 
 /**

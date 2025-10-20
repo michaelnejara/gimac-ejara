@@ -20,6 +20,9 @@ export const bondsReducer = createReducer(
     const entities = { ...state.entities };
     const newIds: number[] = [];
 
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
+
     bonds.forEach(bond => {
       newIds.push(bond.id);
       entities[bond.id] = {
@@ -30,14 +33,21 @@ export const bondsReducer = createReducer(
       };
     });
 
+    // Update page cache
+    const newPageCache = { ...state.pageCache };
+    newPageCache[pageNumber] = bonds;
+
     return {
       ...state,
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
       currentPageBonds: bonds,
+      pageCache: newPageCache,
+      activePage: pageNumber,
       total,
       limit,
       offset,
+      previousPageSize: limit,
       loading: false,
       error: null
     };
@@ -49,13 +59,13 @@ export const bondsReducer = createReducer(
     error
   })),
 
-  // Load Single Bond
+  // Load Single Bond (stores in singleEntities cache)
   on(BondsActions.loadBond, (state, { bondId }) => {
-    const entity = state.entities[bondId];
+    const entity = state.singleEntities[bondId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [bondId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -69,24 +79,23 @@ export const bondsReducer = createReducer(
 
   on(BondsActions.loadBondSuccess, (state, { bond }) => ({
     ...state,
-    entities: {
-      ...state.entities,
+    singleEntities: {
+      ...state.singleEntities,
       [bond.id]: {
         data: bond,
         loading: false,
         error: null,
         loadedAt: Date.now()
       }
-    },
-    ids: state.ids.includes(bond.id) ? state.ids : [...state.ids, bond.id]
+    }
   })),
 
   on(BondsActions.loadBondFailure, (state, { bondId, error }) => {
-    const entity = state.entities[bondId];
+    const entity = state.singleEntities[bondId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [bondId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -270,14 +279,27 @@ export const bondsReducer = createReducer(
     }
   })),
 
-  on(BondsActions.changePageSize, (state, { limit }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
+  on(BondsActions.changePageSize, (state, { limit }) => {
+    // Clear page cache when page size changes
+    const shouldClearCache = state.previousPageSize !== limit;
+
+    return {
+      ...state,
+      filters: {
+        ...state.filters,
+        limit,
+        offset: 0
+      },
       limit,
-      offset: 0
-    }
-  })),
+      offset: 0,
+      activePage: 1,
+      // Clear all caches when page size changes
+      pageCache: shouldClearCache ? {} : state.pageCache,
+      customerBondsPageCache: shouldClearCache ? {} : state.customerBondsPageCache,
+      partnerBondsPageCache: shouldClearCache ? {} : state.partnerBondsPageCache,
+      previousPageSize: limit
+    };
+  }),
 
   // Selection
   on(BondsActions.selectBond, (state, { bondId }) => ({
@@ -318,5 +340,36 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.resetState, () => initialState)
+  on(BondsActions.resetState, () => initialState),
+
+  // Reset to first page
+  on(BondsActions.resetToFirstPage, (state) => ({
+    ...state,
+    activePage: 1,
+    offset: 0,
+    filters: {
+      ...state.filters,
+      offset: 0
+    }
+  })),
+
+  // Reset for context view (partner/customer)
+  // Clears all caches when entering from partner/customer context
+  on(BondsActions.resetForContextView, (state) => ({
+    ...state,
+    // Clear all page caches
+    pageCache: {},
+    customerBondsPageCache: {},
+    partnerBondsPageCache: {},
+    // Reset to first page
+    activePage: 1,
+    offset: 0,
+    filters: {
+      ...state.filters,
+      offset: 0
+    },
+    // Clear current page data
+    currentPageBonds: [],
+    customerBonds: []
+  }))
 );

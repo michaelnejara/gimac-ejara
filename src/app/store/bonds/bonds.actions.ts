@@ -94,6 +94,12 @@ export const BondsActions = createActionGroup({
     // UI State
     'Set Loading': props<{ loading: boolean }>(),
     'Clear Errors': emptyProps(),
-    'Reset State': emptyProps()
+    'Reset State': emptyProps(),
+
+    // Page Management
+    'Reset To First Page': emptyProps(),
+    'Reset For Context View': emptyProps(), // Reset when entering partner/customer context
+    'Check And Load Bonds': props<{ filters?: BondFilterParams }>(),
+    'Check And Load Bond': props<{ bondId: number; forceReload?: boolean }>()
   }
 });

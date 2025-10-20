@@ -165,6 +165,9 @@ export class PartnersList implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Reset to first page when leaving the list view
+    this.store.dispatch(PartnersActions.resetToFirstPage());
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -321,11 +324,12 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Load partners with filters
+   * Uses cache-aware action to avoid redundant API calls
    */
   loadPartners(): void {
     const formValue = this.filterForm.value;
     const currentPagination = this.tableConfig.pagination;
-    
+
     const filters: PartnerFilterParams = {
       keyword: formValue.keyword || undefined,
       status: formValue.status || undefined,
@@ -340,7 +344,8 @@ export class PartnersList implements OnInit, OnDestroy {
       sortOrder: 'desc'
     };
 
-    this.store.dispatch(PartnersActions.loadPartners({ filters }));
+    // Use cache-aware action - checks cache before making API call
+    this.store.dispatch(PartnersActions.checkAndLoadPartners({ filters }));
   }
 
   /**
@@ -358,10 +363,11 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Apply filters manually
+   * Note: When filters change, we want fresh data (bypass cache)
    */
   applyFilters(): void {
     this.hasUnappliedFilters = false;
-    
+
     // Reset to first page when applying new filters
     this.tableConfig = {
       ...this.tableConfig,
@@ -370,8 +376,26 @@ export class PartnersList implements OnInit, OnDestroy {
         pageIndex: 0
       }
     };
-    
-    this.loadPartners();
+
+    // Get filter values
+    const formValue = this.filterForm.value;
+
+    const filters: PartnerFilterParams = {
+      keyword: formValue.keyword || undefined,
+      status: formValue.status || undefined,
+      code: formValue.code || undefined,
+      name: formValue.name || undefined,
+      minCommissionRate: formValue.minCommissionRate || undefined,
+      maxCommissionRate: formValue.maxCommissionRate || undefined,
+      bondId: formValue.bondId || undefined,
+      limit: 20,
+      offset: 0,
+      sortBy: 'dateCreated',
+      sortOrder: 'desc'
+    };
+
+    // Use direct load for filter changes (bypass cache to get fresh data)
+    this.store.dispatch(PartnersActions.loadPartners({ filters }));
   }
 
   /**
@@ -406,7 +430,7 @@ export class PartnersList implements OnInit, OnDestroy {
    * Navigate to add partner page
    */
   addNewPartner(): void {
-    this.router.navigate(['/partners/add']);
+    this.router.navigate(['/partners/add-partner']);
   }
 
   /**

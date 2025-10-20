@@ -5,8 +5,16 @@ import { Store } from '@ngrx/store';
 import { BondsService } from '@core/services/bonds/bonds.service';
 import { BondsMockService } from '@core/services/bonds/bonds-mock.service';
 import { BondsActions } from './bonds.actions';
-import { selectFilters, selectViewMode, selectActivePartnerId } from './bonds.state';
-import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
+import {
+  selectFilters,
+  selectViewMode,
+  selectActivePartnerId,
+  selectIsPageCached,
+  selectIsBondCached,
+  selectLimit,
+  selectOffset
+} from './bonds.state';
+import { catchError, map, switchMap, withLatestFrom, tap, filter } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -60,6 +68,54 @@ export class BondsEffects {
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load bond';
             return of(BondsActions.loadBondFailure({ bondId, error: errorMessage }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check cache and load single bond only if not cached or force reload
+   */
+  checkAndLoadBond$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondsActions.checkAndLoadBond),
+      switchMap(({ bondId, forceReload }) => {
+        return this.store.select(selectIsBondCached(bondId)).pipe(
+          map(isCached => {
+            // Load if not cached or force reload requested
+            if (!isCached || forceReload) {
+              return BondsActions.loadBond({ bondId });
+            }
+            // Already cached, no action needed
+            return { type: '[Bonds] Bond Already Cached' };
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check cache and load bonds list - only fetch if page not cached
+   */
+  checkAndLoadBonds$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondsActions.checkAndLoadBonds),
+      withLatestFrom(
+        this.store.select(selectLimit),
+        this.store.select(selectOffset)
+      ),
+      switchMap(([{ filters }, limit, offset]) => {
+        const pageNumber = Math.floor(offset / limit) + 1;
+
+        return this.store.select(selectIsPageCached(pageNumber)).pipe(
+          map(isCached => {
+            // Load if page not cached
+            if (!isCached) {
+              return BondsActions.loadBonds({ filters });
+            }
+            // Already cached, no action needed
+            return { type: '[Bonds] Page Already Cached' };
           })
         );
       })

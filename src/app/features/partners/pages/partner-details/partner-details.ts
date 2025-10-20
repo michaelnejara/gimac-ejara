@@ -80,6 +80,7 @@ export class PartnerDetails implements OnInit, OnDestroy {
 
   /**
    * Load partner details
+   * Uses cache-aware action to avoid redundant API calls
    */
   private loadPartner(): void {
     if (!this.partnerId) return;
@@ -91,8 +92,10 @@ export class PartnerDetails implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectPartnerLoading(this.partnerId));
     this.error$ = this.store.select(selectPartnerError(this.partnerId));
 
-    // Dispatch action to load partner
-    this.store.dispatch(PartnersActions.loadPartner({ partnerId: this.partnerId }));
+    // Use cache-aware action - checks cache before making API call
+    this.store.dispatch(PartnersActions.checkAndLoadPartner({
+      partnerId: this.partnerId
+    }));
   }
 
   /**
@@ -128,9 +131,12 @@ export class PartnerDetails implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result?.statusChanged) {
-        // Reload partner to get updated status
-        this.loadPartner();
+      if (result?.statusChanged && this.partnerId) {
+        // Force reload partner to get updated status (bypass cache)
+        this.store.dispatch(PartnersActions.checkAndLoadPartner({
+          partnerId: this.partnerId,
+          forceReload: true
+        }));
       }
     });
   }

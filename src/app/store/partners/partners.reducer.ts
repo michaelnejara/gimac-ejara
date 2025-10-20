@@ -20,6 +20,9 @@ export const partnersReducer = createReducer(
     const entities = { ...state.entities };
     const newIds: number[] = [];
 
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(response.meta.offset / response.meta.limit) + 1;
+
     response.data.forEach(partner => {
       newIds.push(partner.id);
       entities[partner.id] = {
@@ -30,14 +33,21 @@ export const partnersReducer = createReducer(
       };
     });
 
+    // Update page cache
+    const newPageCache = { ...state.pageCache };
+    newPageCache[pageNumber] = response.data;
+
     return {
       ...state,
       entities,
       ids: [...new Set([...state.ids, ...newIds])],
       currentPagePartners: response.data,
+      pageCache: newPageCache,
+      activePage: pageNumber,
       total: response.meta.total,
       limit: response.meta.limit,
       offset: response.meta.offset,
+      previousPageSize: response.meta.limit,
       loading: false,
       error: null
     };
@@ -49,13 +59,13 @@ export const partnersReducer = createReducer(
     error
   })),
 
-  // Load Single Partner
+  // Load Single Partner (stores in singleEntities cache)
   on(PartnersActions.loadPartner, (state, { partnerId }) => {
-    const entity = state.entities[partnerId];
+    const entity = state.singleEntities[partnerId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [partnerId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -69,24 +79,23 @@ export const partnersReducer = createReducer(
 
   on(PartnersActions.loadPartnerSuccess, (state, { partner }) => ({
     ...state,
-    entities: {
-      ...state.entities,
+    singleEntities: {
+      ...state.singleEntities,
       [partner.id]: {
         data: partner as any, // PartnerDetail type from get by id
         loading: false,
         error: null,
         loadedAt: Date.now()
       }
-    },
-    ids: state.ids.includes(partner.id) ? state.ids : [...state.ids, partner.id]
+    }
   })),
 
   on(PartnersActions.loadPartnerFailure, (state, { partnerId, error }) => {
-    const entity = state.entities[partnerId];
+    const entity = state.singleEntities[partnerId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [partnerId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -269,14 +278,25 @@ export const partnersReducer = createReducer(
     }
   })),
 
-  on(PartnersActions.changePageSize, (state, { limit }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
+  on(PartnersActions.changePageSize, (state, { limit }) => {
+    // Clear page cache when page size changes
+    const shouldClearCache = state.previousPageSize !== limit;
+
+    return {
+      ...state,
+      filters: {
+        ...state.filters,
+        limit,
+        offset: 0
+      },
       limit,
-      offset: 0
-    }
-  })),
+      offset: 0,
+      activePage: 1,
+      // Clear page cache when page size changes
+      pageCache: shouldClearCache ? {} : state.pageCache,
+      previousPageSize: limit
+    };
+  }),
 
   // Selection
   on(PartnersActions.selectPartner, (state, { partnerId }) => ({
@@ -307,6 +327,17 @@ export const partnersReducer = createReducer(
   })),
 
   on(PartnersActions.resetState, () => initialState),
+
+  // Reset to first page
+  on(PartnersActions.resetToFirstPage, (state) => ({
+    ...state,
+    activePage: 1,
+    offset: 0,
+    filters: {
+      ...state.filters,
+      offset: 0
+    }
+  })),
 
   // Assign Bonds to Partner
   on(PartnersActions.assignBonds, (state, { partnerId }) => {

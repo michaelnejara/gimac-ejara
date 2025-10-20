@@ -20,10 +20,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 // Store
 import { BondsActions } from '@store/bonds/bonds.actions';
 import {
-  selectSelectedBond,
-  selectLoading,
-  selectError,
-  selectSelectedBondId,
   selectBondById,
   selectBondLoading,
   selectBondError
@@ -86,7 +82,10 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
         this.setupBondSubscription();
         this.setupReturnUrl();
 
-        this.store.dispatch(BondsActions.loadBond({ bondId: this.bondId }));
+        // Use cache-aware action - checks cache before making API call
+        this.store.dispatch(BondsActions.checkAndLoadBond({
+          bondId: this.bondId
+        }));
       }
     });
   }

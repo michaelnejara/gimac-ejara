@@ -4,7 +4,13 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { PartnersService } from '@core/services/partners/partners.service';
 import { PartnersActions } from './partners.actions';
-import { selectFilters } from './partners.state';
+import {
+  selectFilters,
+  selectIsPageCached,
+  selectIsPartnerCached,
+  selectLimit,
+  selectOffset
+} from './partners.state';
 import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { PartnersMockService } from '@core/services/partners/partners-mock.service';
@@ -62,6 +68,54 @@ export class PartnersEffects {
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to load partner';
             return of(PartnersActions.loadPartnerFailure({ partnerId, error: errorMessage }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check cache and load single partner only if not cached or force reload
+   */
+  checkAndLoadPartner$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(PartnersActions.checkAndLoadPartner),
+      switchMap(({ partnerId, forceReload }) => {
+        return this.store.select(selectIsPartnerCached(partnerId)).pipe(
+          map(isCached => {
+            // Load if not cached or force reload requested
+            if (!isCached || forceReload) {
+              return PartnersActions.loadPartner({ partnerId });
+            }
+            // Already cached, no action needed
+            return { type: '[Partners] Partner Already Cached' };
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check cache and load partners list - only fetch if page not cached
+   */
+  checkAndLoadPartners$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(PartnersActions.checkAndLoadPartners),
+      withLatestFrom(
+        this.store.select(selectLimit),
+        this.store.select(selectOffset)
+      ),
+      switchMap(([{ filters }, limit, offset]) => {
+        const pageNumber = Math.floor(offset / limit) + 1;
+
+        return this.store.select(selectIsPageCached(pageNumber)).pipe(
+          map(isCached => {
+            // Load if page not cached
+            if (!isCached) {
+              return PartnersActions.loadPartners({ filters });
+            }
+            // Already cached, no action needed
+            return { type: '[Partners] Page Already Cached' };
           })
         );
       })

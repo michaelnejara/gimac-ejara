@@ -85,6 +85,11 @@ export const PartnersActions = createActionGroup({
     'Clear Errors': emptyProps(),
     'Reset State': emptyProps(),
 
+    // Page Management
+    'Reset To First Page': emptyProps(),
+    'Check And Load Partners': props<{ filters?: PartnerFilterParams }>(),
+    'Check And Load Partner': props<{ partnerId: number; forceReload?: boolean }>(),
+
     // Assign Bonds to Partner
     'Assign Bonds': props<{ 
       partnerId: number; 

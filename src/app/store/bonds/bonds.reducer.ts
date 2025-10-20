@@ -17,21 +17,8 @@ export const bondsReducer = createReducer(
   })),
 
   on(BondsActions.loadBondsSuccess, (state, { bonds, total, limit, offset }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
-
     // Calculate page number from offset and limit
     const pageNumber = Math.floor(offset / limit) + 1;
-
-    bonds.forEach(bond => {
-      newIds.push(bond.id);
-      entities[bond.id] = {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
 
     // Update page cache
     const newPageCache = { ...state.pageCache };
@@ -39,9 +26,6 @@ export const bondsReducer = createReducer(
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: bonds,
       pageCache: newPageCache,
       activePage: pageNumber,
       total,
@@ -155,11 +139,16 @@ export const bondsReducer = createReducer(
   })),
 
   on(BondsActions.deleteBondSuccess, (state, { bondId }) => {
-    const { [bondId]: removed, ...remainingEntities } = state.entities;
+    // Remove from single entities cache
+    const { [bondId]: removed, ...remainingSingleEntities } = state.singleEntities;
+
+    // Clear page cache (force reload)
     return {
       ...state,
-      entities: remainingEntities,
-      ids: state.ids.filter(id => id !== bondId),
+      singleEntities: remainingSingleEntities,
+      pageCache: {},
+      customerBondsPageCache: {},
+      partnerBondsPageCache: {},
       deleting: false,
       error: null,
       selectedId: state.selectedId === bondId ? null : state.selectedId
@@ -182,28 +171,20 @@ export const bondsReducer = createReducer(
   })),
 
   on(BondsActions.loadPartnerBondsSuccess, (state, { partnerId, bonds, total, limit, offset }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
 
-    bonds.forEach((bond: any) => {
-      // Partner bonds have bondId instead of id
-      const id = bond.bondId || bond.id;
-      if (id) {
-        newIds.push(id);
-        entities[id] = {
-          data: bond,
-          loading: false,
-          error: null,
-          loadedAt: Date.now()
-        };
-      }
-    });
+    // Update partner-specific page cache
+    const newPartnerBondsPageCache = { ...state.partnerBondsPageCache };
+    if (!newPartnerBondsPageCache[partnerId]) {
+      newPartnerBondsPageCache[partnerId] = {};
+    }
+    newPartnerBondsPageCache[partnerId][pageNumber] = bonds;
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: bonds,
+      partnerBondsPageCache: newPartnerBondsPageCache,
+      activePage: pageNumber,
       total,
       limit,
       offset,
@@ -227,15 +208,25 @@ export const bondsReducer = createReducer(
     viewMode: 'customer' as const
   })),
 
-  on(BondsActions.loadCustomerBondsSuccess, (state, { customerBonds, total, limit, offset }) => ({
-    ...state,
-    customerBonds,
-    total,
-    limit,
-    offset,
-    loading: false,
-    error: null
-  })),
+  on(BondsActions.loadCustomerBondsSuccess, (state, { customerBonds, total, limit, offset }) => {
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
+
+    // Update customer bonds page cache
+    const newCustomerBondsPageCache = { ...state.customerBondsPageCache };
+    newCustomerBondsPageCache[pageNumber] = customerBonds;
+
+    return {
+      ...state,
+      customerBondsPageCache: newCustomerBondsPageCache,
+      activePage: pageNumber,
+      total,
+      limit,
+      offset,
+      loading: false,
+      error: null
+    };
+  }),
 
   on(BondsActions.loadCustomerBondsFailure, (state, { error }) => ({
     ...state,
@@ -367,9 +358,6 @@ export const bondsReducer = createReducer(
     filters: {
       ...state.filters,
       offset: 0
-    },
-    // Clear current page data
-    currentPageBonds: [],
-    customerBonds: []
+    }
   }))
 );

@@ -23,14 +23,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 // Store
 import { PartnersActions } from '@store/partners/partners.actions';
-import { BondsActions } from '@store/bonds/bonds.actions';
 import {
   selectPartnerById,
   selectCreating,
   selectUpdating,
   selectError
 } from '@store/partners/partners.state';
-import { selectAllBonds, selectLoading } from '@store/bonds/bonds.state';
+
+// Services
+import { BondsService } from '@core/services/bonds/bonds.service';
 
 // Models
 import { Partner, SinglePartner, CreatePartnerRequest, UpdatePartnerRequest } from '@core/models/partner.models';
@@ -64,11 +65,12 @@ export class AddPartner implements OnInit, OnDestroy {
   private store = inject(Store);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private bondsService = inject(BondsService);
   private destroy$ = new Subject<void>();
 
   // Form
   partnerForm!: FormGroup;
-  
+
   // State
   isEditMode = false;
   partnerId: number | null = null;
@@ -76,13 +78,13 @@ export class AddPartner implements OnInit, OnDestroy {
   creating$: Observable<boolean>;
   updating$: Observable<boolean>;
   error$: Observable<string | null>;
-  
-  // Bonds
-  availableBonds$: Observable<Bond[]>;
-  bondsLoading$: Observable<boolean>;
+
+  // Bonds (loaded from service, not store)
+  availableBonds$!: Observable<Bond[]>;
+  bondsLoading = false;
   filteredBonds$!: Observable<Bond[]>;
   bondSearchControl = this.fb.control('');
-  
+
   // IP Address input
   newIpAddress = '';
 
@@ -106,13 +108,11 @@ export class AddPartner implements OnInit, OnDestroy {
     this.creating$ = this.store.select(selectCreating);
     this.updating$ = this.store.select(selectUpdating);
     this.error$ = this.store.select(selectError);
-    this.availableBonds$ = this.store.select(selectAllBonds);
-    this.bondsLoading$ = this.store.select(selectLoading);
   }
 
   ngOnInit(): void {
-    // Load bonds
-    this.store.dispatch(BondsActions.loadBonds({ filters: { status: 'active' } }));
+    // Load bonds directly from service (not store)
+    this.loadAvailableBonds();
 
     // Initialize form
     this.initializeForm();
@@ -133,6 +133,24 @@ export class AddPartner implements OnInit, OnDestroy {
 
     // Listen for successful creation/update
     this.listenForSuccess();
+  }
+
+  /**
+   * Load available bonds from service
+   * Uses service directly instead of store to avoid polluting page cache
+   */
+  private loadAvailableBonds(): void {
+    this.bondsLoading = true;
+    this.availableBonds$ = this.bondsService.getBonds({
+      status: 'active',
+      limit: 1000 // Load all active bonds for selection
+    }).pipe(
+      map(response => {
+        this.bondsLoading = false;
+        return response.bonds;
+      }),
+      takeUntil(this.destroy$)
+    );
   }
 
   ngOnDestroy(): void {
@@ -199,16 +217,11 @@ export class AddPartner implements OnInit, OnDestroy {
   }
 
   /**
-   * Load more bonds if needed
+   * Reload bonds if needed
+   * (e.g., when bonds are added/updated elsewhere)
    */
-  loadMoreBonds(): void {
-    // This would be called when scrolling or if search returns no results
-    this.store.dispatch(BondsActions.loadBonds({ 
-      filters: { 
-        status: 'active',
-        limit: 50 
-      } 
-    }));
+  reloadBonds(): void {
+    this.loadAvailableBonds();
   }
 
   /**

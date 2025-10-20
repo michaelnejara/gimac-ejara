@@ -4,7 +4,13 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { BondTransactionsService } from '@core/services/bond-transactions/bond-transactions.service';
 import { BondTransactionsActions } from './bond-transactions.actions';
-import { selectFilters } from './bond-transactions.state';
+import {
+  selectFilters,
+  selectLimit,
+  selectOffset,
+  selectIsPageCached,
+  selectIsTransactionCached
+} from './bond-transactions.state';
 import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '@environments/environment';
@@ -65,6 +71,51 @@ export class BondTransactionsEffects {
               transactionId,
               error: errorMessage
             }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check And Load Transactions (Cache-Aware)
+   */
+  checkAndLoadTransactions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondTransactionsActions.checkAndLoadTransactions),
+      withLatestFrom(
+        this.store.select(selectLimit),
+        this.store.select(selectOffset)
+      ),
+      switchMap(([{ filters }, limit, offset]) => {
+        const pageNumber = Math.floor(offset / limit) + 1;
+        return this.store.select(selectIsPageCached(pageNumber)).pipe(
+          map(isCached => {
+            if (!isCached) {
+              return BondTransactionsActions.loadTransactions({ filters });
+            }
+            // Page already cached, no need to load
+            return { type: '[Bond Transactions] Page Already Cached' } as any;
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Check And Load Transaction (Cache-Aware)
+   */
+  checkAndLoadTransaction$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondTransactionsActions.checkAndLoadTransaction),
+      switchMap(({ transactionId, forceReload }) => {
+        return this.store.select(selectIsTransactionCached(transactionId)).pipe(
+          map(isCached => {
+            if (!isCached || forceReload) {
+              return BondTransactionsActions.loadTransaction({ transactionId });
+            }
+            // Transaction already cached, no need to load
+            return { type: '[Bond Transactions] Transaction Already Cached' } as any;
           })
         );
       })

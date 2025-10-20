@@ -22,6 +22,10 @@ export const CustomersActions = createActionGroup({
     'Load Customer Success': props<{ customer: CustomerDetails }>(),
     'Load Customer Failure': props<{ customerId: number; error: string }>(),
 
+    // Cache-Aware Loading
+    'Check And Load Customers': props<{ filters?: CustomerFilterParams }>(),
+    'Check And Load Customer': props<{ customerId: number; forceReload?: boolean }>(),
+
     // Filter & Search
     'Apply Filters': props<{ filters: CustomerFilterParams }>(),
     'Clear Filters': emptyProps(),
@@ -35,6 +39,10 @@ export const CustomersActions = createActionGroup({
     // Selection
     'Select Customer': props<{ customerId: number | null }>(),
     'Clear Selection': emptyProps(),
+
+    // Page Management
+    'Reset To First Page': emptyProps(),
+    'Reset For Partner Context': props<{ partnerId: number | null }>(),
 
     // UI State
     'Set Loading': props<{ loading: boolean }>(),

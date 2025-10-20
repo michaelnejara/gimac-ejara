@@ -22,6 +22,10 @@ export const BondTransactionsActions = createActionGroup({
     'Load Transaction Success': props<{ transaction: BondTransaction }>(),
     'Load Transaction Failure': props<{ transactionId: number; error: string }>(),
 
+    // Cache-Aware Loading
+    'Check And Load Transactions': props<{ filters?: TransactionFilterParams }>(),
+    'Check And Load Transaction': props<{ transactionId: number; forceReload?: boolean }>(),
+
     // Load Statistics
     'Load Stats': props<{ filters?: TransactionFilterParams }>(),
     'Load Stats Success': props<{ stats: TransactionStats }>(),
@@ -44,6 +48,9 @@ export const BondTransactionsActions = createActionGroup({
     // Selection
     'Select Transaction': props<{ transactionId: number | null }>(),
     'Clear Selection': emptyProps(),
+
+    // Page Management
+    'Reset To First Page': emptyProps(),
 
     // Change Transaction Status
     'Change Transaction Status': props<{ 

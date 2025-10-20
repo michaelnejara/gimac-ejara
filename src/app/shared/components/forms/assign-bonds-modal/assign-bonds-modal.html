@@ -49,7 +49,7 @@
 
   <!-- Bonds List -->
   <div class="modal-content">
-    @if (loading$ | async) {
+    @if (bondsLoading) {
     <div class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
       <p>Loading bonds...</p>

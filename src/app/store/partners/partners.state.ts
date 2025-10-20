@@ -29,19 +29,12 @@ export interface PartnersState {
   // Populated when getPartnerById is called
   singleEntities: Record<number, PartnerEntity>;
 
-  // List Entities (for list views - deprecated, will migrate to pageCache)
-  entities: Record<number, PartnerEntity>;
-  ids: number[];
-
-  // Page-based Cache (NEW)
+  // Page-based Cache
   // Structure: { 1: [...partners], 2: [...partners], ... }
   pageCache: PageCache<Partner>;
 
   // Current active page number
   activePage: number;
-
-  // Current list view (deprecated - use pageCache instead)
-  currentPagePartners: Partner[];
 
   // Selection
   selectedId: number | null;
@@ -73,16 +66,9 @@ export const initialState: PartnersState = {
   // Single entity cache
   singleEntities: {},
 
-  // List entities (deprecated)
-  entities: {},
-  ids: [],
-
   // Page-based cache
   pageCache: {},
   activePage: 1,
-
-  // Current list view (deprecated)
-  currentPagePartners: [],
 
   selectedId: null,
   selectedIds: [],
@@ -109,30 +95,14 @@ export const initialState: PartnersState = {
 export const selectPartnersState = createFeatureSelector<PartnersState>('partners');
 
 /**
- * Entity Selectors
+ * Current Page Partners Selector
  */
-export const selectPartnerEntities = createSelector(
-  selectPartnersState,
-  (state) => state.entities
-);
-
-export const selectPartnerIds = createSelector(
-  selectPartnersState,
-  (state) => state.ids
-);
-
-export const selectAllPartners = createSelector(
-  selectPartnerEntities,
-  selectPartnerIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
-);
-
 export const selectCurrentPagePartners = createSelector(
   selectPartnersState,
   (state) => {
-    // Use page cache if available, otherwise fall back to currentPagePartners
+    // Return partners from current page cache
     const currentPage = state.activePage;
-    return state.pageCache[currentPage] || state.currentPagePartners;
+    return state.pageCache[currentPage] || [];
   }
 );
 
@@ -207,7 +177,7 @@ export const selectSelectedPartnerId = createSelector(
 );
 
 export const selectSelectedPartner = createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   selectSelectedPartnerId,
   (entities, selectedId) => selectedId ? entities[selectedId]?.data : null
 );
@@ -218,9 +188,9 @@ export const selectSelectedPartnerIds = createSelector(
 );
 
 export const selectSelectedPartners = createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   selectSelectedPartnerIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
+  (entities, ids) => ids.map((id: number) => entities[id]?.data).filter(Boolean)
 );
 
 /**
@@ -288,26 +258,26 @@ export const selectDeleting = createSelector(
 );
 
 /**
- * Derived Selectors
+ * Derived Selectors (from current page)
  */
 export const selectActivePartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'active')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'active')
 );
 
 export const selectSuspendedPartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'suspended')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'suspended')
 );
 
 export const selectInactivePartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'inactive')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'inactive')
 );
 
 export const selectPartnersByStatus = (status: string) => createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === status)
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === status)
 );
 
 export const selectHasFilters = createSelector(
@@ -316,6 +286,6 @@ export const selectHasFilters = createSelector(
 );
 
 export const selectPartnerCount = createSelector(
-  selectPartnerIds,
-  (ids) => ids.length
+  selectCurrentPagePartners,
+  (partners) => partners.length
 );

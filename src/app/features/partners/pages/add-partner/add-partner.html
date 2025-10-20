@@ -142,7 +142,7 @@
                   </mat-form-field>
                 </div>
 
-                @if (bondsLoading$ | async) {
+                @if (bondsLoading) {
                 <div class="loading-options">
                   <mat-spinner diameter="24"></mat-spinner>
                   <span>Loading bonds...</span>
@@ -161,7 +161,7 @@
                 <div class="no-options">
                   <mat-icon>inbox</mat-icon>
                   <p>No bonds found</p>
-                  <button mat-button type="button" (click)="loadMoreBonds()">Load more</button>
+                  <button mat-button type="button" (click)="reloadBonds()">Reload bonds</button>
                 </div>
                 }
               </mat-select>

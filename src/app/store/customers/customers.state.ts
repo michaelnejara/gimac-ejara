@@ -4,7 +4,7 @@ import { Customer, CustomerDetails, CustomerFilterParams } from '@core/models/cu
 
 /**
  * Customer Entity
- * Stores either basic Customer or full CustomerDetails
+ * Stores either basic Customer or full CustomerDetails for single resource calls
  */
 export interface CustomerEntity {
   data: Customer | CustomerDetails;
@@ -14,39 +14,54 @@ export interface CustomerEntity {
 }
 
 /**
+ * Page Cache
+ * Stores paginated customers organized by page number
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Customers State Interface
  */
 export interface CustomersState {
-  // Entities (normalized by ID)
-  entities: Record<number, CustomerEntity>;
-  ids: number[];
-  
-  // Current list view
-  currentPageCustomers: Customer[];
-  
+  // Single Entity Cache (for detail views - getCustomerById)
+  singleEntities: Record<number, CustomerEntity>;
+
+  // Page-based Cache (for list views - getCustomers)
+  pageCache: PageCache<Customer>;
+
+  // Current active page number
+  activePage: number;
+  previousPageSize: number; // Track page size changes
+
   // Selection
   selectedId: number | null;
-  
+
   // Filters & Search
   filters: CustomerFilterParams;
-  
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
+
+  // Partner Context (for partner-specific customer views)
+  currentPartnerId: number | null;
 }
 
 /**
  * Initial State
  */
 export const initialState: CustomersState = {
-  entities: {},
-  ids: [],
-  currentPageCustomers: [],
+  singleEntities: {},
+  pageCache: {},
+  activePage: 1,
+  previousPageSize: 20,
   selectedId: null,
   filters: {
     limit: 20,
@@ -56,7 +71,8 @@ export const initialState: CustomersState = {
   limit: 20,
   offset: 0,
   loading: false,
-  error: null
+  error: null,
+  currentPartnerId: null
 };
 
 /**
@@ -65,39 +81,55 @@ export const initialState: CustomersState = {
 export const selectCustomersState = createFeatureSelector<CustomersState>('customers');
 
 /**
- * Entity Selectors
+ * Single Entity Cache Selectors (for detail views)
  */
-export const selectCustomerEntities = createSelector(
+export const selectSingleEntities = createSelector(
   selectCustomersState,
-  (state) => state.entities
-);
-
-export const selectCustomerIds = createSelector(
-  selectCustomersState,
-  (state) => state.ids
-);
-
-export const selectAllCustomers = createSelector(
-  selectCustomerEntities,
-  selectCustomerIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
-);
-
-export const selectCurrentPageCustomers = createSelector(
-  selectCustomersState,
-  (state) => state.currentPageCustomers
+  (state) => state.singleEntities
 );
 
 /**
- * Single Customer Selectors
+ * Page Cache Selectors (for list views)
+ */
+export const selectPageCache = createSelector(
+  selectCustomersState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectCustomersState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageCustomers = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+/**
+ * Cache Check Selectors
+ */
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectIsCustomerCached = (customerId: number) => createSelector(
+  selectSingleEntities,
+  (entities) => !!entities[customerId]
+);
+
+/**
+ * Single Customer Selectors (from singleEntities cache)
  */
 export const selectCustomerById = (customerId: number) => createSelector(
-  selectCustomerEntities,
+  selectSingleEntities,
   (entities) => entities[customerId]?.data
 );
 
 export const selectCustomerEntityById = (customerId: number) => createSelector(
-  selectCustomerEntities,
+  selectSingleEntities,
   (entities) => entities[customerId]
 );
 
@@ -120,9 +152,17 @@ export const selectSelectedCustomerId = createSelector(
 );
 
 export const selectSelectedCustomer = createSelector(
-  selectCustomerEntities,
+  selectSingleEntities,
   selectSelectedCustomerId,
   (entities, selectedId) => selectedId ? entities[selectedId]?.data : null
+);
+
+/**
+ * Partner Context Selector
+ */
+export const selectCurrentPartnerId = createSelector(
+  selectCustomersState,
+  (state) => state.currentPartnerId
 );
 
 /**
@@ -177,29 +217,14 @@ export const selectError = createSelector(
 /**
  * Derived Selectors
  */
-export const selectCustomersByPartner = (partnerId: number) => createSelector(
-  selectAllCustomers,
-  (customers) => customers.filter(c => c.partnerId === partnerId)
-);
-
-export const selectCustomersByCountry = (countryCode: string) => createSelector(
-  selectAllCustomers,
-  (customers) => customers.filter(c => c.countryCode === countryCode)
-);
-
 export const selectHasFilters = createSelector(
   selectFilters,
   (filters) => !!(
-    filters.partnerId || 
-    filters.keyword || 
-    filters.customerName || 
+    filters.partnerId ||
+    filters.keyword ||
+    filters.customerName ||
     filters.email ||
     filters.phone ||
     filters.countryCode
   )
-);
-
-export const selectCustomerCount = createSelector(
-  selectCustomerIds,
-  (ids) => ids.length
 );

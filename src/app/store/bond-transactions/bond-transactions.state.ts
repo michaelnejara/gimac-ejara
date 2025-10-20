@@ -6,7 +6,7 @@ import {
 } from '@core/models/bond-transaction.models';
 
 /**
- * Transaction Entity
+ * Transaction Entity (for single resource calls)
  */
 export interface TransactionEntity {
   data: BondTransaction;
@@ -16,31 +16,41 @@ export interface TransactionEntity {
 }
 
 /**
+ * Page Cache (organized by page number)
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Bond Transactions State Interface
  */
 export interface BondTransactionsState {
-  // Entities (normalized by ID)
-  entities: Record<number, TransactionEntity>;
-  ids: number[];
-  
-  // Current list view
-  currentPageTransactions: BondTransaction[];
-  
+  // Single Entity Cache (for detail views - getTransactionById)
+  singleEntities: Record<number, TransactionEntity>;
+
+  // Page-based Cache (for list views - getTransactions)
+  pageCache: PageCache<BondTransaction>;
+
+  // Current active page number
+  activePage: number;
+  previousPageSize: number;
+
   // Selection
   selectedId: number | null;
-  
+
   // Filters & Search
   filters: TransactionFilterParams;
-  
+
   // Statistics
   stats: TransactionStats | null;
   statsLoading: boolean;
-  
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
@@ -50,9 +60,10 @@ export interface BondTransactionsState {
  * Initial State
  */
 export const initialState: BondTransactionsState = {
-  entities: {},
-  ids: [],
-  currentPageTransactions: [],
+  singleEntities: {},
+  pageCache: {},
+  activePage: 1,
+  previousPageSize: 20,
   selectedId: null,
   filters: {
     limit: 20,
@@ -73,39 +84,55 @@ export const initialState: BondTransactionsState = {
 export const selectBondTransactionsState = createFeatureSelector<BondTransactionsState>('bondTransactions');
 
 /**
- * Entity Selectors
+ * Single Entity Cache Selectors (for detail views)
  */
-export const selectTransactionEntities = createSelector(
+export const selectSingleEntities = createSelector(
   selectBondTransactionsState,
-  (state) => state.entities
-);
-
-export const selectTransactionIds = createSelector(
-  selectBondTransactionsState,
-  (state) => state.ids
-);
-
-export const selectAllTransactions = createSelector(
-  selectTransactionEntities,
-  selectTransactionIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
-);
-
-export const selectCurrentPageTransactions = createSelector(
-  selectBondTransactionsState,
-  (state) => state.currentPageTransactions
+  (state) => state.singleEntities
 );
 
 /**
- * Single Transaction Selectors
+ * Page Cache Selectors (for list views)
+ */
+export const selectPageCache = createSelector(
+  selectBondTransactionsState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectBondTransactionsState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageTransactions = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+/**
+ * Cache Check Selectors
+ */
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectIsTransactionCached = (transactionId: number) => createSelector(
+  selectSingleEntities,
+  (entities) => !!entities[transactionId]
+);
+
+/**
+ * Single Transaction Selectors (from singleEntities cache)
  */
 export const selectTransactionById = (transactionId: number) => createSelector(
-  selectTransactionEntities,
+  selectSingleEntities,
   (entities) => entities[transactionId]?.data
 );
 
 export const selectTransactionEntityById = (transactionId: number) => createSelector(
-  selectTransactionEntities,
+  selectSingleEntities,
   (entities) => entities[transactionId]
 );
 
@@ -128,7 +155,7 @@ export const selectSelectedTransactionId = createSelector(
 );
 
 export const selectSelectedTransaction = createSelector(
-  selectTransactionEntities,
+  selectSingleEntities,
   selectSelectedTransactionId,
   (entities, selectedId) => selectedId ? entities[selectedId]?.data : null
 );
@@ -198,60 +225,10 @@ export const selectError = createSelector(
 /**
  * Derived Selectors
  */
-export const selectPendingTransactions = createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.status === 'pending')
-);
-
-export const selectConfirmedTransactions = createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.status === 'confirmed')
-);
-
-export const selectFailedTransactions = createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.status === 'failed')
-);
-
-export const selectPurchaseTransactions = createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.type === 'purchase')
-);
-
-export const selectWithdrawalTransactions = createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.type === 'withdrawal')
-);
-
-export const selectTransactionsByStatus = (status: string) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.status === status)
-);
-
-export const selectTransactionsByType = (type: string) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.type === type)
-);
-
-export const selectTransactionsByBond = (bondId: number) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.bondId === bondId)
-);
-
-export const selectTransactionsByPartner = (partnerId: number) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.partnerId === partnerId)
-);
-
-export const selectTransactionsByCustomer = (customerId: number) => createSelector(
-  selectAllTransactions,
-  (transactions) => transactions.filter(t => t.customerId === customerId)
-);
-
 export const selectHasFilters = createSelector(
   selectFilters,
   (filters) => !!(
-    filters.status || 
+    filters.status ||
     filters.type ||
     filters.bondId ||
     filters.partnerId ||
@@ -259,9 +236,4 @@ export const selectHasFilters = createSelector(
     filters.dateFrom ||
     filters.dateTo
   )
-);
-
-export const selectTransactionCount = createSelector(
-  selectTransactionIds,
-  (ids) => ids.length
 );

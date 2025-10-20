@@ -17,21 +17,8 @@ export const partnersReducer = createReducer(
   })),
 
   on(PartnersActions.loadPartnersSuccess, (state, { response }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
-
     // Calculate page number from offset and limit
     const pageNumber = Math.floor(response.meta.offset / response.meta.limit) + 1;
-
-    response.data.forEach(partner => {
-      newIds.push(partner.id);
-      entities[partner.id] = {
-        data: partner as any, // Partner type from listing
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
 
     // Update page cache
     const newPageCache = { ...state.pageCache };
@@ -39,9 +26,6 @@ export const partnersReducer = createReducer(
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPagePartners: response.data,
       pageCache: newPageCache,
       activePage: pageNumber,
       total: response.meta.total,
@@ -131,36 +115,19 @@ export const partnersReducer = createReducer(
   })),
 
   // Update Partner
-  on(PartnersActions.updatePartner, (state, { partnerId }) => ({
+  on(PartnersActions.updatePartner, (state) => ({
     ...state,
     updating: true,
     error: null
   })),
 
-  on(PartnersActions.updatePartnerSuccess, (state, { response }) => {
-    const entity = state.entities[response.data.id];
-    if (!entity) return { ...state, updating: false };
-
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [response.data.id]: {
-          ...entity,
-          data: {
-            ...entity.data,
-            name: response.data.name,
-            updatedAt: response.data.dateUpdated
-          },
-          loading: false,
-          error: null,
-          loadedAt: Date.now()
-        }
-      },
-      updating: false,
-      error: null
-    };
-  }),
+  on(PartnersActions.updatePartnerSuccess, (state) => ({
+    ...state,
+    // Clear page cache (force reload to show updated data)
+    pageCache: {},
+    updating: false,
+    error: null
+  })),
 
   on(PartnersActions.updatePartnerFailure, (state, { error }) => ({
     ...state,
@@ -169,52 +136,25 @@ export const partnersReducer = createReducer(
   })),
 
   // Update Partner Status
-  on(PartnersActions.updatePartnerStatus, (state, { partnerId }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: true,
-          error: null
-        }
-      }
-    };
-  }),
+  on(PartnersActions.updatePartnerStatus, (state) => ({
+    ...state,
+    updating: true,
+    error: null
+  })),
 
-  on(PartnersActions.updatePartnerStatusSuccess, (state, { partnerId, response }) => {
-    const entity = state.entities[partnerId];
-    if (!entity) return state;
+  on(PartnersActions.updatePartnerStatusSuccess, (state) => ({
+    ...state,
+    // Clear page cache (force reload to show updated status)
+    pageCache: {},
+    updating: false,
+    error: null
+  })),
 
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error: null
-        }
-      }
-    };
-  }),
-
-  on(PartnersActions.updatePartnerStatusFailure, (state, { partnerId, error }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error
-        }
-      }
-    };
-  }),
+  on(PartnersActions.updatePartnerStatusFailure, (state, { error }) => ({
+    ...state,
+    updating: false,
+    error
+  })),
 
   // Delete Partner
   on(PartnersActions.deletePartner, (state) => ({
@@ -224,13 +164,17 @@ export const partnersReducer = createReducer(
   })),
 
   on(PartnersActions.deletePartnerSuccess, (state, { partnerId }) => {
-    const { [partnerId]: removed, ...remainingEntities } = state.entities;
+    // Remove from single entities cache
+    const { [partnerId]: removed, ...remainingSingleEntities } = state.singleEntities;
+
     return {
       ...state,
-      entities: remainingEntities,
-      ids: state.ids.filter(id => id !== partnerId),
+      singleEntities: remainingSingleEntities,
+      // Clear page cache (force reload)
+      pageCache: {},
       deleting: false,
-      error: null
+      error: null,
+      selectedId: state.selectedId === partnerId ? null : state.selectedId
     };
   }),
 
@@ -340,98 +284,44 @@ export const partnersReducer = createReducer(
   })),
 
   // Assign Bonds to Partner
-  on(PartnersActions.assignBonds, (state, { partnerId }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: true,
-          error: null
-        }
-      }
-    };
-  }),
+  on(PartnersActions.assignBonds, (state) => ({
+    ...state,
+    updating: true,
+    error: null
+  })),
 
-  on(PartnersActions.assignBondsSuccess, (state, { partnerId, response }) => {
-    const entity = state.entities[partnerId];
-    if (!entity) return state;
+  on(PartnersActions.assignBondsSuccess, (state) => ({
+    ...state,
+    // Clear page cache (force reload to show updated bonds)
+    pageCache: {},
+    updating: false,
+    error: null
+  })),
 
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error: null
-        }
-      }
-    };
-  }),
-
-  on(PartnersActions.assignBondsFailure, (state, { partnerId, error }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error
-        }
-      }
-    };
-  }),
+  on(PartnersActions.assignBondsFailure, (state, { error }) => ({
+    ...state,
+    updating: false,
+    error
+  })),
 
   // Remove Bonds from Partner
-  on(PartnersActions.removeBonds, (state, { partnerId }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: true,
-          error: null
-        }
-      }
-    };
-  }),
+  on(PartnersActions.removeBonds, (state) => ({
+    ...state,
+    updating: true,
+    error: null
+  })),
 
-  on(PartnersActions.removeBondsSuccess, (state, { partnerId, response }) => {
-    const entity = state.entities[partnerId];
-    if (!entity) return state;
+  on(PartnersActions.removeBondsSuccess, (state) => ({
+    ...state,
+    // Clear page cache (force reload to show updated bonds)
+    pageCache: {},
+    updating: false,
+    error: null
+  })),
 
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error: null
-        }
-      }
-    };
-  }),
-
-  on(PartnersActions.removeBondsFailure, (state, { partnerId, error }) => {
-    const entity = state.entities[partnerId];
-    return {
-      ...state,
-      entities: {
-        ...state.entities,
-        [partnerId]: {
-          ...entity,
-          loading: false,
-          error
-        }
-      }
-    };
-  }),
+  on(PartnersActions.removeBondsFailure, (state, { error }) => ({
+    ...state,
+    updating: false,
+    error
+  }))
 );

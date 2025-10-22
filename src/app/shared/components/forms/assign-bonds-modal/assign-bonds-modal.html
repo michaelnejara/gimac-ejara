@@ -49,7 +49,7 @@
 
   <!-- Bonds List -->
   <div class="modal-content">
-    @if (loading$ | async) {
+    @if (bondsLoading) {
     <div class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
       <p>Loading bonds...</p>
@@ -95,27 +95,27 @@
             <div class="info-item">
               <mat-icon class="info-icon">business</mat-icon>
               <span class="info-label">Issuer:</span>
-              <span class="info-value">{{ bond.issuer }}</span>
+              <span class="info-value">{{ bond.issuerNameEn }}</span>
             </div>
 
             <div class="info-item">
               <mat-icon class="info-icon">attach_money</mat-icon>
-              <span class="info-label">Principal:</span>
+              <span class="info-label">Amount:</span>
               <span class="info-value">
-                {{ formatCurrency(bond.principalAmount, bond.fiatCurrency) }}
+                {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
               </span>
             </div>
 
             <div class="info-item">
               <mat-icon class="info-icon">percent</mat-icon>
               <span class="info-label">Interest Rate:</span>
-              <span class="info-value">{{ bond.interestRate }}%</span>
+              <span class="info-value">{{ bond.interestValue }}%</span>
             </div>
 
             <div class="info-item">
               <mat-icon class="info-icon">schedule</mat-icon>
-              <span class="info-label">Tenor:</span>
-              <span class="info-value">{{ formatTenor(bond.tenor) }}</span>
+              <span class="info-label">Lifetime:</span>
+              <span class="info-value">{{ formatLifetime(bond.lifetime) }}</span>
             </div>
 
             <div class="info-item">
@@ -127,7 +127,7 @@
             <div class="info-item">
               <mat-icon class="info-icon">local_atm</mat-icon>
               <span class="info-label">Currency:</span>
-              <span class="info-value currency">{{ bond.fiatCurrency }}</span>
+              <span class="info-value currency">{{ bond.defaultFiatCurrency }}</span>
             </div>
           </div>
         </div>

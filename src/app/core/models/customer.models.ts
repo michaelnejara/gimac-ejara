@@ -1,30 +1,28 @@
 /**
- * Customer Entity
+ * Customer Entity (List Item)
  */
 export interface Customer {
   id: number;
-  partnerId: number;
-  partnerName: string;
   partnerUserId: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   countryCode: string;
-  totalInvestment: number;
-  totalWithdrawn: number;
-  currentBalance: number;
-  activeBondsCount: number;
+  partnerId: number;
+  partnerName: string;
   dateCreated: string;
-  lastActivity: string;
+}
 
-  country?: string;
-  city?: string;
-  kycStatus?: string;
-
-  activeBonds: number[];
-  totalTransactions: number;
-  lastTransactionDate: string
+/**
+ * Customer Details (Single Customer)
+ */
+export interface CustomerDetails extends Customer {
+  partnerCode: string;
+  totalInvestment: number;
+  totalInterestEarned: number;
+  activeBonds: number;
+  lastActivityDate: string;
 }
 
 /**
@@ -48,9 +46,11 @@ export interface CustomerFilterParams {
 export interface CustomersResponse {
   message: string;
   data: Customer[];
-  total: number;
-  limit: number;
-  offset: number;
+  meta: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
 }
 
 /**
@@ -58,5 +58,5 @@ export interface CustomersResponse {
  */
 export interface CustomerResponse {
   message: string;
-  data: Customer;
+  data: CustomerDetails;
 }

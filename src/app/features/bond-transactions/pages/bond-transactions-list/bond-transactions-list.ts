@@ -1,7 +1,7 @@
 // src/app/features/bond-transactions/pages/bond-transactions-list/bond-transactions-list.component.ts
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, of } from 'rxjs';
@@ -46,7 +46,7 @@ import {
 } from '@store/bond-transactions/bond-transactions.state';
 
 // Models
-import { 
+import {
   BondTransaction,
   TransactionFilterParams,
   TransactionStatus,
@@ -55,20 +55,15 @@ import {
 } from '@core/models/bond-transaction.models';
 import { Partner } from '@core/models/partner.models';
 import { Customer } from '@core/models/customer.models';
+import { Bond } from '@core/models/bond.models';
 
 // Services
 import { PartnersService } from '@core/services/partners/partners.service';
 import { CustomersService } from '@core/services/customers/customers.service';
-import { BondTransactionsService } from '@core/services/bond-transactions/bond-transactions.service';
+import { BondsService } from '@core/services/bonds/bonds.service';
 
 // Modal
 import { ChangeTransactionStatusModal } from '@shared/components/forms/change-transaction-status-modal/change-transaction-status-modal';
-
-interface Bond {
-  id: number;
-  name: string;
-  code: string;
-}
 
 @Component({
   selector: 'app-bond-transactions-list',
@@ -101,14 +96,13 @@ interface Bond {
 })
 export class BondTransactionsList implements OnInit, OnDestroy {
   private store = inject(Store);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private partnersService = inject(PartnersService);
   private customersService = inject(CustomersService);
-  private bondTransactionsService = inject(BondTransactionsService);
+  private bondsService = inject(BondsService);
   private destroy$ = new Subject<void>();
 
   // Observables
@@ -126,8 +120,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   filteredBonds$!: Observable<Bond[]>;
 
   // UI State
-  filtersExpanded = true;
-  showFiltersContent = true;
+  filtersExpanded = false;
   hasUnappliedFilters = false;
   fromPartnerPage = false;
   partnerIdFromQuery: number | null = null;
@@ -221,9 +214,9 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     this.partnersService.getPartnerById(partnerId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (partner) => {
+      next: (response) => {
         this.filterForm.patchValue({
-          partnerSearch: partner.name
+          partnerSearch: response.data.name
         });
       },
       error: (err) => {
@@ -245,7 +238,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     this.error$ = this.store.select(selectError);
     this.pagination$ = this.store.select(selectPagination);
     this.currentFilters$ = this.store.select(selectFilters);
-    this.stats$ = this.store.select(selectTransactionStats);
+    // this.stats$ = this.store.select(selectTransactionStats);
 
     this.activeFiltersCount$ = this.currentFilters$.pipe(
       map(filters => this.countActiveFilters(filters))
@@ -278,13 +271,13 @@ export class BondTransactionsList implements OnInit, OnDestroy {
       })
     );
 
-    // Bonds autocomplete (mock data - replace with actual API call)
+    // Bonds autocomplete
     this.filteredBonds$ = this.filterForm.get('bondSearch')!.valueChanges.pipe(
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      map(value => {
-        if (!value || typeof value !== 'string') return [];
+      switchMap(value => {
+        if (!value || typeof value !== 'string') return of([]);
         return this.searchBonds(value);
       })
     );
@@ -329,19 +322,22 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   }
 
   /**
-   * Search bonds (mock implementation - replace with actual API)
+   * Search bonds via API
    */
-  private searchBonds(query: string): Bond[] {
-    // TODO: Replace with actual API call
-    const mockBonds: Bond[] = [
-      { id: 1, name: 'Government Bond 2025', code: 'GB2025' },
-      { id: 2, name: 'Corporate Bond XYZ', code: 'CBXYZ' },
-      { id: 3, name: 'Treasury Bond A', code: 'TBA' }
-    ];
-    
-    return mockBonds.filter(bond => 
-      bond.name.toLowerCase().includes(query.toLowerCase()) ||
-      bond.code.toLowerCase().includes(query.toLowerCase())
+  private searchBonds(query: string): Observable<Bond[]> {
+    return this.bondsService.getBonds({
+      keyword: query,
+      limit: 10,
+      status: 'active'
+    }).pipe(
+      map(response => response.bonds),
+      catchError(() => {
+        this.snackBar.open('Error searching bonds', 'Close', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return of([]);
+      })
     );
   }
 
@@ -608,17 +604,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
    * Toggle filters collapse/expand
    */
   toggleFilters(): void {
-    if (this.filtersExpanded) {
-      this.showFiltersContent = false;
-      setTimeout(() => {
-        this.filtersExpanded = false;
-      }, 10);
-    } else {
-      this.filtersExpanded = true;
-      setTimeout(() => {
-        this.showFiltersContent = true;
-      }, 10);
-    }
+    this.filtersExpanded = !this.filtersExpanded;
   }
 
   /**

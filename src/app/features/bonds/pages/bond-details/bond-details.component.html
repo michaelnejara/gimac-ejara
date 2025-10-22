@@ -73,7 +73,7 @@
                 <span class="separator">•</span>
                 <span class="issuer">
                   <mat-icon>business</mat-icon>
-                  {{ bond.issuer }}
+                  {{ bond.issuerNameEn }}
                 </span>
               </div>
             </div>
@@ -112,9 +112,9 @@
             <mat-icon>account_balance_wallet</mat-icon>
           </div>
           <div class="metric-content">
-            <label>Principal Amount</label>
+            <label>Bond Amount</label>
             <div class="metric-value">
-              {{ formatCurrency(bond.principalAmount, bond.fiatCurrency) }}
+              {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
             </div>
           </div>
         </mat-card>
@@ -125,7 +125,7 @@
           </div>
           <div class="metric-content">
             <label>Interest Rate</label>
-            <div class="metric-value">{{ formatPercentage(bond.interestRate) }}</div>
+            <div class="metric-value">{{ formatPercentage(bond.interestValue) }}</div>
           </div>
         </mat-card>
 
@@ -134,8 +134,8 @@
             <mat-icon>schedule</mat-icon>
           </div>
           <div class="metric-content">
-            <label>Tenor</label>
-            <div class="metric-value">{{ formatTenor(bond.tenor) }}</div>
+            <label>Lifetime</label>
+            <div class="metric-value">{{ formatLifetime(bond.lifetime) }}</div>
           </div>
         </mat-card>
 
@@ -178,20 +178,20 @@
                 <label>Issuer</label>
                 <div class="value">
                   <mat-icon class="inline-icon">business</mat-icon>
-                  {{ bond.issuer }}
+                  {{ bond.issuerNameEn }}
                 </div>
               </div>
 
               <div class="info-item">
                 <label>Currency</label>
                 <div class="value">
-                  <span class="currency-badge">{{ bond.fiatCurrency }}</span>
+                  <span class="currency-badge">{{ bond.defaultFiatCurrency }}</span>
                 </div>
               </div>
 
               <div class="info-item">
-                <label>Bond Type</label>
-                <div class="value">{{ bond.type }}</div>
+                <label>Withdrawal Period</label>
+                <div class="value">{{ bond.withdrawalPeriod | titlecase }}</div>
               </div>
 
               <div class="info-item">
@@ -217,56 +217,51 @@
           <mat-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <label>Principal Amount</label>
+                <label>Bond Amount</label>
                 <div class="value amount">
-                  {{ formatCurrency(bond.principalAmount, bond.fiatCurrency) }}
+                  {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
                 </div>
               </div>
 
               <div class="info-item">
                 <label>Interest Rate (p.a.)</label>
-                <div class="value rate">{{ formatPercentage(bond.interestRate) }}</div>
+                <div class="value rate">{{ formatPercentage(bond.interestValue) }}</div>
               </div>
 
               <div class="info-item">
-                <label>Coupon Rate</label>
-                <div class="value rate">{{ formatPercentage(bond.couponRate) }}</div>
+                <label>Amount Purchased</label>
+                <div class="value amount">{{ formatCurrency(bond.amountPurchased, bond.defaultFiatCurrency) }}</div>
               </div>
 
               <div class="info-item">
-                <label>Coupon Frequency</label>
-                <!-- couponFrequency -->
-                <div class="value">{{ bond.couponRate || 'Annual' }}</div>
+                <label>Available Balance</label>
+                <div class="value amount success">{{ formatCurrency(bond.availableBalance, bond.defaultFiatCurrency) }}</div>
               </div>
 
               @if (bond.status === 'active') {
                 <div class="info-item highlight">
                   <label>Accrued Interest (Est.)</label>
                   <div class="value amount positive">
-                    {{ formatCurrency(calculateInterestEarned(bond), bond.fiatCurrency) }}
+                    {{ formatCurrency(calculateInterestEarned(bond), bond.defaultFiatCurrency) }}
                   </div>
                 </div>
 
                 <div class="info-item highlight">
                   <label>Current Value (Est.)</label>
                   <div class="value amount primary">
-                    {{ formatCurrency(calculateCurrentValue(bond), bond.fiatCurrency) }}
+                    {{ formatCurrency(calculateCurrentValue(bond), bond.defaultFiatCurrency) }}
                   </div>
                 </div>
               }
 
               <div class="info-item">
-                <label>Minimum Investment</label>
-                <div class="value">
-                  {{ formatCurrency(bond.minimumInvestment || bond.principalAmount, bond.fiatCurrency) }}
-                </div>
+                <label>Daily Interest</label>
+                <div class="value rate">{{ bond.dailyInterest }}%</div>
               </div>
 
               <div class="info-item">
-                <label>Redemption Value</label>
-                <div class="value">
-                  {{ formatCurrency(bond.currentValue || bond.principalAmount, bond.fiatCurrency) }}
-                </div>
+                <label>Maturity Percentage</label>
+                <div class="value rate">{{ bond.maturityPercentage }}%</div>
               </div>
             </div>
           </mat-card-content>
@@ -283,10 +278,10 @@
           <mat-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <label>Issue Date</label>
+                <label>Start Date</label>
                 <div class="value">
                   <mat-icon class="inline-icon">calendar_today</mat-icon>
-                  {{ formatDate(bond.issueDate || bond.dateCreated) }}
+                  {{ formatDate(bond.startDate) }}
                 </div>
               </div>
 
@@ -299,10 +294,10 @@
               </div>
 
               <div class="info-item">
-                <label>Tenor</label>
+                <label>Lifetime</label>
                 <div class="value">
                   <mat-icon class="inline-icon">schedule</mat-icon>
-                  {{ formatTenor(bond.tenor) }}
+                  {{ formatLifetime(bond.lifetime) }}
                 </div>
               </div>
 
@@ -323,15 +318,15 @@
               </div>
 
               <div class="info-item">
-                <label>Last Updated</label>
-                <div class="value">{{ formatDateTime(bond.lastUpdated) }}</div>
+                <label>Interest Calculation</label>
+                <div class="value">{{ bond.interestCalculationPeriod | titlecase }}</div>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Additional Information -->
-        @if (bond.description || bond.issuer) {
+        @if (bond.descriptionEn || bond.descriptionFr) {
           <mat-card class="details-card full-width">
             <mat-card-header>
               <div class="card-header">
@@ -341,37 +336,29 @@
             </mat-card-header>
             <mat-card-content>
               <div class="info-grid">
-                @if (bond.description) {
+                @if (bond.descriptionEn) {
                   <div class="info-item full-width">
-                    <label>Description</label>
-                    <div class="value description">{{ bond.description }}</div>
+                    <label>Description (EN)</label>
+                    <div class="value description">{{ bond.descriptionEn }}</div>
                   </div>
                 }
-<!-- 
-                @if (bond.riskRating) {
-                  <div class="info-item">
-                    <label>Risk Rating</label>
-                    <div class="value">
-                      <mat-chip class="risk-chip">{{ bond.riskRating }}</mat-chip>
-                    </div>
-                  </div>
-                } -->
 
-                <!-- @if (bond.creditRating) {
-                  <div class="info-item">
-                    <label>Credit Rating</label>
-                    <div class="value">
-                      <mat-chip class="credit-chip">{{ bond.creditRating }}</mat-chip>
-                    </div>
-                  </div>
-                } -->
-
-                @if (bond.issuer) {
-                  <div class="info-item">
-                    <label>ISSUER</label>
-                    <div class="value code">{{ bond.issuer }}</div>
+                @if (bond.descriptionFr) {
+                  <div class="info-item full-width">
+                    <label>Description (FR)</label>
+                    <div class="value description">{{ bond.descriptionFr }}</div>
                   </div>
                 }
+
+                <div class="info-item">
+                  <label>Unlocking Penalty Rate</label>
+                  <div class="value">{{ bond.unlockingPenaltyRate }}%</div>
+                </div>
+
+                <div class="info-item">
+                  <label>Rank</label>
+                  <div class="value">{{ bond.rank }}</div>
+                </div>
 
                 <!-- @if (bond.) {
                   <div class="info-item">

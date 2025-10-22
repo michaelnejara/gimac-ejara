@@ -16,28 +16,22 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.loadBondsSuccess, (state, { response }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
+  on(BondsActions.loadBondsSuccess, (state, { bonds, total, limit, offset }) => {
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
 
-    response.data.forEach(bond => {
-      newIds.push(bond.id);
-      entities[bond.id] = {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
+    // Update page cache
+    const newPageCache = { ...state.pageCache };
+    newPageCache[pageNumber] = bonds;
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      pageCache: newPageCache,
+      activePage: pageNumber,
+      total,
+      limit,
+      offset,
+      previousPageSize: limit,
       loading: false,
       error: null
     };
@@ -49,13 +43,13 @@ export const bondsReducer = createReducer(
     error
   })),
 
-  // Load Single Bond
+  // Load Single Bond (stores in singleEntities cache)
   on(BondsActions.loadBond, (state, { bondId }) => {
-    const entity = state.entities[bondId];
+    const entity = state.singleEntities[bondId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [bondId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -69,24 +63,23 @@ export const bondsReducer = createReducer(
 
   on(BondsActions.loadBondSuccess, (state, { bond }) => ({
     ...state,
-    entities: {
-      ...state.entities,
+    singleEntities: {
+      ...state.singleEntities,
       [bond.id]: {
         data: bond,
         loading: false,
         error: null,
         loadedAt: Date.now()
       }
-    },
-    ids: state.ids.includes(bond.id) ? state.ids : [...state.ids, bond.id]
+    }
   })),
 
   on(BondsActions.loadBondFailure, (state, { bondId, error }) => {
-    const entity = state.entities[bondId];
+    const entity = state.singleEntities[bondId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [bondId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -105,20 +98,11 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.createBondSuccess, (state, { bond }) => ({
+  on(BondsActions.createBondSuccess, (state) => ({
     ...state,
-    entities: {
-      ...state.entities,
-      [bond.id]: {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
-    ids: [...state.ids, bond.id],
     creating: false,
     error: null
+    // Note: Bond will be added when list is reloaded
   })),
 
   on(BondsActions.createBondFailure, (state, { error }) => ({
@@ -134,19 +118,11 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.updateBondSuccess, (state, { bond }) => ({
+  on(BondsActions.updateBondSuccess, (state) => ({
     ...state,
-    entities: {
-      ...state.entities,
-      [bond.id]: {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      }
-    },
     updating: false,
     error: null
+    // Note: Bond will be updated when list is reloaded
   })),
 
   on(BondsActions.updateBondFailure, (state, { error }) => ({
@@ -163,11 +139,16 @@ export const bondsReducer = createReducer(
   })),
 
   on(BondsActions.deleteBondSuccess, (state, { bondId }) => {
-    const { [bondId]: removed, ...remainingEntities } = state.entities;
+    // Remove from single entities cache
+    const { [bondId]: removed, ...remainingSingleEntities } = state.singleEntities;
+
+    // Clear page cache (force reload)
     return {
       ...state,
-      entities: remainingEntities,
-      ids: state.ids.filter(id => id !== bondId),
+      singleEntities: remainingSingleEntities,
+      pageCache: {},
+      customerBondsPageCache: {},
+      partnerBondsPageCache: {},
       deleting: false,
       error: null,
       selectedId: state.selectedId === bondId ? null : state.selectedId
@@ -189,28 +170,24 @@ export const bondsReducer = createReducer(
     viewMode: 'partner' as const
   })),
 
-  on(BondsActions.loadPartnerBondsSuccess, (state, { partnerId, response }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
+  on(BondsActions.loadPartnerBondsSuccess, (state, { partnerId, bonds, total, limit, offset }) => {
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
 
-    response.data.forEach(bond => {
-      newIds.push(bond.id);
-      entities[bond.id] = {
-        data: bond,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
+    // Update partner-specific page cache
+    const newPartnerBondsPageCache = { ...state.partnerBondsPageCache };
+    if (!newPartnerBondsPageCache[partnerId]) {
+      newPartnerBondsPageCache[partnerId] = {};
+    }
+    newPartnerBondsPageCache[partnerId][pageNumber] = bonds;
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageBonds: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      partnerBondsPageCache: newPartnerBondsPageCache,
+      activePage: pageNumber,
+      total,
+      limit,
+      offset,
       loading: false,
       error: null,
       activePartnerId: partnerId
@@ -231,15 +208,25 @@ export const bondsReducer = createReducer(
     viewMode: 'customer' as const
   })),
 
-  on(BondsActions.loadCustomerBondsSuccess, (state, { response }) => ({
-    ...state,
-    customerBonds: response.data,
-    total: response.total,
-    limit: response.limit,
-    offset: response.offset,
-    loading: false,
-    error: null
-  })),
+  on(BondsActions.loadCustomerBondsSuccess, (state, { customerBonds, total, limit, offset }) => {
+    // Calculate page number from offset and limit
+    const pageNumber = Math.floor(offset / limit) + 1;
+
+    // Update customer bonds page cache
+    const newCustomerBondsPageCache = { ...state.customerBondsPageCache };
+    newCustomerBondsPageCache[pageNumber] = customerBonds;
+
+    return {
+      ...state,
+      customerBondsPageCache: newCustomerBondsPageCache,
+      activePage: pageNumber,
+      total,
+      limit,
+      offset,
+      loading: false,
+      error: null
+    };
+  }),
 
   on(BondsActions.loadCustomerBondsFailure, (state, { error }) => ({
     ...state,
@@ -283,14 +270,27 @@ export const bondsReducer = createReducer(
     }
   })),
 
-  on(BondsActions.changePageSize, (state, { limit }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
+  on(BondsActions.changePageSize, (state, { limit }) => {
+    // Clear page cache when page size changes
+    const shouldClearCache = state.previousPageSize !== limit;
+
+    return {
+      ...state,
+      filters: {
+        ...state.filters,
+        limit,
+        offset: 0
+      },
       limit,
-      offset: 0
-    }
-  })),
+      offset: 0,
+      activePage: 1,
+      // Clear all caches when page size changes
+      pageCache: shouldClearCache ? {} : state.pageCache,
+      customerBondsPageCache: shouldClearCache ? {} : state.customerBondsPageCache,
+      partnerBondsPageCache: shouldClearCache ? {} : state.partnerBondsPageCache,
+      previousPageSize: limit
+    };
+  }),
 
   // Selection
   on(BondsActions.selectBond, (state, { bondId }) => ({
@@ -331,5 +331,33 @@ export const bondsReducer = createReducer(
     error: null
   })),
 
-  on(BondsActions.resetState, () => initialState)
+  on(BondsActions.resetState, () => initialState),
+
+  // Reset to first page
+  on(BondsActions.resetToFirstPage, (state) => ({
+    ...state,
+    activePage: 1,
+    offset: 0,
+    filters: {
+      ...state.filters,
+      offset: 0
+    }
+  })),
+
+  // Reset for context view (partner/customer)
+  // Clears all caches when entering from partner/customer context
+  on(BondsActions.resetForContextView, (state) => ({
+    ...state,
+    // Clear all page caches
+    pageCache: {},
+    customerBondsPageCache: {},
+    partnerBondsPageCache: {},
+    // Reset to first page
+    activePage: 1,
+    offset: 0,
+    filters: {
+      ...state.filters,
+      offset: 0
+    }
+  }))
 );

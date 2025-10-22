@@ -17,27 +17,18 @@ export const customersReducer = createReducer(
   })),
 
   on(CustomersActions.loadCustomersSuccess, (state, { response }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
-
-    response.data.forEach(customer => {
-      newIds.push(customer.id);
-      entities[customer.id] = {
-        data: customer,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
+    const pageNumber = Math.floor(response.meta.offset / response.meta.limit) + 1;
+    const newPageCache = { ...state.pageCache };
+    newPageCache[pageNumber] = response.data;
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageCustomers: response.data,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
+      pageCache: newPageCache,
+      activePage: pageNumber,
+      total: response.meta.total,
+      limit: response.meta.limit,
+      offset: response.meta.offset,
+      previousPageSize: response.meta.limit,
       loading: false,
       error: null
     };
@@ -51,11 +42,11 @@ export const customersReducer = createReducer(
 
   // Load Single Customer
   on(CustomersActions.loadCustomer, (state, { customerId }) => {
-    const entity = state.entities[customerId];
+    const entity = state.singleEntities[customerId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [customerId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -69,24 +60,23 @@ export const customersReducer = createReducer(
 
   on(CustomersActions.loadCustomerSuccess, (state, { customer }) => ({
     ...state,
-    entities: {
-      ...state.entities,
+    singleEntities: {
+      ...state.singleEntities,
       [customer.id]: {
         data: customer,
         loading: false,
         error: null,
         loadedAt: Date.now()
       }
-    },
-    ids: state.ids.includes(customer.id) ? state.ids : [...state.ids, customer.id]
+    }
   })),
 
   on(CustomersActions.loadCustomerFailure, (state, { customerId, error }) => {
-    const entity = state.entities[customerId];
+    const entity = state.singleEntities[customerId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [customerId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -141,17 +131,26 @@ export const customersReducer = createReducer(
     filters: {
       ...state.filters,
       offset
-    }
+    },
+    offset
   })),
 
-  on(CustomersActions.changePageSize, (state, { limit }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
+  on(CustomersActions.changePageSize, (state, { limit }) => {
+    const shouldClearCache = state.previousPageSize !== limit;
+    return {
+      ...state,
+      pageCache: shouldClearCache ? {} : state.pageCache,
+      filters: {
+        ...state.filters,
+        limit,
+        offset: 0
+      },
       limit,
-      offset: 0
-    }
-  })),
+      offset: 0,
+      previousPageSize: limit,
+      activePage: 1
+    };
+  }),
 
   // Selection
   on(CustomersActions.selectCustomer, (state, { customerId }) => ({
@@ -162,6 +161,26 @@ export const customersReducer = createReducer(
   on(CustomersActions.clearSelection, (state) => ({
     ...state,
     selectedId: null
+  })),
+
+  // Page Management
+  on(CustomersActions.resetToFirstPage, (state) => ({
+    ...state,
+    filters: {
+      ...state.filters,
+      offset: 0
+    },
+    offset: 0,
+    activePage: 1
+  })),
+
+  on(CustomersActions.resetForPartnerContext, (state, { partnerId }) => ({
+    ...initialState,
+    currentPartnerId: partnerId,
+    filters: {
+      ...initialState.filters,
+      partnerId: partnerId || undefined
+    }
   })),
 
   // UI State

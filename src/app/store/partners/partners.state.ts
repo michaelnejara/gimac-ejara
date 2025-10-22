@@ -1,45 +1,58 @@
 // src/app/store/partners/partners.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Partner, PartnerFilterParams } from '@core/models/partner.models';
+import { Partner, PartnerDetail, PartnerFilterParams } from '@core/models/partner.models';
 
 /**
  * Partner Entity
  * Wraps partner with metadata
+ * Can store either Partner (from listing) or PartnerDetail (from get by id)
  */
 export interface PartnerEntity {
-  data: Partner;
+  data: Partner | PartnerDetail;
   loading: boolean;
   error: string | null;
   loadedAt: number;
 }
 
 /**
+ * Page Cache - Stores paginated data by page number
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Partners State Interface
  */
 export interface PartnersState {
-  // Entities (normalized by ID)
-  entities: Record<number, PartnerEntity>;
-  ids: number[];
-  
-  // Current list view
-  currentPagePartners: Partner[];
-  
+  // Single Entity Cache (for detail views)
+  // Populated when getPartnerById is called
+  singleEntities: Record<number, PartnerEntity>;
+
+  // Page-based Cache
+  // Structure: { 1: [...partners], 2: [...partners], ... }
+  pageCache: PageCache<Partner>;
+
+  // Current active page number
+  activePage: number;
+
   // Selection
   selectedId: number | null;
   selectedIds: number[];
-  
+
   // Filters & Search
   filters: PartnerFilterParams;
-  
+  previousPageSize: number; // Track page size changes
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
-  
+
   // Operation states
   creating: boolean;
   updating: boolean;
@@ -50,9 +63,13 @@ export interface PartnersState {
  * Initial State
  */
 export const initialState: PartnersState = {
-  entities: {},
-  ids: [],
-  currentPagePartners: [],
+  // Single entity cache
+  singleEntities: {},
+
+  // Page-based cache
+  pageCache: {},
+  activePage: 1,
+
   selectedId: null,
   selectedIds: [],
   filters: {
@@ -61,6 +78,7 @@ export const initialState: PartnersState = {
     sortBy: 'dateCreated',
     sortOrder: 'desc'
   },
+  previousPageSize: 20,
   total: 0,
   limit: 20,
   offset: 0,
@@ -77,39 +95,61 @@ export const initialState: PartnersState = {
 export const selectPartnersState = createFeatureSelector<PartnersState>('partners');
 
 /**
- * Entity Selectors
+ * Current Page Partners Selector
  */
-export const selectPartnerEntities = createSelector(
-  selectPartnersState,
-  (state) => state.entities
-);
-
-export const selectPartnerIds = createSelector(
-  selectPartnersState,
-  (state) => state.ids
-);
-
-export const selectAllPartners = createSelector(
-  selectPartnerEntities,
-  selectPartnerIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
-);
-
 export const selectCurrentPagePartners = createSelector(
   selectPartnersState,
-  (state) => state.currentPagePartners
+  (state) => {
+    // Return partners from current page cache
+    const currentPage = state.activePage;
+    return state.pageCache[currentPage] || [];
+  }
 );
 
 /**
- * Single Partner Selectors
+ * Page Cache Selectors
  */
+export const selectPageCache = createSelector(
+  selectPartnersState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectPartnersState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageFromCache = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectPreviousPageSize = createSelector(
+  selectPartnersState,
+  (state) => state.previousPageSize
+);
+
+/**
+ * Single Partner Selectors (from singleEntities cache)
+ */
+export const selectSinglePartnerEntities = createSelector(
+  selectPartnersState,
+  (state) => state.singleEntities
+);
+
 export const selectPartnerById = (partnerId: number) => createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   (entities) => entities[partnerId]?.data
 );
 
 export const selectPartnerEntityById = (partnerId: number) => createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   (entities) => entities[partnerId]
 );
 
@@ -123,6 +163,11 @@ export const selectPartnerError = (partnerId: number) => createSelector(
   (entity) => entity?.error || null
 );
 
+export const selectIsPartnerCached = (partnerId: number) => createSelector(
+  selectSinglePartnerEntities,
+  (entities) => !!entities[partnerId]?.data
+);
+
 /**
  * Selection Selectors
  */
@@ -132,7 +177,7 @@ export const selectSelectedPartnerId = createSelector(
 );
 
 export const selectSelectedPartner = createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   selectSelectedPartnerId,
   (entities, selectedId) => selectedId ? entities[selectedId]?.data : null
 );
@@ -143,9 +188,9 @@ export const selectSelectedPartnerIds = createSelector(
 );
 
 export const selectSelectedPartners = createSelector(
-  selectPartnerEntities,
+  selectSinglePartnerEntities,
   selectSelectedPartnerIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
+  (entities, ids) => ids.map((id: number) => entities[id]?.data).filter(Boolean)
 );
 
 /**
@@ -213,26 +258,26 @@ export const selectDeleting = createSelector(
 );
 
 /**
- * Derived Selectors
+ * Derived Selectors (from current page)
  */
 export const selectActivePartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'active')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'active')
 );
 
 export const selectSuspendedPartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'suspended')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'suspended')
 );
 
 export const selectInactivePartners = createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === 'inactive')
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === 'inactive')
 );
 
 export const selectPartnersByStatus = (status: string) => createSelector(
-  selectAllPartners,
-  (partners) => partners.filter(p => p.status === status)
+  selectCurrentPagePartners,
+  (partners) => partners.filter((p: Partner) => p.status === status)
 );
 
 export const selectHasFilters = createSelector(
@@ -241,6 +286,6 @@ export const selectHasFilters = createSelector(
 );
 
 export const selectPartnerCount = createSelector(
-  selectPartnerIds,
-  (ids) => ids.length
+  selectCurrentPagePartners,
+  (partners) => partners.length
 );

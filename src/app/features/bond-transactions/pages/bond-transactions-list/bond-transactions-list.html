@@ -29,7 +29,7 @@
       </div>
 
       <!-- Stats Cards with Abbreviation and Tooltips -->
-      @if (stats$ | async; as stats) {
+      <!-- @if (stats$ | async; as stats) {
         <div class="stats-cards">
           <div class="stat-card total">
             <div class="stat-icon">
@@ -130,7 +130,7 @@
             </div>
           </div>
         </div>
-      }
+      } -->
     </div>
 
     <!-- Filter Block -->
@@ -175,7 +175,7 @@
         </div>
       </mat-card-header>
 
-      <div class="filter-content-wrapper" [class.show]="showFiltersContent">
+      <div class="filter-content-wrapper" [class.show]="filtersExpanded">
         <mat-card-content>
           <form [formGroup]="filterForm" class="filter-form">
             <div class="filter-grid">

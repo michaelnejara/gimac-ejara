@@ -13,13 +13,14 @@ import {
 
 // Environment
 import { environment } from '@environments/environment';
+import { addInterceptorMarker, INTERCEPTOR_MARKERS } from '@core/constants/interceptor-markers.constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BondTransactionsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/bond-transactions`;
+  private apiUrl = `${environment.gimacTbB2B.apiUrl}/v1/admin/b2b`;
 
   /**
    * Get all transactions with optional filters
@@ -36,14 +37,14 @@ export class BondTransactionsService {
       });
     }
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
    * Get transaction by ID
    */
   getTransactionById(transactionId: number): Observable<BondTransaction> {
-    return this.http.get<BondTransaction>(`${this.apiUrl}/${transactionId}`);
+    return this.http.get<BondTransaction>(addInterceptorMarker(`${this.apiUrl}/transactions/${transactionId}`, INTERCEPTOR_MARKERS.GIMAC));
   }
 
   /**
@@ -61,7 +62,7 @@ export class BondTransactionsService {
       });
     }
 
-    return this.http.get<TransactionStats>(`${this.apiUrl}/stats`, { params });
+    return this.http.get<TransactionStats>(addInterceptorMarker(`${this.apiUrl}/stats`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -73,7 +74,7 @@ export class BondTransactionsService {
     reason?: string
   ): Observable<BondTransaction> {
     return this.http.patch<BondTransaction>(
-      `${this.apiUrl}/${transactionId}/status`,
+      addInterceptorMarker(`${this.apiUrl}/transactions/${transactionId}/status`, INTERCEPTOR_MARKERS.GIMAC),
       { status, reason }
     );
   }
@@ -87,7 +88,7 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -99,7 +100,7 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -111,7 +112,7 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -123,7 +124,7 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -135,7 +136,7 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
@@ -153,6 +154,6 @@ export class BondTransactionsService {
       .set('limit', limit.toString())
       .set('offset', offset.toString());
 
-    return this.http.get<TransactionsResponse>(this.apiUrl, { params });
+    return this.http.get<TransactionsResponse>(addInterceptorMarker(`${this.apiUrl}/transactions`, INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 }

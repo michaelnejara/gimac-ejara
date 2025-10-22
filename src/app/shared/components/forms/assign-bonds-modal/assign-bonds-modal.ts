@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
-import { Subject, Observable } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 // Material
@@ -17,10 +17,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+// Services
+import { BondsService } from '@core/services/bonds/bonds.service';
+
 // Store
-import { BondsActions } from '@store/bonds/bonds.actions';
 import { PartnersActions } from '@store/partners/partners.actions';
-import { selectAllBonds, selectLoading } from '@store/bonds/bonds.state';
 
 // Models
 import { Bond } from '@core/models/bond.models';
@@ -53,12 +54,9 @@ export interface AssignBondsData {
 })
 export class AssignBondsModal implements OnInit, OnDestroy {
   private store = inject(Store);
+  private bondsService = inject(BondsService);
   private dialogRef = inject(MatDialogRef<AssignBondsModal>);
   private destroy$ = new Subject<void>();
-
-  // Observables
-  allBonds$!: Observable<Bond[]>;
-  loading$!: Observable<boolean>;
 
   // Filter and Search
   searchControl = new FormControl('');
@@ -67,31 +65,16 @@ export class AssignBondsModal implements OnInit, OnDestroy {
 
   // Selection
   selectedBondIds: Set<number> = new Set();
+
+  // Loading states
+  bondsLoading = false;
   submitting = false;
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: AssignBondsData) {}
 
   ngOnInit(): void {
-    // Load all bonds
-    this.store.dispatch(BondsActions.loadBonds({ 
-      filters: { limit: 1000, offset: 0 } 
-    }));
-
-    // Initialize observables
-    this.allBonds$ = this.store.select(selectAllBonds);
-    this.loading$ = this.store.select(selectLoading);
-
-    // Subscribe to bonds
-    this.allBonds$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(bonds => {
-      // Filter out already assigned bonds
-      const alreadyAssignedIds = this.data.alreadyAssignedBondIds || [];
-      this.availableBonds = bonds.filter(
-        bond => !alreadyAssignedIds.includes(bond.id) && bond.status === 'active'
-      );
-      this.filteredBonds = [...this.availableBonds];
-    });
+    // Load bonds from service
+    this.loadAvailableBonds();
 
     // Setup search
     this.searchControl.valueChanges.pipe(
@@ -101,6 +84,44 @@ export class AssignBondsModal implements OnInit, OnDestroy {
     ).subscribe(searchTerm => {
       this.filterBonds(searchTerm || '');
     });
+  }
+
+  /**
+   * Load available bonds from service
+   */
+  private loadAvailableBonds(): void {
+    this.bondsLoading = true;
+
+    this.bondsService.getBonds({
+      status: 'active',
+      limit: 1000,
+      offset: 0
+    }).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.bondsLoading = false;
+
+        // Filter out already assigned bonds
+        const alreadyAssignedIds = this.data.alreadyAssignedBondIds || [];
+        this.availableBonds = response.bonds.filter(
+          bond => !alreadyAssignedIds.includes(bond.id) && bond.status === 'active'
+        );
+        this.filteredBonds = [...this.availableBonds];
+      },
+      error: () => {
+        this.bondsLoading = false;
+        this.availableBonds = [];
+        this.filteredBonds = [];
+      }
+    });
+  }
+
+  /**
+   * Reload bonds (useful for retry scenarios)
+   */
+  reloadBonds(): void {
+    this.loadAvailableBonds();
   }
 
   ngOnDestroy(): void {
@@ -121,7 +142,8 @@ export class AssignBondsModal implements OnInit, OnDestroy {
     this.filteredBonds = this.availableBonds.filter(bond =>
       bond.name.toLowerCase().includes(term) ||
       bond.code.toLowerCase().includes(term) ||
-      bond.issuer.toLowerCase().includes(term)
+      bond.issuerNameEn.toLowerCase().includes(term) ||
+      bond.issuerNameFr.toLowerCase().includes(term)
     );
   }
 
@@ -251,19 +273,26 @@ export class AssignBondsModal implements OnInit, OnDestroy {
   }
 
   /**
-   * Format tenor
+   * Format lifetime (in days) to human-readable format
    */
-  formatTenor(months: number): string {
-    if (months < 12) {
-      return `${months}m`;
+  formatLifetime(days: number): string {
+    if (!days) return '-';
+
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      }
+      return `${years}y ${months}m`;
     }
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
-    
-    if (remainingMonths === 0) {
-      return `${years}y`;
-    }
-    return `${years}y ${remainingMonths}m`;
   }
 
   /**

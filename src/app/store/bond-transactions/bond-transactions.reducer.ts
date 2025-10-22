@@ -16,27 +16,18 @@ export const bondTransactionsReducer = createReducer(
   })),
 
   on(BondTransactionsActions.loadTransactionsSuccess, (state, { response }) => {
-    const entities = { ...state.entities };
-    const newIds: number[] = [];
-
-    response.data.forEach(transaction => {
-      newIds.push(transaction.id);
-      entities[transaction.id] = {
-        data: transaction,
-        loading: false,
-        error: null,
-        loadedAt: Date.now()
-      };
-    });
+    const pageNumber = Math.floor(response.offset / response.limit) + 1;
+    const newPageCache = { ...state.pageCache };
+    newPageCache[pageNumber] = response.data;
 
     return {
       ...state,
-      entities,
-      ids: [...new Set([...state.ids, ...newIds])],
-      currentPageTransactions: response.data,
+      pageCache: newPageCache,
+      activePage: pageNumber,
       total: response.total,
       limit: response.limit,
       offset: response.offset,
+      previousPageSize: response.limit,
       loading: false,
       error: null
     };
@@ -50,11 +41,11 @@ export const bondTransactionsReducer = createReducer(
 
   // Load Single Transaction
   on(BondTransactionsActions.loadTransaction, (state, { transactionId }) => {
-    const entity = state.entities[transactionId];
+    const entity = state.singleEntities[transactionId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [transactionId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -68,24 +59,23 @@ export const bondTransactionsReducer = createReducer(
 
   on(BondTransactionsActions.loadTransactionSuccess, (state, { transaction }) => ({
     ...state,
-    entities: {
-      ...state.entities,
+    singleEntities: {
+      ...state.singleEntities,
       [transaction.id]: {
         data: transaction,
         loading: false,
         error: null,
         loadedAt: Date.now()
       }
-    },
-    ids: state.ids.includes(transaction.id) ? state.ids : [...state.ids, transaction.id]
+    }
   })),
 
   on(BondTransactionsActions.loadTransactionFailure, (state, { transactionId, error }) => {
-    const entity = state.entities[transactionId];
+    const entity = state.singleEntities[transactionId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [transactionId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -193,17 +183,26 @@ export const bondTransactionsReducer = createReducer(
     filters: {
       ...state.filters,
       offset
-    }
+    },
+    offset
   })),
 
-  on(BondTransactionsActions.changePageSize, (state, { limit }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
+  on(BondTransactionsActions.changePageSize, (state, { limit }) => {
+    const shouldClearCache = state.previousPageSize !== limit;
+    return {
+      ...state,
+      pageCache: shouldClearCache ? {} : state.pageCache,
+      filters: {
+        ...state.filters,
+        limit,
+        offset: 0
+      },
       limit,
-      offset: 0
-    }
-  })),
+      offset: 0,
+      previousPageSize: limit,
+      activePage: 1
+    };
+  }),
 
   // Selection
   on(BondTransactionsActions.selectTransaction, (state, { transactionId }) => ({
@@ -216,13 +215,24 @@ export const bondTransactionsReducer = createReducer(
     selectedId: null
   })),
 
+  // Page Management
+  on(BondTransactionsActions.resetToFirstPage, (state) => ({
+    ...state,
+    filters: {
+      ...state.filters,
+      offset: 0
+    },
+    offset: 0,
+    activePage: 1
+  })),
+
   // Change Transaction Status
   on(BondTransactionsActions.changeTransactionStatus, (state, { transactionId }) => {
-    const entity = state.entities[transactionId];
+    const entity = state.singleEntities[transactionId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [transactionId]: {
           ...entity,
           data: entity?.data || {} as any,
@@ -237,14 +247,20 @@ export const bondTransactionsReducer = createReducer(
   }),
 
   on(BondTransactionsActions.changeTransactionStatusSuccess, (state, { transaction }) => {
-    const currentPageTransactions = state.currentPageTransactions.map(t => 
+    // Update the transaction in the current page cache
+    const currentPageTransactions = state.pageCache[state.activePage]?.map((t: any) =>
       t.id === transaction.id ? transaction : t
-    );
+    ) || [];
+
+    const newPageCache = { ...state.pageCache };
+    if (currentPageTransactions.length > 0) {
+      newPageCache[state.activePage] = currentPageTransactions;
+    }
 
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [transaction.id]: {
           data: transaction,
           loading: false,
@@ -252,18 +268,18 @@ export const bondTransactionsReducer = createReducer(
           loadedAt: Date.now()
         }
       },
-      currentPageTransactions,
+      pageCache: newPageCache,
       loading: false,
       error: null
     };
   }),
 
   on(BondTransactionsActions.changeTransactionStatusFailure, (state, { transactionId, error }) => {
-    const entity = state.entities[transactionId];
+    const entity = state.singleEntities[transactionId];
     return {
       ...state,
-      entities: {
-        ...state.entities,
+      singleEntities: {
+        ...state.singleEntities,
         [transactionId]: {
           ...entity,
           data: entity?.data || {} as any,

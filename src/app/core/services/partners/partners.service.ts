@@ -3,12 +3,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { 
+import {
   Partner,
+  PartnerDetail,
   PartnersResponse,
   PartnerResponse,
   CreatePartnerRequest,
+  CreatePartnerResponse,
   UpdatePartnerRequest,
+  UpdatePartnerResponse,
   UpdatePartnerStatusRequest,
   PartnerFilterParams,
   StatusUpdateResponse,
@@ -17,6 +20,7 @@ import {
   AssignBondsRequest
 } from '@core/models/partner.models';
 import { environment } from '@environments/environment';
+import { addInterceptorMarker, INTERCEPTOR_MARKERS } from '@core/constants/interceptor-markers.constants';
 
 /**
  * Partners Service
@@ -28,7 +32,7 @@ import { environment } from '@environments/environment';
 })
 export class PartnersService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/admin/b2b/partners`;
+  private apiUrl = `${environment.gimacTbB2B.apiUrl}/v1/admin/b2b/partners`;
 
   /**
    * Get All Partners with Filters
@@ -48,44 +52,38 @@ export class PartnersService {
       });
     }
     
-    return this.http.get<PartnersResponse>(this.apiUrl, { params });
+    return this.http.get<PartnersResponse>(addInterceptorMarker(this.apiUrl,INTERCEPTOR_MARKERS.GIMAC), { params });
   }
 
   /**
    * Get Partner by ID
-   * 
+   *
    * @param partnerId - Partner ID
-   * @returns Observable with partner details
+   * @returns Observable with partner response (includes PartnerDetail)
    */
-  getPartnerById(partnerId: number): Observable<Partner> {
-    return this.http.get<PartnerResponse>(`${this.apiUrl}/${partnerId}`).pipe(
-      map(response => response.data)
-    );
+  getPartnerById(partnerId: number): Observable<PartnerResponse> {
+    return this.http.get<PartnerResponse>(addInterceptorMarker(`${this.apiUrl}/${partnerId}`, INTERCEPTOR_MARKERS.GIMAC));
   }
 
   /**
    * Create New Partner
-   * 
+   *
    * @param partnerData - Partner creation data
-   * @returns Observable with created partner
+   * @returns Observable with create partner response
    */
-  createPartner(partnerData: CreatePartnerRequest): Observable<Partner> {
-    return this.http.post<PartnerResponse>(this.apiUrl, partnerData).pipe(
-      map(response => response.data)
-    );
+  createPartner(partnerData: CreatePartnerRequest): Observable<CreatePartnerResponse> {
+    return this.http.post<CreatePartnerResponse>(addInterceptorMarker(this.apiUrl, INTERCEPTOR_MARKERS.GIMAC), partnerData);
   }
 
   /**
    * Update Partner
-   * 
+   *
    * @param partnerId - Partner ID to update
    * @param partnerData - Updated partner data
-   * @returns Observable with updated partner
+   * @returns Observable with update partner response
    */
-  updatePartner(partnerId: number, partnerData: UpdatePartnerRequest): Observable<Partner> {
-    return this.http.put<PartnerResponse>(`${this.apiUrl}/${partnerId}`, partnerData).pipe(
-      map(response => response.data)
-    );
+  updatePartner(partnerId: number, partnerData: UpdatePartnerRequest): Observable<UpdatePartnerResponse> {
+    return this.http.put<UpdatePartnerResponse>(addInterceptorMarker(`${this.apiUrl}/${partnerId}`, INTERCEPTOR_MARKERS.GIMAC), partnerData);
   }
 
   /**
@@ -100,7 +98,7 @@ export class PartnersService {
     statusData: UpdatePartnerStatusRequest
   ): Observable<StatusUpdateResponse> {
     return this.http.put<StatusUpdateResponse>(
-      `${this.apiUrl}/${partnerId}/status`, 
+      addInterceptorMarker(`${this.apiUrl}/${partnerId}/status`, INTERCEPTOR_MARKERS.GIMAC), 
       statusData
     );
   }
@@ -112,7 +110,7 @@ export class PartnersService {
    * @returns Observable with deletion response
    */
   deletePartner(partnerId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${partnerId}`);
+    return this.http.delete<void>(addInterceptorMarker(`${this.apiUrl}/${partnerId}`, INTERCEPTOR_MARKERS.GIMAC));
   }
 
   /**
@@ -124,7 +122,7 @@ export class PartnersService {
  */
 assignBonds(partnerId: number, bondsData: AssignBondsRequest): Observable<BondAssignmentResponse> {
   return this.http.post<BondAssignmentResponse>(
-    `${this.apiUrl}/${partnerId}/assign-bonds`,
+    addInterceptorMarker(`${this.apiUrl}/${partnerId}/assign-bonds`, INTERCEPTOR_MARKERS.GIMAC),
     bondsData
   );
 }
@@ -138,7 +136,7 @@ assignBonds(partnerId: number, bondsData: AssignBondsRequest): Observable<BondAs
  */
 removeBonds(partnerId: number, bondsData: RemoveBondsRequest): Observable<BondAssignmentResponse> {
   return this.http.post<BondAssignmentResponse>(
-    `${this.apiUrl}/${partnerId}/remove-bonds`,
+    addInterceptorMarker(`${this.apiUrl}/${partnerId}/remove-bonds`, INTERCEPTOR_MARKERS.GIMAC),
     bondsData
   );
 }

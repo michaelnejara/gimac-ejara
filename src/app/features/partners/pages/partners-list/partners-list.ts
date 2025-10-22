@@ -18,10 +18,15 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 // Shared Components
 import { DataTable } from '@shared/components/data-table/data-table';
 import { TableColumnDirective, TableActionsDirective } from '@shared/components/data-table/data-table-directives';
+
+// Modals
+import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/change-status-modal';
+import { AssignBondsModal } from '@shared/components/forms/assign-bonds-modal/assign-bonds-modal';
 
 // Models
 import { 
@@ -65,6 +70,7 @@ import {
     MatProgressSpinnerModule,
     MatCardModule,
     MatDividerModule,
+    MatDialogModule,
     DataTable,
     TableColumnDirective,
     TableActionsDirective
@@ -76,6 +82,7 @@ export class PartnersList implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private store = inject(Store);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
   private destroy$ = new Subject<void>();
 
   // State
@@ -96,10 +103,10 @@ export class PartnersList implements OnInit, OnDestroy {
   updating$: Observable<boolean>;
   deleting$: Observable<boolean>;
 
-  // Stats
-  activePartners$: Observable<Partner[]>;
-  suspendedPartners$: Observable<Partner[]>;
-  inactivePartners$: Observable<Partner[]>;
+  // Stats (typed as any[] to handle Partner | SinglePartner union from store)
+  activePartners$: Observable<any[]>;
+  suspendedPartners$: Observable<any[]>;
+  inactivePartners$: Observable<any[]>;
 
   // Filter Form
   filterForm!: FormGroup;
@@ -122,8 +129,7 @@ export class PartnersList implements OnInit, OnDestroy {
   hasUnappliedFilters = false;
 
   // Add these properties
-  filtersExpanded = true;
-  showFiltersContent = true;
+  filtersExpanded = false;
 
   constructor() {
     this.partners$ = this.store.select(selectCurrentPagePartners);
@@ -146,7 +152,6 @@ export class PartnersList implements OnInit, OnDestroy {
     this.tableConfig = this.buildTableConfig();
     this.loadPartners();
     this.setupFilterChangeTracking();
-    // this.setupFilterListeners();
     this.setupActiveFiltersCount();
     this.setupPaginationSync();
     this.setupLoadingSync();
@@ -156,22 +161,13 @@ export class PartnersList implements OnInit, OnDestroy {
    * Toggle filters collapse/expand
    */
   toggleFilters(): void {
-    if (this.filtersExpanded) {
-      // Collapsing
-      this.showFiltersContent = false;
-      setTimeout(() => {
-        this.filtersExpanded = false;
-      }, 10);
-    } else {
-      // Expanding
-      this.filtersExpanded = true;
-      setTimeout(() => {
-        this.showFiltersContent = true;
-      }, 10);
-    }
+    this.filtersExpanded = !this.filtersExpanded;
   }
 
   ngOnDestroy(): void {
+    // Reset to first page when leaving the list view
+    this.store.dispatch(PartnersActions.resetToFirstPage());
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -251,23 +247,10 @@ export class PartnersList implements OnInit, OnDestroy {
         type: 'template',
         width: '100px'
       },
+      // Note: activeCustomers and totalVolume are not in Partner API response
+      // These would require a separate statistics endpoint integration
       {
-        key: 'activeCustomers',
-        label: 'Customers',
-        type: 'template',
-        sortable: true,
-        width: '120px'
-      },
-      {
-        key: 'totalVolume',
-        label: 'Total Volume',
-        type: 'template',
-        sortable: true,
-        align: 'right',
-        width: '150px'
-      },
-      {
-        key: 'dateCreated',
+        key: 'createdAt',
         label: 'Created',
         type: 'template',
         sortable: true,
@@ -275,19 +258,6 @@ export class PartnersList implements OnInit, OnDestroy {
       }
     ];
   }
-
-  /**
-   * Setup filter listeners
-  //  */
-  // private setupFilterListeners(): void {
-  //   this.filterForm.valueChanges.pipe(
-  //     debounceTime(400),
-  //     distinctUntilChanged(),
-  //     takeUntil(this.destroy$)
-  //   ).subscribe(() => {
-  //     this.loadPartners();
-  //   });
-  // }
 
   /**
    * Setup active filters count
@@ -354,11 +324,12 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Load partners with filters
+   * Uses cache-aware action to avoid redundant API calls
    */
   loadPartners(): void {
     const formValue = this.filterForm.value;
     const currentPagination = this.tableConfig.pagination;
-    
+
     const filters: PartnerFilterParams = {
       keyword: formValue.keyword || undefined,
       status: formValue.status || undefined,
@@ -373,7 +344,8 @@ export class PartnersList implements OnInit, OnDestroy {
       sortOrder: 'desc'
     };
 
-    this.store.dispatch(PartnersActions.loadPartners({ filters }));
+    // Use cache-aware action - checks cache before making API call
+    this.store.dispatch(PartnersActions.checkAndLoadPartners({ filters }));
   }
 
   /**
@@ -391,10 +363,11 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Apply filters manually
+   * Note: When filters change, we want fresh data (bypass cache)
    */
   applyFilters(): void {
     this.hasUnappliedFilters = false;
-    
+
     // Reset to first page when applying new filters
     this.tableConfig = {
       ...this.tableConfig,
@@ -403,8 +376,26 @@ export class PartnersList implements OnInit, OnDestroy {
         pageIndex: 0
       }
     };
-    
-    this.loadPartners();
+
+    // Get filter values
+    const formValue = this.filterForm.value;
+
+    const filters: PartnerFilterParams = {
+      keyword: formValue.keyword || undefined,
+      status: formValue.status || undefined,
+      code: formValue.code || undefined,
+      name: formValue.name || undefined,
+      minCommissionRate: formValue.minCommissionRate || undefined,
+      maxCommissionRate: formValue.maxCommissionRate || undefined,
+      bondId: formValue.bondId || undefined,
+      limit: 20,
+      offset: 0,
+      sortBy: 'dateCreated',
+      sortOrder: 'desc'
+    };
+
+    // Use direct load for filter changes (bypass cache to get fresh data)
+    this.store.dispatch(PartnersActions.loadPartners({ filters }));
   }
 
   /**
@@ -439,7 +430,7 @@ export class PartnersList implements OnInit, OnDestroy {
    * Navigate to add partner page
    */
   addNewPartner(): void {
-    this.router.navigate(['/partners/add']);
+    this.router.navigate(['/partners/add-partner']);
   }
 
   /**
@@ -464,8 +455,6 @@ export class PartnersList implements OnInit, OnDestroy {
   onSortChange(event: TableSortEvent): void {
     console.log('Sort changed:', event);
     // TODO: Update filters with sort and reload
-    // const sortBy = event.active as 'name' | 'dateCreated';
-    // const sortOrder = event.direction as 'asc' | 'desc';
   }
 
   // Action Handlers (for menu items)
@@ -494,17 +483,52 @@ export class PartnersList implements OnInit, OnDestroy {
   }
 
   /**
-   * Manage partner status
+   * Change partner status using modal
    */
-  manageStatus(partner: Partner): void {
-    this.router.navigate(['/partners', partner.id, 'status']);
+  changeStatus(partner: Partner): void {
+    const dialogRef = this.dialog.open(ChangeStatusModal, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: {
+        partnerId: partner.id,
+        partnerName: partner.name,
+        currentStatus: partner.status
+      },
+      disableClose: false,
+      panelClass: 'status-modal-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.statusChanged) {
+        // Reload partners list to reflect status change
+        this.loadPartners();
+      }
+    });
   }
 
   /**
-   * Assign bonds to partner
+   * Assign bonds to partner using modal
    */
   assignBonds(partner: Partner): void {
-    this.router.navigate(['/partners', partner.id, 'bonds']);
+    const dialogRef = this.dialog.open(AssignBondsModal, {
+      width: '800px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: {
+        partnerId: partner.id,
+        partnerName: partner.name,
+        alreadyAssignedBondIds: partner.allowedBonds?.map(bond => bond.id) || []
+      },
+      disableClose: false,
+      panelClass: 'assign-bonds-modal-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.bondsAssigned) {
+        // Reload partners list to reflect bond assignments
+        this.loadPartners();
+      }
+    });
   }
 
   /**

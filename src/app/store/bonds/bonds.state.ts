@@ -18,39 +18,50 @@ export interface BondEntity {
 export type BondViewMode = 'all' | 'partner' | 'customer';
 
 /**
+ * Page Cache - Stores paginated data by page number
+ */
+export interface PageCache<T> {
+  [pageNumber: number]: T[];
+}
+
+/**
  * Bonds State Interface
  */
 export interface BondsState {
-  // Entities (normalized by ID)
-  entities: Record<number, BondEntity>;
-  ids: number[];
-  
-  // Current list view
-  currentPageBonds: Bond[];
-  
-  // Customer bonds (separate from main bonds)
-  customerBonds: CustomerBondHolding[];
-  
+  // Single Entity Cache (for detail views)
+  // Populated when getBondById is called
+  singleEntities: Record<number, BondEntity>;
+
+  // Page-based Cache
+  // Structure: { 1: [...bonds], 2: [...bonds], ... }
+  pageCache: PageCache<Bond>;
+  customerBondsPageCache: PageCache<CustomerBondHolding>;
+  partnerBondsPageCache: Record<number, PageCache<any>>; // Keyed by partnerId
+
+  // Current active page number
+  activePage: number;
+
   // Selection
   selectedId: number | null;
   selectedIds: number[];
-  
+
   // Filters & Search
   filters: BondFilterParams;
-  
+  previousPageSize: number; // Track page size changes
+
   // View mode and context
   viewMode: BondViewMode;
   activePartnerId: number | null;
-  
+
   // Pagination
   total: number;
   limit: number;
   offset: number;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
-  
+
   // Operation states
   creating: boolean;
   updating: boolean;
@@ -61,16 +72,22 @@ export interface BondsState {
  * Initial State
  */
 export const initialState: BondsState = {
-  entities: {},
-  ids: [],
-  currentPageBonds: [],
-  customerBonds: [],
+  // Single entity cache
+  singleEntities: {},
+
+  // Page-based cache
+  pageCache: {},
+  customerBondsPageCache: {},
+  partnerBondsPageCache: {},
+  activePage: 1,
+
   selectedId: null,
   selectedIds: [],
   filters: {
     limit: 20,
     offset: 0
   },
+  previousPageSize: 20,
   viewMode: 'all',
   activePartnerId: null,
   total: 0,
@@ -89,39 +106,61 @@ export const initialState: BondsState = {
 export const selectBondsState = createFeatureSelector<BondsState>('bonds');
 
 /**
- * Entity Selectors
+ * Current Page Bonds Selector
  */
-export const selectBondEntities = createSelector(
-  selectBondsState,
-  (state) => state.entities
-);
-
-export const selectBondIds = createSelector(
-  selectBondsState,
-  (state) => state.ids
-);
-
-export const selectAllBonds = createSelector(
-  selectBondEntities,
-  selectBondIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
-);
-
 export const selectCurrentPageBonds = createSelector(
   selectBondsState,
-  (state) => state.currentPageBonds
+  (state) => {
+    // Return bonds from current page cache
+    const currentPage = state.activePage;
+    return state.pageCache[currentPage] || [];
+  }
 );
 
 /**
- * Single Bond Selectors
+ * Page Cache Selectors
  */
+export const selectPageCache = createSelector(
+  selectBondsState,
+  (state) => state.pageCache
+);
+
+export const selectActivePage = createSelector(
+  selectBondsState,
+  (state) => state.activePage
+);
+
+export const selectCurrentPageFromCache = createSelector(
+  selectPageCache,
+  selectActivePage,
+  (cache, activePage) => cache[activePage] || []
+);
+
+export const selectIsPageCached = (pageNumber: number) => createSelector(
+  selectPageCache,
+  (cache) => !!cache[pageNumber]
+);
+
+export const selectPreviousPageSize = createSelector(
+  selectBondsState,
+  (state) => state.previousPageSize
+);
+
+/**
+ * Single Bond Selectors (from singleEntities cache)
+ */
+export const selectSingleBondEntities = createSelector(
+  selectBondsState,
+  (state) => state.singleEntities
+);
+
 export const selectBondById = (bondId: number) => createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   (entities) => entities[bondId]?.data
 );
 
 export const selectBondEntityById = (bondId: number) => createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   (entities) => entities[bondId]
 );
 
@@ -135,22 +174,31 @@ export const selectBondError = (bondId: number) => createSelector(
   (entity) => entity?.error || null
 );
 
+export const selectIsBondCached = (bondId: number) => createSelector(
+  selectSingleBondEntities,
+  (entities) => !!entities[bondId]?.data
+);
+
 /**
  * Customer Bonds Selectors
  */
 export const selectCustomerBonds = createSelector(
   selectBondsState,
-  (state) => state.customerBonds
+  (state) => {
+    // Return customer bonds from current page cache
+    const currentPage = state.activePage;
+    return state.customerBondsPageCache[currentPage] || [];
+  }
 );
 
 export const selectCustomerBondsByPartner = (partnerId: number) => createSelector(
   selectCustomerBonds,
-  (bonds) => bonds.filter(b => b.partnerId === partnerId)
+  (bonds) => bonds.filter((b: CustomerBondHolding) => b.partnerId === partnerId)
 );
 
 export const selectCustomerBondsByCustomer = (customerId: number) => createSelector(
   selectCustomerBonds,
-  (bonds) => bonds.filter(b => b.customerId === customerId)
+  (bonds) => bonds.filter((b: CustomerBondHolding) => b.customerId === customerId)
 );
 
 /**
@@ -162,7 +210,7 @@ export const selectSelectedBondId = createSelector(
 );
 
 export const selectSelectedBond = createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   selectSelectedBondId,
   (entities, selectedId) => selectedId ? entities[selectedId]?.data : null
 );
@@ -173,9 +221,9 @@ export const selectSelectedBondIds = createSelector(
 );
 
 export const selectSelectedBonds = createSelector(
-  selectBondEntities,
+  selectSingleBondEntities,
   selectSelectedBondIds,
-  (entities, ids) => ids.map(id => entities[id]?.data).filter(Boolean)
+  (entities, ids) => ids.map((id: number) => entities[id]?.data).filter(Boolean)
 );
 
 /**
@@ -256,44 +304,47 @@ export const selectDeleting = createSelector(
 );
 
 /**
- * Derived Selectors
+ * Derived Selectors (from current page)
  */
 export const selectActiveBonds = createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.status === 'active')
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) => b.status === 'active')
 );
 
 export const selectInactiveBonds = createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.status === 'inactive')
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) => b.status === 'inactive')
 );
 
 export const selectMaturedBonds = createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.status === 'matured')
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) => b.status === 'matured')
 );
 
 export const selectBondsByStatus = (status: string) => createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.status === status)
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) => b.status === status)
 );
 
 export const selectBondsByCurrency = (currency: string) => createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.fiatCurrency === currency)
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) => b.defaultFiatCurrency === currency)
 );
 
 export const selectBondsByIssuer = (issuer: string) => createSelector(
-  selectAllBonds,
-  (bonds) => bonds.filter(b => b.issuer.toLowerCase().includes(issuer.toLowerCase()))
+  selectCurrentPageBonds,
+  (bonds) => bonds.filter((b: Bond) =>
+    b.issuerNameEn.toLowerCase().includes(issuer.toLowerCase()) ||
+    b.issuerNameFr.toLowerCase().includes(issuer.toLowerCase())
+  )
 );
 
 export const selectHasFilters = createSelector(
   selectFilters,
   (filters) => !!(
-    filters.status || 
-    filters.keyword || 
-    filters.bondName || 
+    filters.status ||
+    filters.keyword ||
+    filters.bondName ||
     filters.bondCode ||
     filters.fiatCurrency ||
     filters.issuer
@@ -301,6 +352,6 @@ export const selectHasFilters = createSelector(
 );
 
 export const selectBondCount = createSelector(
-  selectBondIds,
-  (ids) => ids.length
+  selectCurrentPageBonds,
+  (bonds) => bonds.length
 );

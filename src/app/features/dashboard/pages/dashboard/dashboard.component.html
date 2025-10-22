@@ -1,16 +1,18 @@
 <div class="dashboard-container">
-  
+
   <!-- Header Section -->
   <div class="dashboard-header" @fadeIn>
     <div class="header-content">
       <div class="header-text">
-        <h1 class="welcome-title" *ngIf="user$ | async as user">
-          Welcome back, {{ getUserFirstName(user) }}!
-        </h1>
-        <p class="header-subtitle">Here's what's happening with your bonds today</p>
+        @if (user$ | async; as user) {
+          <h1 class="welcome-title">
+            Welcome back, {{ getUserFirstName(user) }}!
+          </h1>
+        }
+        <p class="header-subtitle">Here's what's happening with your financial operations today</p>
       </div>
-      <button 
-        mat-icon-button 
+      <button
+        mat-icon-button
         class="refresh-btn"
         [class.spinning]="isRefreshing"
         (click)="refresh()"
@@ -21,305 +23,372 @@
     </div>
   </div>
 
-  <!-- Loading State with Skeleton -->
-  <div *ngIf="loading$ | async" class="dashboard-content">
-    <section class="stats-section">
-      <div class="stats-grid">
-    <app-skeleton-loader 
-        type="dashboard-card" 
-        *ngFor="let item of [].constructor(11); let i = index">
-      </app-skeleton-loader>
-
+  <!-- Active Filters Banner -->
+  @if (hasActiveFilters$ | async) {
+    @if (activeFilters$ | async; as filters) {
+      <div class="filters-banner" @fadeIn>
+        <div class="filters-content">
+          <mat-icon class="filter-icon">filter_alt</mat-icon>
+          <span class="filter-text">Filtered by: <strong>{{ getFilterSummary(filters) }}</strong></span>
+        </div>
+        <button
+          mat-icon-button
+          class="clear-filter-btn"
+          (click)="clearFilters()"
+          matTooltip="Clear all filters">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
-    </section>
-  </div>
+    }
+  }
+
+  <!-- Loading State with Skeleton -->
+  @if (loading$ | async) {
+    <div class="dashboard-content">
+      <section class="stats-section">
+        <div class="stats-grid">
+          @for (item of [].constructor(13); track $index) {
+            <app-skeleton-loader type="dashboard-card"></app-skeleton-loader>
+          }
+        </div>
+      </section>
+    </div>
+  }
 
   <!-- Error State -->
-  <div *ngIf="error$ | async as error" class="error-container" @fadeIn>
-    <mat-icon class="error-icon">error_outline</mat-icon>
-    <p class="error-message">{{ error }}</p>
-    <button mat-raised-button color="primary" (click)="refresh()">
-      <mat-icon>refresh</mat-icon>
-      Retry
-    </button>
-  </div>
+  @if (error$ | async; as error) {
+    <div class="error-container" @fadeIn>
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <p class="error-message">{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+  }
 
   <!-- Dashboard Content -->
-  <div *ngIf="!(loading$ | async) && (stats$ | async) as stats" class="dashboard-content" @fadeIn>
-    
-    <!-- Performance Overview Section -->
-    <section class="stats-section">
-      <h2 class="section-title">Performance Overview</h2>
-      
-      <div class="stats-grid">
-        
-        <!-- Total Transactions Card -->
-        <mat-card class="stat-card card-blue" matRipple (click)="goToTransactions()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper blue">
-                <mat-icon>swap_horiz</mat-icon>
+  @if (!(loading$ | async) && (stats$ | async); as stats) {
+    <div class="dashboard-content" @fadeIn>
+
+      <!-- Partners & Customers Section -->
+      <section class="stats-section">
+        <h2 class="section-title">Partners & Customers Overview</h2>
+
+        <div class="stats-grid">
+
+          <!-- Total Partners Card -->
+          <mat-card class="stat-card card-blue" matRipple (click)="goToPartners()">
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper blue">
+                  <mat-icon>business</mat-icon>
+                </div>
+                <span class="card-label">Total Partners</span>
               </div>
-              <span class="card-label">Total Transactions</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.totalTransactions.toLocaleString()">
-              {{ formatNumber(stats.totalTransactions) }}
-            </div>
-            <button mat-button class="card-action">
-              <span>View all</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Successful Transactions Card -->
-        <mat-card class="stat-card card-green" matRipple>
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper green">
-                <mat-icon>check_circle</mat-icon>
+              <div class="card-value" [matTooltip]="stats.totalPartners.toLocaleString()">
+                {{ formatNumber(stats.totalPartners) }}
               </div>
-              <span class="card-label">Successful Transactions</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.successfulTransactions.toLocaleString()">
-              {{ formatNumber(stats.successfulTransactions) }}
-            </div>
-          </mat-card-content>
-        </mat-card>
+              @if (getActivePartnersPercentage() !== null) {
+                <div class="card-badge">
+                  {{ stats.totalActivePartners }} active ({{ getActivePartnersPercentage() }}%)
+                </div>
+              }
+              <button mat-button class="card-action">
+                <span>View partners</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </mat-card-content>
+          </mat-card>
 
-        <!-- Failed Transactions Card -->
-        <mat-card class="stat-card card-red" matRipple (click)="goToTransactions()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper red">
-                <mat-icon>cancel</mat-icon>
+          <!-- Active Partners Card -->
+          <mat-card class="stat-card card-green" matRipple (click)="goToPartners()">
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper green">
+                  <mat-icon>check_circle</mat-icon>
+                </div>
+                <span class="card-label">Active Partners</span>
               </div>
-              <span class="card-label">Failed Transactions</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.failedTransactions.toLocaleString()">
-              {{ stats.failedTransactions }}
-            </div>
-            <button 
-              mat-button 
-              class="card-action" 
-              *ngIf="stats.failedTransactions > 0">
-              <span>Review issues</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Pending Transactions Card -->
-        <mat-card class="stat-card card-orange" matRipple (click)="goToTransactions()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper orange">
-                <mat-icon>hourglass_empty</mat-icon>
+              <div class="card-value" [matTooltip]="stats.totalActivePartners.toLocaleString()">
+                {{ formatNumber(stats.totalActivePartners) }}
               </div>
-              <span class="card-label">Pending Transactions</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.pendingTransactions.toLocaleString()">
-              {{ formatNumber(stats.pendingTransactions) }}
-            </div>
-            <button 
-              mat-button 
-              class="card-action"
-              *ngIf="stats.pendingTransactions > 0">
-              <span>Process pending</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
+            </mat-card-content>
+          </mat-card>
 
-        <!-- Total Bonds Published Card -->
-        <mat-card class="stat-card card-blue" matRipple (click)="goToBonds()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper blue">
-                <mat-icon>description</mat-icon>
+          <!-- Total Customers Card -->
+          <mat-card class="stat-card card-blue" matRipple (click)="goToCustomers()">
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper blue">
+                  <mat-icon>people</mat-icon>
+                </div>
+                <span class="card-label">Total Customers</span>
               </div>
-              <span class="card-label">Total Bonds Published</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.totalBondsPublished.toLocaleString()">
-              {{ formatNumber(stats.totalBondsPublished) }}
-            </div>
-            <button mat-button class="card-action">
-              <span>View bonds</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Bonds Sold Card -->
-        <mat-card class="stat-card card-green" matRipple>
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper green">
-                <mat-icon>trending_up</mat-icon>
+              <div class="card-value" [matTooltip]="stats.totalCustomers.toLocaleString()">
+                {{ formatNumber(stats.totalCustomers) }}
               </div>
-              <span class="card-label">Bonds Sold</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.bondsSold.toLocaleString()">
-              {{ formatNumber(stats.bondsSold) }}
-            </div>
-          </mat-card-content>
-        </mat-card>
+              @if (getActiveCustomersPercentage() !== null) {
+                <div class="card-badge">
+                  {{ stats.totalActiveCustomers }} active ({{ getActiveCustomersPercentage() }}%)
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
 
-        <!-- Bonds Settled Card -->
-        <mat-card class="stat-card card-light" matRipple>
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper gray">
-                <mat-icon>done_all</mat-icon>
+          <!-- Active Customers Card -->
+          <mat-card class="stat-card card-green" matRipple (click)="goToCustomers()">
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper green">
+                  <mat-icon>person_check</mat-icon>
+                </div>
+                <span class="card-label">Active Customers</span>
               </div>
-              <span class="card-label">Bonds Settled</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.bondsSettled.toLocaleString()">
-              {{ formatNumber(stats.bondsSettled) }}
-            </div>
-            <div class="card-badge" *ngIf="getSettlementRate() !== null">
-              {{ getSettlementRate() }}% settled
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Bonds Pending Settlement Card -->
-        <mat-card class="stat-card card-orange" matRipple (click)="goToBonds()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper orange">
-                <mat-icon>pending_actions</mat-icon>
+              <div class="card-value" [matTooltip]="stats.totalActiveCustomers.toLocaleString()">
+                {{ formatNumber(stats.totalActiveCustomers) }}
               </div>
-              <span class="card-label">Pending Settlement</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.bondsPendingSettlement.toLocaleString()">
-              {{ formatNumber(stats.bondsPendingSettlement) }}
-            </div>
-            <button 
-              mat-button 
-              class="card-action"
-              *ngIf="stats.bondsPendingSettlement > 0">
-              <span>Process</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
+            </mat-card-content>
+          </mat-card>
 
-        <!-- Reconciled Transactions Card -->
-        <mat-card class="stat-card card-green" matRipple (click)="goToReconciliation()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper green">
-                <mat-icon>verified</mat-icon>
-              </div>
-              <span class="card-label">Reconciled</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.reconciledTransactions.toLocaleString()">
-              {{ formatNumber(stats.reconciledTransactions) }}
-            </div>
-            <button mat-button class="card-action">
-              <span>View details</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Unreconciled Transactions Card -->
-        <mat-card class="stat-card card-red" matRipple (click)="goToReconciliation()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper red">
-                <mat-icon>warning</mat-icon>
-              </div>
-              <span class="card-label">Unreconciled</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.unreconciledTransactions.toLocaleString()">
-              {{ formatNumber(stats.unreconciledTransactions) }}
-            </div>
-            <button 
-              mat-button 
-              class="card-action"
-              *ngIf="stats.unreconciledTransactions > 0">
-              <span>Reconcile now</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Unique Customers Card -->
-        <mat-card class="stat-card card-blue" matRipple (click)="goToCustomers()">
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-icon-wrapper blue">
-                <mat-icon>people</mat-icon>
-              </div>
-              <span class="card-label">Unique Customers</span>
-            </div>
-            <div class="card-value" [matTooltip]="stats.numberOfUniqueCustomer.toLocaleString()">
-              {{ formatNumber(stats.numberOfUniqueCustomer) }}
-            </div>
-            <button mat-button class="card-action">
-              <span>View customers</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
-
-      </div>
-    </section>
-
-    <!-- Quick Actions Section -->
-    <section class="quick-actions-section" @fadeIn>
-      <h2 class="section-title">Quick Actions</h2>
-      
-      <div class="actions-container">
-        
-        <div class="action-card" matRipple (click)="createNewBond()">
-          <div class="action-icon-wrapper primary">
-            <mat-icon>add_circle_outline</mat-icon>
-          </div>
-          <div class="action-content">
-            <h3 class="action-title">Create New Bond</h3>
-            <p class="action-description">Publish a new bond to the market</p>
-          </div>
-          <mat-icon class="action-arrow">arrow_forward</mat-icon>
         </div>
+      </section>
 
-        <div class="action-card" matRipple (click)="manualTransaction()">
-          <div class="action-icon-wrapper accent">
-            <mat-icon>edit_note</mat-icon>
-          </div>
-          <div class="action-content">
-            <h3 class="action-title">Manual Transaction</h3>
-            <p class="action-description">Record a manual transaction entry</p>
-          </div>
-          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      <!-- Transaction Overview Section -->
+      <section class="stats-section">
+        <h2 class="section-title">Transaction Overview</h2>
+
+        <div class="stats-grid">
+
+          <!-- Total Deposits Card -->
+          <mat-card class="stat-card card-green" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper green">
+                  <mat-icon>arrow_downward</mat-icon>
+                </div>
+                <span class="card-label">Total Deposits</span>
+              </div>
+              <div class="card-value" [matTooltip]="stats.totalDeposits.toLocaleString()">
+                {{ formatNumber(stats.totalDeposits) }}
+              </div>
+              <div class="card-secondary-value">
+                {{ formatCurrency(stats.totalDepositAmount) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Total Withdrawals Card -->
+          <mat-card class="stat-card card-orange" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper orange">
+                  <mat-icon>arrow_upward</mat-icon>
+                </div>
+                <span class="card-label">Total Withdrawals</span>
+              </div>
+              <div class="card-value" [matTooltip]="stats.totalWithdrawals.toLocaleString()">
+                {{ formatNumber(stats.totalWithdrawals) }}
+              </div>
+              <div class="card-secondary-value">
+                {{ formatCurrency(stats.totalWithdrawalAmount) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Pending Transactions Card -->
+          <mat-card class="stat-card card-yellow" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper yellow">
+                  <mat-icon>hourglass_empty</mat-icon>
+                </div>
+                <span class="card-label">Pending Transactions</span>
+              </div>
+              <div class="card-value" [matTooltip]="stats.totalPendingTransactions.toLocaleString()">
+                {{ formatNumber(stats.totalPendingTransactions) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Failed Transactions Card -->
+          <mat-card class="stat-card card-red" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper red">
+                  <mat-icon>cancel</mat-icon>
+                </div>
+                <span class="card-label">Failed Transactions</span>
+              </div>
+              <div class="card-value" [matTooltip]="stats.totalFailedTransactions.toLocaleString()">
+                {{ stats.totalFailedTransactions }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
         </div>
+      </section>
 
-        <div class="action-card" matRipple (click)="goToReconciliation()">
-          <div class="action-icon-wrapper success">
-            <mat-icon>account_balance</mat-icon>
-          </div>
-          <div class="action-content">
-            <h3 class="action-title">Reconcile Accounts</h3>
-            <p class="action-description">Match and verify transactions</p>
-          </div>
-          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+      <!-- Financial Overview Section -->
+      <section class="stats-section">
+        <h2 class="section-title">Financial Overview</h2>
+
+        <div class="stats-grid">
+
+          <!-- Total Commission Earned Card -->
+          <mat-card class="stat-card card-purple" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper purple">
+                  <mat-icon>account_balance_wallet</mat-icon>
+                </div>
+                <span class="card-label">Commission Earned</span>
+              </div>
+              <div class="card-value" [matTooltip]="formatCurrency(stats.totalCommissionEarned)">
+                {{ formatFinancialValue(stats.totalCommissionEarned) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Total Principal Invested Card -->
+          <mat-card class="stat-card card-indigo" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper indigo">
+                  <mat-icon>savings</mat-icon>
+                </div>
+                <span class="card-label">Principal Invested</span>
+              </div>
+              <div class="card-value" [matTooltip]="formatCurrency(stats.totalPrincipalInvested)">
+                {{ formatFinancialValue(stats.totalPrincipalInvested) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Total Interest Paid Card -->
+          <mat-card class="stat-card card-teal" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper teal">
+                  <mat-icon>percent</mat-icon>
+                </div>
+                <span class="card-label">Interest Paid</span>
+              </div>
+              <div class="card-value" [matTooltip]="formatCurrency(stats.totalInterestPaid)">
+                {{ formatFinancialValue(stats.totalInterestPaid) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Net Transaction Amount Card -->
+          <mat-card class="stat-card card-cyan" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper cyan">
+                  <mat-icon>trending_up</mat-icon>
+                </div>
+                <span class="card-label">Net Transaction Amount</span>
+              </div>
+              @if (getNetTransactionAmount() !== null) {
+                <div class="card-value" [matTooltip]="formatCurrency(getNetTransactionAmount()!)">
+                  {{ formatFinancialValue(getNetTransactionAmount()!) }}
+                </div>
+              }
+              <div class="card-badge">
+                Deposits - Withdrawals
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Deposit Amount Card -->
+          <mat-card class="stat-card card-light-green" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper light-green">
+                  <mat-icon>arrow_circle_down</mat-icon>
+                </div>
+                <span class="card-label">Total Deposit Amount</span>
+              </div>
+              <div class="card-value" [matTooltip]="formatCurrency(stats.totalDepositAmount)">
+                {{ formatFinancialValue(stats.totalDepositAmount) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
         </div>
+      </section>
 
-        <div class="action-card" matRipple (click)="goToBonds()">
-          <div class="action-icon-wrapper info">
-            <mat-icon>bar_chart</mat-icon>
+      <!-- Quick Actions Section -->
+      <section class="quick-actions-section" @fadeIn>
+        <h2 class="section-title">Quick Actions</h2>
+
+        <div class="actions-container">
+
+          <div class="action-card" matRipple (click)="goToBonds()">
+            <div class="action-icon-wrapper primary">
+              <mat-icon>description</mat-icon>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">View Bonds</h3>
+              <p class="action-description">Browse and manage all bonds</p>
+            </div>
+            <mat-icon class="action-arrow">arrow_forward</mat-icon>
           </div>
-          <div class="action-content">
-            <h3 class="action-title">View Reports</h3>
-            <p class="action-description">Access analytics and insights</p>
+
+          <div class="action-card" matRipple (click)="goToPartners()">
+            <div class="action-icon-wrapper accent">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Manage Partners</h3>
+              <p class="action-description">View and manage partner accounts</p>
+            </div>
+            <mat-icon class="action-arrow">arrow_forward</mat-icon>
           </div>
-          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+
+          <div class="action-card" matRipple (click)="goToBondTransactions()">
+            <div class="action-icon-wrapper success">
+              <mat-icon>receipt_long</mat-icon>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Bond Transactions</h3>
+              <p class="action-description">View bond transaction history</p>
+            </div>
+            <mat-icon class="action-arrow">arrow_forward</mat-icon>
+          </div>
+
         </div>
+      </section>
 
-      </div>
-    </section>
+    </div>
+  }
 
-  </div>
+  <!-- Floating Filter Button -->
+  <button
+    mat-fab
+    class="floating-filter-button"
+    [class.has-filters]="hasActiveFilters$ | async"
+    (click)="openFilterDialog()"
+    matTooltip="Filter Dashboard"
+    matTooltipPosition="left"
+    color="primary">
+    <mat-icon>filter_list</mat-icon>
+    @if (hasActiveFilters$ | async) {
+      <span class="filter-badge" matBadge="•" matBadgeColor="warn"></span>
+    }
+  </button>
+
+  <!-- Clear Filters Button (shown when filters are active) -->
+  @if (hasActiveFilters$ | async) {
+    <button
+      mat-mini-fab
+      class="clear-filters-button"
+      (click)="clearFilters()"
+      matTooltip="Clear All Filters"
+      matTooltipPosition="left"
+      color="warn">
+      <mat-icon>filter_list_off</mat-icon>
+    </button>
+  }
+
 </div>

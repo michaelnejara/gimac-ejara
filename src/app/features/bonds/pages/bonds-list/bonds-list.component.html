@@ -92,6 +92,7 @@
           <div class="stat-content">
             <label>Total Bonds</label>
             <div class="stat-value">{{ pagination.total }}</div>
+            <div>active filters count: {{ (activeFiltersCount$ | async) }}</div>
           </div>
         </div>
 
@@ -120,21 +121,48 @@
     }
   </div>
 
+  <!-- Active Filters Banner -->
+  @if (activeFiltersCount$ | async; as count) {
+    @if (count > 0) {
+      <div class="active-filters-banner">
+        <div class="banner-content">
+          <mat-icon class="banner-icon">filter_alt</mat-icon>
+          <span class="banner-text">
+            <strong>{{ count }}</strong> {{ count === 1 ? 'filter' : 'filters' }} applied
+          </span>
+        </div>
+        <button
+          mat-button
+          class="clear-banner-btn"
+          (click)="resetFilters()">
+          <mat-icon>close</mat-icon>
+          Clear All Filters
+        </button>
+      </div>
+    }
+  }
+
   <!-- Filter Block -->
   <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
     <mat-card-header>
       <div class="filter-header">
         <div class="filter-header-left">
-          <button 
-            mat-icon-button 
+          <button
+            mat-icon-button
             class="toggle-btn"
+            [class.has-active-filters]="(activeFiltersCount$ | async)! > 0"
             (click)="toggleFilters()"
             [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
             <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            @if (!filtersExpanded && (activeFiltersCount$ | async); as count) {
+              @if (count > 0) {
+                <span class="filter-badge">{{ count }}</span>
+              }
+            }
           </button>
-          
+
           <div class="filter-title">
-            <mat-icon>filter_list</mat-icon>
+            <mat-icon [class.active-filter-icon]="(activeFiltersCount$ | async)! > 0">filter_list</mat-icon>
             <span>Filters</span>
             @if (activeFiltersCount$ | async; as count) {
               @if (count > 0) {
@@ -162,7 +190,7 @@
       </div>
     </mat-card-header>
 
-    <div class="filter-content-wrapper" [class.show]="showFiltersContent">
+    <div class="filter-content-wrapper" [class.show]="filtersExpanded">
       <mat-card-content>
         <form [formGroup]="filterForm" class="filter-form">
           
@@ -253,7 +281,7 @@
 
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Currency</mat-label>
-                <mat-select formControlName="fiatCurrency">
+                <mat-select formControlName="defaultFiatCurrency">
                   <mat-option value="">All Currencies</mat-option>
                   @for (option of currencyOptions; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
@@ -264,7 +292,7 @@
 
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Issuer</mat-label>
-                <input matInput formControlName="issuer" placeholder="Bond issuer">
+                <input matInput formControlName="issuerNameEn" placeholder="Bond issuer">
                 <mat-icon matPrefix>business</mat-icon>
               </mat-form-field>
 
@@ -423,10 +451,10 @@
       </ng-template>
 
       <!-- Issuer Template -->
-      <ng-template appTableColumn="issuer" let-row>
+      <ng-template appTableColumn="issuerNameEn" let-row>
         <div class="issuer-cell">
           <mat-icon class="issuer-icon">business</mat-icon>
-          <span>{{ row.issuer }}</span>
+          <span>{{ row.issuerNameEn }}</span>
         </div>
       </ng-template>
 
@@ -437,10 +465,10 @@
         </div>
       </ng-template>
 
-      <!-- Current Balance Template (Customer context) -->
-      <ng-template appTableColumn="currentBalance" let-row>
+      <!-- Current Value Template (Customer context) -->
+      <ng-template appTableColumn="currentValue" let-row>
         <div class="amount-cell">
-          <div class="amount">{{ formatCurrency(row.currentBalance, row.currency) }}</div>
+          <div class="amount">{{ formatCurrency(row.currentValue) }}</div>
         </div>
       </ng-template>
 
@@ -448,42 +476,42 @@
       <ng-template appTableColumn="interestEarned" let-row>
         <div class="amount-cell positive">
           <mat-icon class="trend-icon">trending_up</mat-icon>
-          <div class="amount">{{ formatCurrency(row.interestEarned, row.currency) }}</div>
+          <div class="amount">{{ formatCurrency(row.interestEarned) }}</div>
         </div>
       </ng-template>
 
-      <!-- Principal Amount Template -->
-      <ng-template appTableColumn="principalAmount" let-row>
+      <!-- Total Amount Template -->
+      <ng-template appTableColumn="amount" let-row>
         <div class="amount-cell">
-          <div class="amount">{{ formatCurrency(row.principalAmount, row.fiatCurrency) }}</div>
+          <div class="amount">{{ formatCurrency(row.amount, row.defaultFiatCurrency) }}</div>
         </div>
       </ng-template>
 
-      <!-- Interest Rate Template -->
-      <ng-template appTableColumn="interestRate" let-row>
+      <!-- Interest Value Template (Annual Interest %) -->
+      <ng-template appTableColumn="interestValue" let-row>
         <div class="rate-cell">
-          <span class="rate">{{ formatPercentage(row.interestRate) }}</span>
+          <span class="rate">{{ formatPercentage(row.interestValue) }}</span>
         </div>
       </ng-template>
 
-      <!-- Coupon Rate Template -->
-      <ng-template appTableColumn="couponRate" let-row>
+      <!-- Maturity Percentage Template -->
+      <ng-template appTableColumn="maturityPercentage" let-row>
         <div class="rate-cell">
-          <span class="rate">{{ formatPercentage(row.couponRate) }}</span>
+          <span class="rate">{{ formatPercentage(row.maturityPercentage) }}</span>
         </div>
       </ng-template>
 
-      <!-- Tenor Template -->
-      <ng-template appTableColumn="tenor" let-row>
+      <!-- Lifetime Template (in days) -->
+      <ng-template appTableColumn="lifetime" let-row>
         <div class="tenor-cell">
           <mat-icon class="tenor-icon">schedule</mat-icon>
-          <span>{{ formatTenor(row.tenor) }}</span>
+          <span>{{ formatLifetime(row.lifetime) }}</span>
         </div>
       </ng-template>
 
       <!-- Currency Template -->
-      <ng-template appTableColumn="fiatCurrency" let-row>
-        <span class="currency-badge">{{ row.fiatCurrency }}</span>
+      <ng-template appTableColumn="defaultFiatCurrency" let-row>
+        <span class="currency-badge">{{ row.defaultFiatCurrency }}</span>
       </ng-template>
 
       <!-- Purchase Date Template (Customer context) -->

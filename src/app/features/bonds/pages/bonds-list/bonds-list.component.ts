@@ -2,7 +2,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
@@ -56,9 +56,8 @@ import {
   BondStatus,
   CurrencyCode
 } from '@core/models/bond.models';
-import { 
-  AssignBondsRequest, 
-  RemoveBondsRequest 
+import {
+  RemoveBondsRequest
 } from '@core/models/partner.models';
 
 // Components
@@ -117,8 +116,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   activeFiltersCount$!: Observable<number>;
 
   // UI State
-  filtersExpanded = true;
-  showFiltersContent = true;
+  filtersExpanded = false;
   hasUnappliedFilters = false;
 
   // Filter Form
@@ -159,6 +157,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Reset to first page when leaving the bonds list
+    this.store.dispatch(BondsActions.resetToFirstPage());
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -177,12 +178,18 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.context = 'customer';
         this.partnerId = +params['partnerId'];
         this.customerId = +params['customerId'];
+
+        // Reset store when entering customer context (fresh data needed)
+        this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'customer' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
       } else if (hasPartnerId && !hasCustomerId) {
         this.context = 'partner';
         this.partnerId = +params['partnerId'];
         this.customerId = null;
+
+        // Reset store when entering partner context (fresh data needed)
+        this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'partner' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
       } else {
@@ -211,6 +218,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
         { value: '', label: 'All Statuses' },
         { value: 'active', label: 'Active' },
         { value: 'inactive', label: 'Inactive' },
+        { value: 'sold-out', label: 'Sold Out' },
+        { value: 'pre-allocation', label: 'Pre Allocation' },
         { value: 'matured', label: 'Matured' }
       ];
     }
@@ -241,8 +250,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
         bondName: [''],
         bondCode: [''],
         status: [''],
-        fiatCurrency: [''],
-        issuer: [''],
+        defaultFiatCurrency: [''],
+        issuerNameEn: [''],
         keyword: [''],
         // Date range for creation date
         creationDateStart: [''],
@@ -418,8 +427,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'currentBalance',
-          label: 'Current Balance',
+          key: 'currentValue',
+          label: 'Current Value',
           type: 'template',
           align: 'right',
           sortable: true,
@@ -479,22 +488,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'issuer',
+          key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
           width: '220px'
         },
         {
-          key: 'principalAmount',
-          label: 'Principal',
+          key: 'amount',
+          label: 'Total Amount',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '180px'
         },
         {
-          key: 'interestRate',
+          key: 'interestValue',
           label: 'Interest Rate',
           type: 'template',
           align: 'right',
@@ -502,8 +511,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '160px'
         },
         {
-          key: 'tenor',
-          label: 'Tenor',
+          key: 'lifetime',
+          label: 'Lifetime',
           type: 'template',
           sortable: true,
           width: '150px'
@@ -547,22 +556,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '180px'
         },
         {
-          key: 'issuer',
+          key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
           width: '200px'
         },
         {
-          key: 'principalAmount',
-          label: 'Principal',
+          key: 'amount',
+          label: 'Total Amount',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '170px'
         },
         {
-          key: 'interestRate',
+          key: 'interestValue',
           label: 'Interest Rate',
           type: 'template',
           align: 'right',
@@ -570,22 +579,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '150px'
         },
         {
-          key: 'couponRate',
-          label: 'Coupon Rate',
+          key: 'maturityPercentage',
+          label: 'Maturity %',
           type: 'template',
           align: 'right',
           sortable: true,
           width: '150px'
         },
         {
-          key: 'tenor',
-          label: 'Tenor',
+          key: 'lifetime',
+          label: 'Lifetime',
           type: 'template',
           sortable: true,
           width: '130px'
         },
         {
-          key: 'fiatCurrency',
+          key: 'defaultFiatCurrency',
           label: 'Currency',
           type: 'template',
           sortable: true,
@@ -676,6 +685,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
 
   /**
    * Load bonds based on context
+   * Note: Partner/customer contexts always load fresh data (resetForContextView already called)
+   * Default context uses cache-aware loading
    */
   loadBonds(): void {
     if (this.context === 'customer') {
@@ -690,6 +701,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for customer context (cache already cleared in initializeContext)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -702,18 +714,21 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Direct load for partner context (cache already cleared in initializeContext)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
         limit: 20,
         offset: 0
       };
-      this.store.dispatch(BondsActions.loadBonds({ filters }));
+      // Use cache-aware action for default context
+      this.store.dispatch(BondsActions.checkAndLoadBonds({ filters }));
     }
   }
 
   /**
    * Apply filters
+   * Note: When filters change, we want fresh data (bypass cache)
    */
   applyFilters(): void {
     const formValue = this.filterForm.value;
@@ -731,6 +746,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -744,6 +762,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
@@ -755,6 +776,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadBonds({ filters }));
     }
 
@@ -765,16 +789,19 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Reset filters
    */
   resetFilters(): void {
+    // Reset the form UI
     this.filterForm.reset();
-    
+
+    // Restore context-specific required values
     if (this.context === 'customer') {
       this.filterForm.patchValue({
         partnerId: this.partnerId,
         customerId: this.customerId
       });
     }
-    
-    this.loadBonds();
+
+    // Dispatch clear filters action which will reload with empty filters
+    this.store.dispatch(BondsActions.clearFilters());
     this.hasUnappliedFilters = false;
   }
 
@@ -784,7 +811,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   private countActiveFilters(filters: any): number {
     let count = 0;
     const excludeKeys = ['limit', 'offset', 'partnerId', 'customerId'];
-    
+
     Object.keys(filters).forEach(key => {
       if (!excludeKeys.includes(key) && filters[key]) {
         count++;
@@ -797,17 +824,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Toggle filters collapse/expand
    */
   toggleFilters(): void {
-    if (this.filtersExpanded) {
-      this.showFiltersContent = false;
-      setTimeout(() => {
-        this.filtersExpanded = false;
-      }, 10);
-    } else {
-      this.filtersExpanded = true;
-      setTimeout(() => {
-        this.showFiltersContent = true;
-      }, 10);
-    }
+    this.filtersExpanded = !this.filtersExpanded;
   }
 
   /**
@@ -988,10 +1005,30 @@ export class BondsListComponent implements OnInit, OnDestroy {
     }
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
-    
+
     if (remainingMonths === 0) {
       return `${years} ${years === 1 ? 'year' : 'years'}`;
     }
     return `${years}y ${remainingMonths}m`;
+  }
+
+  formatLifetime(days: number): string {
+    if (!days) return '-';
+
+    if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    } else {
+      const years = Math.floor(days / 365);
+      const remainingDays = days % 365;
+      const months = Math.floor(remainingDays / 30);
+
+      if (months === 0) {
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+      }
+      return `${years}y ${months}m`;
+    }
   }
 }

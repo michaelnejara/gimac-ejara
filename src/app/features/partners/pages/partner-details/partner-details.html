@@ -122,15 +122,13 @@
                 </div>
               </div>
 
-              @if (partner.lastUpdated) {
-                <div class="detail-row">
-                  <mat-icon>update</mat-icon>
-                  <div class="detail-content">
-                    <label>Last Updated</label>
-                    <span class="detail-value">{{ formatDate(partner.lastUpdated) }}</span>
-                  </div>
+              <div class="detail-row">
+                <mat-icon>update</mat-icon>
+                <div class="detail-content">
+                  <label>Last Updated</label>
+                  <span class="detail-value">{{ formatDate(partner.dateUpdated) }}</span>
                 </div>
-              }
+              </div>
             </div>
           </mat-card>
 
@@ -181,33 +179,19 @@
               </div>
             </div>
 
-            <div class="stat-card bonds">
+            <!-- Note: SinglePartner doesn't include allowedBonds, activeCustomers, or totalVolume -->
+            <!-- These would require separate API calls to statistics endpoints -->
+            <div class="stat-card info">
               <div class="stat-icon">
-                <mat-icon>account_balance</mat-icon>
+                <mat-icon>info</mat-icon>
               </div>
               <div class="stat-content">
-                <label>Allowed Bonds</label>
-                <div class="stat-value">{{ partner.allowedBonds.length || 0 }}</div>
-              </div>
-            </div>
-
-            <div class="stat-card customers">
-              <div class="stat-icon">
-                <mat-icon>people</mat-icon>
-              </div>
-              <div class="stat-content">
-                <label>Active Customers</label>
-                <div class="stat-value">{{ formatNumber(partner.activeCustomers) }}</div>
-              </div>
-            </div>
-
-            <div class="stat-card volume">
-              <div class="stat-icon">
-                <mat-icon>trending_up</mat-icon>
-              </div>
-              <div class="stat-content">
-                <label>Total Volume</label>
-                <div class="stat-value">{{ formatCurrency(partner.totalVolume) }}</div>
+                <label>Status</label>
+                <div class="stat-value">
+                  <span class="status-badge" [ngClass]="getStatusClass(partner.status)">
+                    {{ partner.status | titlecase }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -285,46 +269,70 @@
             </div>
 
             <div class="actions-grid">
-              <button 
-                mat-raised-button 
-                color="primary" 
-                class="action-btn primary-action"
-                (click)="editPartner()">
-                <mat-icon>edit</mat-icon>
-                <span>Edit Partner</span>
-              </button>
+              <!-- Primary Actions Section -->
+              <div class="action-section primary-section">
+                <div class="section-label">Primary Actions</div>
+                
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  class="action-btn primary-action"
+                  (click)="editPartner()">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Partner</span>
+                </button>
 
-              <button 
-                mat-raised-button 
-                class="action-btn status-action"
-                (click)="changeStatus(partner)">
-                <mat-icon>toggle_on</mat-icon>
-                <span>Change Status</span>
-              </button>
+                <button 
+                  mat-raised-button 
+                  class="action-btn status-action"
+                  [ngClass]="getStatusClass(partner.status)"
+                  (click)="changeStatus(partner)">
+                  <mat-icon>toggle_on</mat-icon>
+                  <span>Change Status</span>
+                </button>
+              </div>
 
-              <button 
-                mat-stroked-button 
-                class="action-btn secondary-action"
-                (click)="viewBonds(partner.id)">
-                <mat-icon>account_balance</mat-icon>
-                <span>View Partner Bonds</span>
-              </button>
+              <!-- Management Actions Section -->
+              <div class="action-section management-section">
+                <div class="section-label">Management</div>
+                
+                <button 
+                  mat-raised-button 
+                  class="action-btn management-action"
+                  (click)="assignBonds(partner)">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>Assign Bonds</span>
+                </button>
+              </div>
 
-              <button 
-                mat-stroked-button 
-                class="action-btn secondary-action"
-                (click)="viewCustomers(partner.id)">
-                <mat-icon>people</mat-icon>
-                <span>View Customers</span>
-              </button>
+              <!-- View Actions Section -->
+              <div class="action-section view-section">
+                <div class="section-label">View Related Data</div>
+                
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewBonds(partner.id)">
+                  <mat-icon>account_balance</mat-icon>
+                  <span>View Partner Bonds</span>
+                </button>
 
-              <button 
-                mat-stroked-button 
-                class="action-btn secondary-action"
-                (click)="viewTransactions(partner.id)">
-                <mat-icon>receipt_long</mat-icon>
-                <span>View Bond Transactions</span>
-              </button>
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewCustomers(partner)">
+                  <mat-icon>people</mat-icon>
+                  <span>View Customers</span>
+                </button>
+
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewTransactions(partner.id)">
+                  <mat-icon>receipt_long</mat-icon>
+                  <span>View Bond Transactions</span>
+                </button>
+              </div>
             </div>
           </mat-card>
 

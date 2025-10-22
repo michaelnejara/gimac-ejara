@@ -1,14 +1,13 @@
 // src/app/store/bonds/bonds.actions.ts
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { 
+import {
   Bond,
-  BondsResponse,
   CreateBondRequest,
   UpdateBondRequest,
   BondFilterParams,
   PartnerBondFilterParams,
   CustomerBondFilterParams,
-  CustomerBondsResponse
+  CustomerBondHolding
 } from '@core/models/bond.models';
 
 /**
@@ -19,7 +18,12 @@ export const BondsActions = createActionGroup({
   events: {
     // Load All Bonds (Admin)
     'Load Bonds': props<{ filters?: BondFilterParams }>(),
-    'Load Bonds Success': props<{ response: BondsResponse }>(),
+    'Load Bonds Success': props<{
+      bonds: Bond[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(),
     'Load Bonds Failure': props<{ error: string }>(),
 
     // Load Single Bond
@@ -29,15 +33,15 @@ export const BondsActions = createActionGroup({
 
     // Create Bond
     'Create Bond': props<{ bondData: CreateBondRequest }>(),
-    'Create Bond Success': props<{ bond: Bond }>(),
+    'Create Bond Success': props<{ message: string }>(),
     'Create Bond Failure': props<{ error: string }>(),
 
     // Update Bond
-    'Update Bond': props<{ 
-      bondId: number; 
-      bondData: UpdateBondRequest 
+    'Update Bond': props<{
+      bondId: number;
+      bondData: UpdateBondRequest
     }>(),
-    'Update Bond Success': props<{ bond: Bond }>(),
+    'Update Bond Success': props<{ bondId: number; message: string }>(),
     'Update Bond Failure': props<{ bondId: number; error: string }>(),
 
     // Delete Bond
@@ -47,18 +51,26 @@ export const BondsActions = createActionGroup({
 
     // Load Partner Bonds
     'Load Partner Bonds': props<{ filters: PartnerBondFilterParams }>(),
-    'Load Partner Bonds Success': props<{ 
+    'Load Partner Bonds Success': props<{
       partnerId: number;
-      response: BondsResponse 
+      bonds: any[];
+      total: number;
+      limit: number;
+      offset: number;
     }>(),
-    'Load Partner Bonds Failure': props<{ 
+    'Load Partner Bonds Failure': props<{
       partnerId: number;
-      error: string 
+      error: string
     }>(),
 
     // Load Customer Bonds
     'Load Customer Bonds': props<{ filters?: CustomerBondFilterParams }>(),
-    'Load Customer Bonds Success': props<{ response: CustomerBondsResponse }>(),
+    'Load Customer Bonds Success': props<{
+      customerBonds: CustomerBondHolding[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(),
     'Load Customer Bonds Failure': props<{ error: string }>(),
 
     // Filter & Search
@@ -82,6 +94,12 @@ export const BondsActions = createActionGroup({
     // UI State
     'Set Loading': props<{ loading: boolean }>(),
     'Clear Errors': emptyProps(),
-    'Reset State': emptyProps()
+    'Reset State': emptyProps(),
+
+    // Page Management
+    'Reset To First Page': emptyProps(),
+    'Reset For Context View': emptyProps(), // Reset when entering partner/customer context
+    'Check And Load Bonds': props<{ filters?: BondFilterParams }>(),
+    'Check And Load Bond': props<{ bondId: number; forceReload?: boolean }>()
   }
 });

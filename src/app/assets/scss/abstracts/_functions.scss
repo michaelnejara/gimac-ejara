@@ -1,0 +1,298 @@
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+// Helper functions for calculations and utilities
+
+@use 'sass:map';
+@use 'sass:math';
+@use 'sass:color';
+@use './variables' as *;
+
+// ============================================
+// SPACING FUNCTIONS
+// ============================================
+
+/// Get spacing value from scale
+/// @param {String} $size - Size key from spacing scale
+/// @return {Number} - Spacing value
+/// @example
+///   padding: spacing('4'); // 1rem
+@function spacing($size) {
+  @if map-has-key($spacing-scale, $size) {
+    @return map-get($spacing-scale, $size);
+  }
+  @warn "Spacing size `#{$size}` not found in $spacing-scale";
+  @return null;
+}
+
+/// Get border radius from scale
+/// @param {String} $size - Size key from radius scale
+/// @return {Number} - Radius value
+/// @example
+///   border-radius: radius('lg'); // 0.5rem
+@function radius($size) {
+  @if map-has-key($radius-scale, $size) {
+    @return map-get($radius-scale, $size);
+  }
+  @warn "Radius size `#{$size}` not found in $radius-scale";
+  @return null;
+}
+
+/// Get breakpoint value
+/// @param {String} $breakpoint - Breakpoint name
+/// @return {Number} - Breakpoint value
+@function breakpoint($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @return map-get($breakpoints, $breakpoint);
+  }
+  @warn "Breakpoint `#{$breakpoint}` not found";
+  @return null;
+}
+
+// ============================================
+// COLOR FUNCTIONS
+// ============================================
+
+/// Lighten color by percentage
+/// @param {Color} $color - Base color
+/// @param {Number} $amount - Percentage to lighten (0-100)
+/// @return {Color} - Lightened color
+@function lighten-color($color, $amount) {
+  @return color.adjust($color, $lightness: $amount);
+}
+
+/// Darken color by percentage
+/// @param {Color} $color - Base color
+/// @param {Number} $amount - Percentage to darken (0-100)
+/// @return {Color} - Darkened color
+@function darken-color($color, $amount) {
+  @return color.adjust($color, $lightness: -$amount);
+}
+
+/// Add alpha transparency to color
+/// @param {Color} $color - Base color
+/// @param {Number} $opacity - Opacity value (0-1)
+/// @return {Color} - Color with alpha
+/// @example
+///   background: alpha($color-primary-500, 0.1);
+@function alpha($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+/// Create color with opacity from hex
+/// @param {Color} $color - Hex color
+/// @param {Number} $opacity - Opacity percentage (0-100)
+/// @return {Color} - RGBA color
+@function opacity($color, $opacity) {
+  @return rgba($color, math.div($opacity, 100));
+}
+
+// ============================================
+// UNIT CONVERSION
+// ============================================
+
+/// Convert pixels to rem
+/// @param {Number} $px - Pixel value
+/// @param {Number} $base - Base font size (default: 16px)
+/// @return {Number} - Rem value
+/// @example
+///   font-size: px-to-rem(24px); // 1.5rem
+@function px-to-rem($px, $base: 16px) {
+  @if math.is-unitless($px) {
+    $px: $px * 1px;
+  }
+  @if math.is-unitless($base) {
+    $base: $base * 1px;
+  }
+  @return math.div($px, $base) * 1rem;
+}
+
+/// Convert rem to pixels
+/// @param {Number} $rem - Rem value
+/// @param {Number} $base - Base font size (default: 16px)
+/// @return {Number} - Pixel value
+@function rem-to-px($rem, $base: 16px) {
+  @if math.is-unitless($rem) {
+    $rem: $rem * 1rem;
+  }
+  @if math.is-unitless($base) {
+    $base: $base * 1px;
+  }
+  @return math.div($rem, 1rem) * $base;
+}
+
+/// Strip unit from number
+/// @param {Number} $number - Number with unit
+/// @return {Number} - Unitless number
+@function strip-unit($number) {
+  @if math.is-unitless($number) {
+    @return $number;
+  }
+  @return math.div($number, $number * 0 + 1);
+}
+
+// ============================================
+// LAYOUT CALCULATIONS
+// ============================================
+
+/// Calculate fluid typography size
+/// @param {Number} $min-size - Minimum font size
+/// @param {Number} $max-size - Maximum font size
+/// @param {Number} $min-width - Minimum viewport width
+/// @param {Number} $max-width - Maximum viewport width
+/// @return {String} - Clamp CSS function
+/// @example
+///   font-size: fluid-type(1rem, 2rem, 20rem, 80rem);
+@function fluid-type($min-size, $max-size, $min-width: 20rem, $max-width: 80rem) {
+  $min: strip-unit($min-size);
+  $max: strip-unit($max-size);
+  $min-vw: strip-unit($min-width);
+  $max-vw: strip-unit($max-width);
+
+  $slope: math.div($max - $min, $max-vw - $min-vw);
+  $y-intercept: $min - $slope * $min-vw;
+
+  @return clamp(
+    $min-size,
+    #{$y-intercept}rem + #{$slope * 100}vw,
+    $max-size
+  );
+}
+
+/// Calculate column width for grid
+/// @param {Number} $columns - Number of columns
+/// @param {Number} $gap - Gap between columns
+/// @return {String} - Calc CSS function
+@function column-width($columns, $gap: $spacing-4) {
+  @return calc((100% - (#{$gap} * #{$columns - 1})) / #{$columns});
+}
+
+/// Calculate aspect ratio padding
+/// @param {Number} $width - Width ratio
+/// @param {Number} $height - Height ratio
+/// @return {Number} - Percentage padding
+@function aspect-ratio($width, $height) {
+  @return percentage(math.div($height, $width));
+}
+
+// ============================================
+// STRING FUNCTIONS
+// ============================================
+
+/// Replace substring in string
+/// @param {String} $string - Original string
+/// @param {String} $search - Substring to find
+/// @param {String} $replace - Replacement substring
+/// @return {String} - Modified string
+@function str-replace($string, $search, $replace: '') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+// ============================================
+// VALIDATION FUNCTIONS
+// ============================================
+
+/// Check if value is a valid color
+/// @param {*} $value - Value to check
+/// @return {Boolean} - True if valid color
+@function is-color($value) {
+  @return type-of($value) == 'color';
+}
+
+/// Check if value is a valid length
+/// @param {*} $value - Value to check
+/// @return {Boolean} - True if valid length
+@function is-length($value) {
+  @return type-of($value) == 'number' and not math.is-unitless($value);
+}
+
+/// Check if value is a number
+/// @param {*} $value - Value to check
+/// @return {Boolean} - True if number
+@function is-number($value) {
+  @return type-of($value) == 'number';
+}
+
+// ============================================
+// MATH HELPERS
+// ============================================
+
+/// Power function (exponentiation)
+/// @param {Number} $base - Base number
+/// @param {Number} $exponent - Exponent
+/// @return {Number} - Result
+@function pow($base, $exponent) {
+  $result: 1;
+
+  @if $exponent > 0 {
+    @for $i from 1 through $exponent {
+      $result: $result * $base;
+    }
+  } @else if $exponent < 0 {
+    @for $i from 1 through -$exponent {
+      $result: math.div($result, $base);
+    }
+  }
+
+  @return $result;
+}
+
+/// Clamp value between min and max
+/// @param {Number} $value - Value to clamp
+/// @param {Number} $min - Minimum value
+/// @param {Number} $max - Maximum value
+/// @return {Number} - Clamped value
+@function clamp-value($value, $min, $max) {
+  @return math.max($min, math.min($value, $max));
+}
+
+// ============================================
+// Z-INDEX MANAGEMENT
+// ============================================
+
+/// Get z-index value by name
+/// @param {String} $layer - Layer name
+/// @return {Number} - Z-index value
+@function z-index($layer) {
+  $z-layers: (
+    'dropdown': $z-index-dropdown,
+    'sticky': $z-index-sticky,
+    'fixed': $z-index-fixed,
+    'modal-backdrop': $z-index-modal-backdrop,
+    'modal': $z-index-modal,
+    'popover': $z-index-popover,
+    'tooltip': $z-index-tooltip,
+  );
+
+  @if map-has-key($z-layers, $layer) {
+    @return map-get($z-layers, $layer);
+  }
+
+  @warn "Z-index layer `#{$layer}` not found";
+  @return null;
+}
+
+// ============================================
+// TRANSITION HELPERS
+// ============================================
+
+/// Create transition property
+/// @param {List} $properties - CSS properties to transition
+/// @param {Number} $duration - Duration
+/// @param {String} $timing - Timing function
+/// @return {String} - Transition value
+@function transition($properties, $duration: $transition-duration-base, $timing: $transition-timing-function) {
+  $result: ();
+
+  @each $property in $properties {
+    $result: append($result, $property $duration $timing, comma);
+  }
+
+  @return $result;
+}

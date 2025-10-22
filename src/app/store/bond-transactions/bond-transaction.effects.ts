@@ -284,13 +284,13 @@ export class BondTransactionsEffects {
   /**
    * Load Stats After Transactions Load
    */
-  loadStatsAfterTransactions$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.loadTransactionsSuccess),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadStats({ filters }))
-    )
-  );
+  // loadStatsAfterTransactions$ = createEffect(() =>
+  //   this.actions$.pipe(
+  //     ofType(BondTransactionsActions.loadTransactionsSuccess),
+  //     withLatestFrom(this.store.select(selectFilters)),
+  //     map(([_, filters]) => BondTransactionsActions.loadStats({ filters }))
+  //   )
+  // );
 
   /**
    * Log Errors

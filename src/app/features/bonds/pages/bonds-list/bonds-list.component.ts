@@ -218,6 +218,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
         { value: '', label: 'All Statuses' },
         { value: 'active', label: 'Active' },
         { value: 'inactive', label: 'Inactive' },
+        { value: 'sold-out', label: 'Sold Out' },
+        { value: 'pre-allocation', label: 'Pre Allocation' },
         { value: 'matured', label: 'Matured' }
       ];
     }
@@ -744,7 +746,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
-      // Direct load for filtered data (bypass cache)
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -758,7 +762,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
-      // Direct load for filtered data (bypass cache)
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
@@ -770,7 +776,9 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
-      // Direct load for filtered data (bypass cache)
+      // Update filters in store first (for activeFiltersCount)
+      this.store.dispatch(BondsActions.applyFilters({ filters }));
+      // Then load filtered data (bypass cache)
       this.store.dispatch(BondsActions.loadBonds({ filters }));
     }
 
@@ -781,16 +789,19 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Reset filters
    */
   resetFilters(): void {
+    // Reset the form UI
     this.filterForm.reset();
-    
+
+    // Restore context-specific required values
     if (this.context === 'customer') {
       this.filterForm.patchValue({
         partnerId: this.partnerId,
         customerId: this.customerId
       });
     }
-    
-    this.loadBonds();
+
+    // Dispatch clear filters action which will reload with empty filters
+    this.store.dispatch(BondsActions.clearFilters());
     this.hasUnappliedFilters = false;
   }
 

@@ -4,9 +4,12 @@
 // Updated with Ejara Brand Colors
 // ============================================
 
-// Import Custom Fonts
-@use './app/assets/scss/fonts/rebond-grotesque-font-face.scss';
-@use './app/assets/scss/fonts/aeonik-air.scss';
+// Import Custom Fonts (Optimized with external WOFF2 files)
+@use './app/assets/scss/fonts/rebond-grotesque';
+@use './app/assets/scss/fonts/aeonik-air';
+
+// Import SCSS Abstracts (Variables, Functions, Mixins)
+@use './app/assets/scss/abstracts' as *;
 
 @use '@angular/material' as mat;
 // Tailwind Directives

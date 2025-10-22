@@ -238,7 +238,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     this.error$ = this.store.select(selectError);
     this.pagination$ = this.store.select(selectPagination);
     this.currentFilters$ = this.store.select(selectFilters);
-    this.stats$ = this.store.select(selectTransactionStats);
+    // this.stats$ = this.store.select(selectTransactionStats);
 
     this.activeFiltersCount$ = this.currentFilters$.pipe(
       map(filters => this.countActiveFilters(filters))

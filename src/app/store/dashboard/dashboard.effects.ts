@@ -27,26 +27,28 @@ export class DashboardEffects {
 
   /**
    * Load Dashboard Stats Effect
-   * 
+   *
    * Listens for LoadStats action and triggers an API call to fetch
    * dashboard statistics. Maps the response to either a success or
    * failure action based on the API result.
-   * 
+   *
    * Flow:
-   * 1. Action dispatched: DashboardActions.loadStats()
-   * 2. API call made via DashboardService
+   * 1. Action dispatched: DashboardActions.loadStats({ filters })
+   * 2. API call made via DashboardService with filter parameters
    * 3. On success: Dispatch LoadStatsSuccess with data
    * 4. On error: Dispatch LoadStatsFailure with error message
-   * 
+   *
    * @returns Observable that emits LoadStatsSuccess or LoadStatsFailure actions
-   * 
+   *
    * @example
    * ```typescript
    * // In component:
-   * this.store.dispatch(DashboardActions.loadStats());
-   * 
+   * this.store.dispatch(DashboardActions.loadStats({
+   *   filters: { startDate: '2024-01-01', partnerId: '123' }
+   * }));
+   *
    * // Effect automatically:
-   * // 1. Makes API call
+   * // 1. Makes API call with query parameters
    * // 2. Dispatches success/failure action
    * // 3. Reducer updates state accordingly
    * ```
@@ -57,14 +59,14 @@ export class DashboardEffects {
       ofType(DashboardActions.loadStats),
 
       // Switch to new API call, canceling previous if still pending
-      switchMap(() => {
+      switchMap(({ filters }) => {
         // Use mock data flag from environment
         const useMockData = environment.gimacTbB2B.useMockData;
 
         // Select appropriate service based on environment
-        const source$ = useMockData 
+        const source$ = useMockData
           ? this.GimacPaymentMockDataService.getDashboardStats()
-          : this.gimacPaymentService.getDashboardStats();
+          : this.gimacPaymentService.getDashboardStats(filters);
 
         return source$.pipe(
           // On successful response, dispatch success action with data
@@ -78,6 +80,18 @@ export class DashboardEffects {
           })
         );
       })
+    )
+  );
+
+  /**
+   * Clear Filters Effect
+   *
+   * Listens for ClearFilters action and automatically reloads stats without filters
+   */
+  clearFilters$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(DashboardActions.clearFilters),
+      map(() => DashboardActions.loadStats({ filters: {} }))
     )
   );
 

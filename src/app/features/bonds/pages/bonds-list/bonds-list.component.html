@@ -92,6 +92,7 @@
           <div class="stat-content">
             <label>Total Bonds</label>
             <div class="stat-value">{{ pagination.total }}</div>
+            <div>active filters count: {{ (activeFiltersCount$ | async) }}</div>
           </div>
         </div>
 
@@ -120,21 +121,48 @@
     }
   </div>
 
+  <!-- Active Filters Banner -->
+  @if (activeFiltersCount$ | async; as count) {
+    @if (count > 0) {
+      <div class="active-filters-banner">
+        <div class="banner-content">
+          <mat-icon class="banner-icon">filter_alt</mat-icon>
+          <span class="banner-text">
+            <strong>{{ count }}</strong> {{ count === 1 ? 'filter' : 'filters' }} applied
+          </span>
+        </div>
+        <button
+          mat-button
+          class="clear-banner-btn"
+          (click)="resetFilters()">
+          <mat-icon>close</mat-icon>
+          Clear All Filters
+        </button>
+      </div>
+    }
+  }
+
   <!-- Filter Block -->
   <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
     <mat-card-header>
       <div class="filter-header">
         <div class="filter-header-left">
-          <button 
-            mat-icon-button 
+          <button
+            mat-icon-button
             class="toggle-btn"
+            [class.has-active-filters]="(activeFiltersCount$ | async)! > 0"
             (click)="toggleFilters()"
             [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
             <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            @if (!filtersExpanded && (activeFiltersCount$ | async); as count) {
+              @if (count > 0) {
+                <span class="filter-badge">{{ count }}</span>
+              }
+            }
           </button>
-          
+
           <div class="filter-title">
-            <mat-icon>filter_list</mat-icon>
+            <mat-icon [class.active-filter-icon]="(activeFiltersCount$ | async)! > 0">filter_list</mat-icon>
             <span>Filters</span>
             @if (activeFiltersCount$ | async; as count) {
               @if (count > 0) {

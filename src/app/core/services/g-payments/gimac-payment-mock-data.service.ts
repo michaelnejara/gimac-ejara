@@ -24,13 +24,13 @@ export class GimacPaymentMockDataService {
 
   /**
    * Get mock dashboard statistics
-   * 
+   *
    * Simulates an API call by returning mock data after a delay.
    * Useful for testing loading states and UI behavior.
-   * 
+   *
    * @param delayMs - Simulated network delay in milliseconds (default: 800ms)
    * @returns Observable<DashboardStatsDTO> - Stream that emits mock dashboard data
-   * 
+   *
    * @example
    * ```typescript
    * this.mockDataService.getDashboardStats().subscribe(stats => {
@@ -40,17 +40,19 @@ export class GimacPaymentMockDataService {
    */
   getDashboardStats(delayMs: number = 800): Observable<DashboardStatsDTO> {
     const mockStats: DashboardStatsDTO = {
-      totalTransactions: 48234,
-      successfulTransactions: 45180,
-      failedTransactions: 854,
-      pendingTransactions: 2200,
-      reconciledTransactions: 44500,
-      unreconciledTransactions: 3734,
-      totalBondsPublished: 1250,
-      bondsSold: 987,
-      bondsSettled: 743,
-      bondsPendingSettlement: 244,
-      numberOfUniqueCustomer: 15678
+      totalPartners: 15,
+      totalActivePartners: 12,
+      totalCustomers: 1250,
+      totalActiveCustomers: 980,
+      totalDeposits: 450,
+      totalDepositAmount: 2500000.50,
+      totalWithdrawals: 120,
+      totalWithdrawalAmount: 750000.25,
+      totalCommissionEarned: 125000.75,
+      totalPrincipalInvested: 2000000.00,
+      totalInterestPaid: 150000.30,
+      totalPendingTransactions: 25,
+      totalFailedTransactions: 8
     };
 
     return of(mockStats).pipe(
@@ -60,26 +62,28 @@ export class GimacPaymentMockDataService {
 
   /**
    * Get random dashboard statistics
-   * 
+   *
    * Generates random values for testing dynamic updates.
    * Useful for simulating real-time data changes.
-   * 
+   *
    * @param delayMs - Simulated network delay in milliseconds
    * @returns Observable<DashboardStatsDTO> - Stream that emits random dashboard data
    */
   getRandomDashboardStats(delayMs: number = 800): Observable<DashboardStatsDTO> {
     const randomStats: DashboardStatsDTO = {
-      totalTransactions: this.randomInt(40000, 50000),
-      successfulTransactions: this.randomInt(38000, 47000),
-      failedTransactions: this.randomInt(500, 1500),
-      pendingTransactions: this.randomInt(1000, 3000),
-      reconciledTransactions: this.randomInt(40000, 46000),
-      unreconciledTransactions: this.randomInt(2000, 5000),
-      totalBondsPublished: this.randomInt(1000, 1500),
-      bondsSold: this.randomInt(800, 1200),
-      bondsSettled: this.randomInt(600, 1000),
-      bondsPendingSettlement: this.randomInt(100, 400),
-      numberOfUniqueCustomer: this.randomInt(12000, 18000)
+      totalPartners: this.randomInt(10, 25),
+      totalActivePartners: this.randomInt(8, 20),
+      totalCustomers: this.randomInt(1000, 2000),
+      totalActiveCustomers: this.randomInt(800, 1600),
+      totalDeposits: this.randomInt(300, 600),
+      totalDepositAmount: this.randomFloat(2000000, 3000000),
+      totalWithdrawals: this.randomInt(80, 200),
+      totalWithdrawalAmount: this.randomFloat(500000, 1000000),
+      totalCommissionEarned: this.randomFloat(100000, 200000),
+      totalPrincipalInvested: this.randomFloat(1500000, 2500000),
+      totalInterestPaid: this.randomFloat(100000, 200000),
+      totalPendingTransactions: this.randomInt(10, 50),
+      totalFailedTransactions: this.randomInt(5, 20)
     };
 
     return of(randomStats).pipe(
@@ -89,12 +93,23 @@ export class GimacPaymentMockDataService {
 
   /**
    * Generate random integer between min and max (inclusive)
-   * 
+   *
    * @param min - Minimum value
    * @param max - Maximum value
    * @returns Random integer
    */
   private randomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /**
+   * Generate random float between min and max
+   *
+   * @param min - Minimum value
+   * @param max - Maximum value
+   * @returns Random float with 2 decimal places
+   */
+  private randomFloat(min: number, max: number): number {
+    return Math.round((Math.random() * (max - min) + min) * 100) / 100;
   }
 }

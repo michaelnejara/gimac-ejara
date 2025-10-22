@@ -21,7 +21,7 @@
       </a>
 
       <!-- Search Bar -->
-      <div class="search-container">
+      <!-- <div class="search-container">
         <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
           <path
             fill-rule="evenodd"
@@ -31,14 +31,14 @@
         </svg>
         <input type="text" class="search-input" placeholder="Search users, transactions..." />
         <kbd class="search-shortcut">⌘K</kbd>
-      </div>
+      </div> -->
     </div>
 
     <!-- Right Section: Actions + Profile -->
     <div class="navbar-right">
       <!-- Notifications -->
-      <div class="navbar-item notifications-dropdown">
-        <button
+      <!-- <div class="navbar-item notifications-dropdown"> -->
+        <!-- <button
           class="icon-button"
           (click)="toggleNotifications($event)"
           [class.active]="isNotificationsOpen()"
@@ -52,10 +52,10 @@
           @if (hasUnread()) {
           <span class="notification-badge">{{ unreadCount() }}</span>
           }
-        </button>
+        </button> -->
 
         <!-- Notifications Dropdown -->
-        @if (isNotificationsOpen()) {
+        <!-- @if (isNotificationsOpen()) {
         <div class="dropdown notifications-panel">
           <div class="dropdown-header">
             <h3 class="dropdown-title">Notifications</h3>
@@ -100,8 +100,8 @@
             <a [routerLink]="'/alerts'" class="view-all-link"> View all notifications </a>
           </div>
         </div>
-        }
-      </div>
+        } -->
+      <!-- </div> -->
 
       <!-- Help -->
       <div class="navbar-item">

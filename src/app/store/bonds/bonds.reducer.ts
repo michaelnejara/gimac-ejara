@@ -174,12 +174,14 @@ export const bondsReducer = createReducer(
     // Calculate page number from offset and limit
     const pageNumber = Math.floor(offset / limit) + 1;
 
-    // Update partner-specific page cache
-    const newPartnerBondsPageCache = { ...state.partnerBondsPageCache };
-    if (!newPartnerBondsPageCache[partnerId]) {
-      newPartnerBondsPageCache[partnerId] = {};
-    }
-    newPartnerBondsPageCache[partnerId][pageNumber] = bonds;
+    // Update partner-specific page cache (DEEP COPY for nested structure)
+    const newPartnerBondsPageCache = {
+      ...state.partnerBondsPageCache,
+      [partnerId]: {
+        ...state.partnerBondsPageCache[partnerId], // Copy existing pages for this partner
+        [pageNumber]: bonds // Add/update the current page
+      }
+    };
 
     return {
       ...state,

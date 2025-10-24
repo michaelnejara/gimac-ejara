@@ -23,26 +23,40 @@ export class BondsMockService {
       code: 'GTB2024',
       descriptionEn: 'Government-backed treasury bond with guaranteed returns',
       descriptionFr: 'Obligation du Trésor soutenue par le gouvernement avec rendements garantis',
-      color: '#1976D2',
-      amount: 1000000,
+      color: '1976D2',
+      colorCode: '#1976D2',
+      amount: 1000000000,
       amountPurchased: 325000000,
       availableBalance: 675000000,
       lifetime: 2190, // 6 years in days
-      startDate: '2024-01-01',
-      maturityDate: '2029-12-31',
+      startDate: '2024-01-01T00:00:00+00:00',
+      maturityDate: '2029-12-31T23:59:59+00:00',
       dateCreated: '2024-01-01T10:00:00Z',
       dailyInterest: 0.0151, // 5.5% annual / 365
       interestValue: 5.5,
+      ejaraInterestRate: 0.5,
+      customerInterestRate: 5.0,
       maturityPercentage: 33.0,
       unlockingPenaltyRate: 2.0,
+      smartContractId: 'KT1GovTreasury2024XYZ',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 1,
       interestCalculationPeriod: 'daily',
       issuerNameEn: 'Government of Cameroon',
       issuerNameFr: 'Gouvernement du Cameroun',
+      issuerDescriptionEn: 'The Government of Cameroon issues treasury bonds to finance national infrastructure and development projects',
+      issuerDescriptionFr: 'Le Gouvernement du Cameroun émet des obligations du Trésor pour financer les infrastructures nationales et les projets de développement',
+      issuerType: 'government',
+      issuerIcon: 'gov-cameroon.png',
       withdrawalPeriod: 'maturity',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: true,
+      momoMinimumDeposit: 10000,
+      bankMinimumDeposit: 50000,
+      blockchain: 'tezos',
       status: 'active',
-      statusColorCode: '#4CAF50'
+      statusColorCode: '0xFF4CAF50'
     },
     {
       id: 2,
@@ -50,26 +64,40 @@ export class BondsMockService {
       code: 'CIB2024',
       descriptionEn: 'Investment in national infrastructure development projects',
       descriptionFr: 'Investissement dans des projets de développement d\'infrastructure nationale',
-      color: '#FF6F00',
-      amount: 500000,
+      color: 'FF6F00',
+      colorCode: '#FF6F00',
+      amount: 500000000,
       amountPurchased: 145000000,
-      availableBalance: 55000000,
+      availableBalance: 355000000,
       lifetime: 1195, // ~3.25 years in days
-      startDate: '2024-03-15',
-      maturityDate: '2027-06-30',
+      startDate: '2024-03-15T00:00:00+00:00',
+      maturityDate: '2027-06-30T23:59:59+00:00',
       dateCreated: '2024-03-15T09:00:00Z',
       dailyInterest: 0.0197,
       interestValue: 7.2,
+      ejaraInterestRate: 0.7,
+      customerInterestRate: 6.5,
       maturityPercentage: 25.5,
       unlockingPenaltyRate: 3.5,
+      smartContractId: 'KT1CorpInfra2024ABC',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 2,
       interestCalculationPeriod: 'monthly',
       issuerNameEn: 'National Infrastructure Corp',
       issuerNameFr: 'Société Nationale d\'Infrastructure',
+      issuerDescriptionEn: 'Leading infrastructure development corporation focused on building national assets',
+      issuerDescriptionFr: 'Principale société de développement d\'infrastructures axée sur la construction d\'actifs nationaux',
+      issuerType: 'corporate',
+      issuerIcon: 'nic-logo.png',
       withdrawalPeriod: 'anytime',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: true,
+      momoMinimumDeposit: 5000,
+      bankMinimumDeposit: 25000,
+      blockchain: 'tezos',
       status: 'active',
-      statusColorCode: '#4CAF50'
+      statusColorCode: '0xFF4CAF50'
     },
     {
       id: 3,
@@ -77,26 +105,40 @@ export class BondsMockService {
       code: 'GEB2024',
       descriptionEn: 'Sustainable investment in renewable energy projects',
       descriptionFr: 'Investissement durable dans des projets d\'énergie renouvelable',
-      color: '#4CAF50',
-      amount: 750000,
+      color: '4CAF50',
+      colorCode: '#4CAF50',
+      amount: 750000000,
       amountPurchased: 198000000,
-      availableBalance: 102000000,
+      availableBalance: 552000000,
       lifetime: 1795, // ~4.92 years in days
-      startDate: '2024-02-01',
-      maturityDate: '2028-12-31',
+      startDate: '2024-02-01T00:00:00+00:00',
+      maturityDate: '2028-12-31T23:59:59+00:00',
       dateCreated: '2024-02-01T11:00:00Z',
       dailyInterest: 0.0186,
       interestValue: 6.8,
+      ejaraInterestRate: 0.6,
+      customerInterestRate: 6.2,
       maturityPercentage: 34.0,
       unlockingPenaltyRate: 0,
+      smartContractId: 'KT1GreenEnergy2024DEF',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 3,
-      interestCalculationPeriod: 'quarterly',
+      interestCalculationPeriod: 'monthly',
       issuerNameEn: 'Cameroon Green Energy Ltd',
       issuerNameFr: 'Énergie Verte du Cameroun Ltée',
+      issuerDescriptionEn: 'Renewable energy company dedicated to sustainable power generation',
+      issuerDescriptionFr: 'Société d\'énergie renouvelable dédiée à la production d\'électricité durable',
+      issuerType: 'corporate',
+      issuerIcon: 'green-energy.png',
       withdrawalPeriod: 'maturity',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: true,
+      momoMinimumDeposit: 7500,
+      bankMinimumDeposit: 30000,
+      blockchain: 'tezos',
       status: 'active',
-      statusColorCode: '#4CAF50'
+      statusColorCode: '0xFF4CAF50'
     },
     {
       id: 4,
@@ -104,26 +146,40 @@ export class BondsMockService {
       code: 'MDB2024',
       descriptionEn: 'Support local government development initiatives',
       descriptionFr: 'Soutenir les initiatives de développement du gouvernement local',
-      color: '#9C27B0',
-      amount: 250000,
+      color: '9C27B0',
+      colorCode: '#9C27B0',
+      amount: 250000000,
       amountPurchased: 67000000,
-      availableBalance: 33000000,
+      availableBalance: 183000000,
       lifetime: 1004, // ~2.75 years in days
-      startDate: '2024-04-01',
-      maturityDate: '2026-12-31',
+      startDate: '2024-04-01T00:00:00+00:00',
+      maturityDate: '2026-12-31T23:59:59+00:00',
       dateCreated: '2024-04-01T10:00:00Z',
       dailyInterest: 0.0123,
       interestValue: 4.5,
+      ejaraInterestRate: 0.4,
+      customerInterestRate: 4.1,
       maturityPercentage: 12.5,
       unlockingPenaltyRate: 1.5,
+      smartContractId: 'KT1MuniDev2024GHI',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 4,
       interestCalculationPeriod: 'monthly',
       issuerNameEn: 'City of Douala',
       issuerNameFr: 'Ville de Douala',
+      issuerDescriptionEn: 'Municipal government issuing bonds for urban development projects',
+      issuerDescriptionFr: 'Gouvernement municipal émettant des obligations pour des projets de développement urbain',
+      issuerType: 'government',
+      issuerIcon: 'douala-city.png',
       withdrawalPeriod: 'after_period',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: true,
+      momoMinimumDeposit: 5000,
+      bankMinimumDeposit: 20000,
+      blockchain: 'tezos',
       status: 'active',
-      statusColorCode: '#4CAF50'
+      statusColorCode: '0xFF4CAF50'
     },
     {
       id: 5,
@@ -131,26 +187,40 @@ export class BondsMockService {
       code: 'HYCB2024',
       descriptionEn: 'High return investment with calculated risk',
       descriptionFr: 'Investissement à haut rendement avec risque calculé',
-      color: '#F44336',
-      amount: 1000000,
+      color: 'F44336',
+      colorCode: '#F44336',
+      amount: 1000000000,
       amountPurchased: 92000000,
-      availableBalance: 58000000,
+      availableBalance: 908000000,
       lifetime: 760, // ~2.08 years in days
-      startDate: '2024-05-15',
-      maturityDate: '2026-06-30',
+      startDate: '2024-05-15T00:00:00+00:00',
+      maturityDate: '2026-06-30T23:59:59+00:00',
       dateCreated: '2024-05-15T14:00:00Z',
       dailyInterest: 0.026,
       interestValue: 9.5,
+      ejaraInterestRate: 1.0,
+      customerInterestRate: 8.5,
       maturityPercentage: 20.0,
       unlockingPenaltyRate: 5.0,
+      smartContractId: 'KT1HighYield2024JKL',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 5,
       interestCalculationPeriod: 'monthly',
       issuerNameEn: 'Tech Innovation Corp',
       issuerNameFr: 'Société d\'Innovation Technologique',
+      issuerDescriptionEn: 'Technology corporation offering high-yield investment opportunities',
+      issuerDescriptionFr: 'Société technologique offrant des opportunités d\'investissement à haut rendement',
+      issuerType: 'corporate',
+      issuerIcon: 'tech-innovation.png',
       withdrawalPeriod: 'anytime',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: false,
+      momoMinimumDeposit: 15000,
+      bankMinimumDeposit: 75000,
+      blockchain: 'ethereum',
       status: 'inactive',
-      statusColorCode: '#9E9E9E'
+      statusColorCode: '0xFF9E9E9E'
     },
     {
       id: 6,
@@ -158,26 +228,40 @@ export class BondsMockService {
       code: 'ADB2024',
       descriptionEn: 'Investment in agricultural modernization and food security',
       descriptionFr: 'Investissement dans la modernisation agricole et la sécurité alimentaire',
-      color: '#8BC34A',
-      amount: 400000,
+      color: '8BC34A',
+      colorCode: '#8BC34A',
+      amount: 400000000,
       amountPurchased: 123000000,
-      availableBalance: 57000000,
+      availableBalance: 277000000,
       lifetime: 1308, // ~3.58 years in days
-      startDate: '2024-06-01',
-      maturityDate: '2027-12-31',
+      startDate: '2024-06-01T00:00:00+00:00',
+      maturityDate: '2027-12-31T23:59:59+00:00',
       dateCreated: '2024-06-01T10:00:00Z',
       dailyInterest: 0.0164,
       interestValue: 6.0,
+      ejaraInterestRate: 0.5,
+      customerInterestRate: 5.5,
       maturityPercentage: 21.5,
       unlockingPenaltyRate: 2.5,
+      smartContractId: 'KT1AgriDev2024MNO',
       defaultFiatCurrency: 'XAF',
+      fiatTokenEquivalent: 1.0,
       rank: 6,
-      interestCalculationPeriod: 'quarterly',
+      interestCalculationPeriod: 'monthly',
       issuerNameEn: 'AgriDev Corporation',
       issuerNameFr: 'Société de Développement Agricole',
+      issuerDescriptionEn: 'Agricultural development corporation focused on food security and farm modernization',
+      issuerDescriptionFr: 'Société de développement agricole axée sur la sécurité alimentaire et la modernisation des exploitations',
+      issuerType: 'institution',
+      issuerIcon: 'agridev.png',
       withdrawalPeriod: 'after_period',
+      isWithdrawalBlocked: false,
+      shouldBeDisplayedInApp: true,
+      momoMinimumDeposit: 6000,
+      bankMinimumDeposit: 30000,
+      blockchain: 'tezos',
       status: 'active',
-      statusColorCode: '#4CAF50'
+      statusColorCode: '0xFF4CAF50'
     }
   ];
 
@@ -458,14 +542,16 @@ export class BondsMockService {
           );
         }
 
-        if (filters?.fiatCurrency) {
-          filteredBonds = filteredBonds.filter(b => b.defaultFiatCurrency === filters.fiatCurrency);
+        if (filters?.fiatCurrency || filters?.defaultFiatCurrency) {
+          const currency = filters.fiatCurrency || filters.defaultFiatCurrency;
+          filteredBonds = filteredBonds.filter(b => b.defaultFiatCurrency === currency);
         }
 
-        if (filters?.issuer) {
+        if (filters?.issuer || filters?.issuerNameEn) {
+          const issuerFilter = filters.issuer || filters.issuerNameEn;
           filteredBonds = filteredBonds.filter(b =>
-            b.issuerNameEn.toLowerCase().includes(filters.issuer!.toLowerCase()) ||
-            b.issuerNameFr.toLowerCase().includes(filters.issuer!.toLowerCase())
+            b.issuerNameEn.toLowerCase().includes(issuerFilter!.toLowerCase()) ||
+            b.issuerNameFr.toLowerCase().includes(issuerFilter!.toLowerCase())
           );
         }
 
@@ -476,8 +562,8 @@ export class BondsMockService {
             b.code.toLowerCase().includes(keyword) ||
             b.issuerNameEn.toLowerCase().includes(keyword) ||
             b.issuerNameFr.toLowerCase().includes(keyword) ||
-            b.descriptionEn.toLowerCase().includes(keyword) ||
-            b.descriptionFr.toLowerCase().includes(keyword)
+            b.descriptionEn?.toLowerCase().includes(keyword) ||
+            b.descriptionFr?.toLowerCase().includes(keyword)
           );
         }
 
@@ -553,35 +639,57 @@ export class BondsMockService {
     return of(null).pipe(
       delay(1000),
       map(() => {
-        // Calculate lifetime in days from tenor (months)
-        const lifetime = bondData.tenor * 30;
+        // Calculate lifetime in days from start to maturity date
+        const startDate = new Date(bondData.startDate);
+        const maturityDate = new Date(bondData.maturityDate);
+        const lifetime = Math.ceil((maturityDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Calculate daily interest from customer interest rate
+        const dailyInterest = bondData.customerInterestRate / 365;
+
+        // Calculate total interest value
+        const totalInterestValue = bondData.ejaraInterestRate + bondData.customerInterestRate;
 
         const newBond: Bond = {
           id: this.currentId++,
           name: bondData.name,
-          code: bondData.code,
-          descriptionEn: bondData.description || '',
-          descriptionFr: '',
-          color: '#' + Math.floor(Math.random()*16777215).toString(16), // Random color
-          amount: bondData.principalAmount,
+          code: `BOND${this.currentId}`, // Generate bond code
+          descriptionEn: bondData.descriptionEn,
+          descriptionFr: bondData.descriptionFr,
+          color: bondData.colorCode.replace('#', ''), // Remove # from color code
+          colorCode: bondData.colorCode,
+          amount: bondData.amount,
           amountPurchased: 0,
-          availableBalance: bondData.principalAmount,
+          availableBalance: bondData.amount,
           lifetime: lifetime,
-          startDate: bondData.issueDate,
+          startDate: bondData.startDate,
           maturityDate: bondData.maturityDate,
           dateCreated: new Date().toISOString(),
-          dailyInterest: bondData.interestRate / 365,
-          interestValue: bondData.interestRate,
-          maturityPercentage: bondData.couponRate,
-          unlockingPenaltyRate: 0,
-          defaultFiatCurrency: bondData.fiatCurrency as CurrencyCode,
-          rank: this.mockBonds.length + 1,
-          interestCalculationPeriod: 'daily',
-          issuerNameEn: bondData.issuer,
-          issuerNameFr: '',
-          withdrawalPeriod: 'maturity',
+          dailyInterest: dailyInterest,
+          interestValue: totalInterestValue,
+          ejaraInterestRate: bondData.ejaraInterestRate,
+          customerInterestRate: bondData.customerInterestRate,
+          maturityPercentage: 0, // Calculate based on time elapsed
+          unlockingPenaltyRate: bondData.unlockingPenaltyRate,
+          smartContractId: bondData.smartContractId,
+          defaultFiatCurrency: bondData.defaultFiatCurrency,
+          fiatTokenEquivalent: bondData.fiatTokenEquivalent,
+          rank: bondData.rank,
+          interestCalculationPeriod: bondData.interestCalculationPeriod,
+          issuerNameEn: bondData.issuerNameEn,
+          issuerNameFr: bondData.issuerNameFr,
+          issuerDescriptionEn: bondData.issuerDescriptionEn,
+          issuerDescriptionFr: bondData.issuerDescriptionFr,
+          issuerType: bondData.issuerType,
+          issuerIcon: bondData.issuerIcon,
+          withdrawalPeriod: bondData.withdrawalPeriod as any,
+          isWithdrawalBlocked: bondData.isWithdrawalBlocked,
+          shouldBeDisplayedInApp: bondData.shouldBeDisplayedInApp,
+          momoMinimumDeposit: bondData.momoMinimumDeposit,
+          bankMinimumDeposit: bondData.bankMinimumDeposit,
+          blockchain: bondData.blockchain,
           status: bondData.status,
-          statusColorCode: bondData.status === 'active' ? '#4CAF50' : '#9E9E9E'
+          statusColorCode: bondData.status === 'active' ? '0xFF4CAF50' : '0xFF9E9E9E'
         };
 
         this.mockBonds.unshift(newBond);
@@ -605,29 +713,63 @@ export class BondsMockService {
 
         const existingBond = this.mockBonds[index];
 
+        // Recalculate lifetime if dates change
+        let lifetime = existingBond.lifetime;
+        const startDate = bondData.startDate || existingBond.startDate;
+        const maturityDate = bondData.maturityDate || existingBond.maturityDate;
+        if (bondData.startDate || bondData.maturityDate) {
+          const start = new Date(startDate);
+          const maturity = new Date(maturityDate);
+          lifetime = Math.ceil((maturity.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        }
+
         // Update only provided fields
         const updatedBond: Bond = {
           ...existingBond,
-          ...(bondData.name && { name: bondData.name }),
-          ...(bondData.description && { descriptionEn: bondData.description }),
-          ...(bondData.principalAmount && {
-            amount: bondData.principalAmount,
-            availableBalance: bondData.principalAmount - existingBond.amountPurchased
+          ...(bondData.name !== undefined && { name: bondData.name }),
+          ...(bondData.descriptionEn !== undefined && { descriptionEn: bondData.descriptionEn }),
+          ...(bondData.descriptionFr !== undefined && { descriptionFr: bondData.descriptionFr }),
+          ...(bondData.colorCode !== undefined && {
+            colorCode: bondData.colorCode,
+            color: bondData.colorCode.replace('#', '')
           }),
-          ...(bondData.interestRate && {
-            interestValue: bondData.interestRate,
-            dailyInterest: bondData.interestRate / 365
+          ...(bondData.amount !== undefined && {
+            amount: bondData.amount,
+            availableBalance: bondData.amount - existingBond.amountPurchased
           }),
-          ...(bondData.couponRate && { maturityPercentage: bondData.couponRate }),
-          ...(bondData.issueDate && { startDate: bondData.issueDate }),
-          ...(bondData.maturityDate && { maturityDate: bondData.maturityDate }),
-          ...(bondData.tenor && { lifetime: bondData.tenor * 30 }),
-          ...(bondData.fiatCurrency && { defaultFiatCurrency: bondData.fiatCurrency as CurrencyCode }),
-          ...(bondData.issuer && { issuerNameEn: bondData.issuer }),
-          ...(bondData.status && {
+          ...(bondData.ejaraInterestRate !== undefined && { ejaraInterestRate: bondData.ejaraInterestRate }),
+          ...(bondData.customerInterestRate !== undefined && {
+            customerInterestRate: bondData.customerInterestRate,
+            dailyInterest: bondData.customerInterestRate / 365
+          }),
+          ...(bondData.startDate !== undefined && { startDate: bondData.startDate }),
+          ...(bondData.maturityDate !== undefined && { maturityDate: bondData.maturityDate }),
+          ...(bondData.smartContractId !== undefined && { smartContractId: bondData.smartContractId }),
+          ...(bondData.defaultFiatCurrency !== undefined && { defaultFiatCurrency: bondData.defaultFiatCurrency }),
+          ...(bondData.fiatTokenEquivalent !== undefined && { fiatTokenEquivalent: bondData.fiatTokenEquivalent }),
+          ...(bondData.rank !== undefined && { rank: bondData.rank }),
+          ...(bondData.interestCalculationPeriod !== undefined && { interestCalculationPeriod: bondData.interestCalculationPeriod }),
+          ...(bondData.issuerNameEn !== undefined && { issuerNameEn: bondData.issuerNameEn }),
+          ...(bondData.issuerNameFr !== undefined && { issuerNameFr: bondData.issuerNameFr }),
+          ...(bondData.issuerDescriptionEn !== undefined && { issuerDescriptionEn: bondData.issuerDescriptionEn }),
+          ...(bondData.issuerDescriptionFr !== undefined && { issuerDescriptionFr: bondData.issuerDescriptionFr }),
+          ...(bondData.issuerType !== undefined && { issuerType: bondData.issuerType }),
+          ...(bondData.issuerIcon !== undefined && { issuerIcon: bondData.issuerIcon }),
+          ...(bondData.isWithdrawalBlocked !== undefined && { isWithdrawalBlocked: bondData.isWithdrawalBlocked }),
+          ...(bondData.shouldBeDisplayedInApp !== undefined && { shouldBeDisplayedInApp: bondData.shouldBeDisplayedInApp }),
+          ...(bondData.momoMinimumDeposit !== undefined && { momoMinimumDeposit: bondData.momoMinimumDeposit }),
+          ...(bondData.bankMinimumDeposit !== undefined && { bankMinimumDeposit: bondData.bankMinimumDeposit }),
+          ...(bondData.blockchain !== undefined && { blockchain: bondData.blockchain }),
+          ...(bondData.withdrawalPeriod !== undefined && { withdrawalPeriod: bondData.withdrawalPeriod as any }),
+          ...(bondData.unlockingPenaltyRate !== undefined && { unlockingPenaltyRate: bondData.unlockingPenaltyRate }),
+          ...(bondData.status !== undefined && {
             status: bondData.status,
-            statusColorCode: bondData.status === 'active' ? '#4CAF50' : '#9E9E9E'
-          })
+            statusColorCode: bondData.status === 'active' ? '0xFF4CAF50' : '0xFF9E9E9E'
+          }),
+          lifetime: lifetime,
+          // Recalculate total interest value if either rate changes
+          interestValue: (bondData.ejaraInterestRate || existingBond.ejaraInterestRate) +
+                        (bondData.customerInterestRate || existingBond.customerInterestRate)
         };
 
         this.mockBonds[index] = updatedBond;
@@ -708,13 +850,8 @@ export class BondsMockService {
         const limit = queryParams.limit || 20;
         const offset = queryParams.offset || 0;
         const total = filteredBonds.length;
-        const bonds = filteredBonds.slice(offset, offset + limit).map(bond => ({
-          bondId: bond.id,
-          bondName: bond.name,
-          bondCode: bond.code,
-          status: bond.status,
-          dateAssigned: bond.dateCreated
-        }));
+        // Return full bond objects for partner bonds (not just summary)
+        const bonds = filteredBonds.slice(offset, offset + limit);
 
         return {
           bonds,

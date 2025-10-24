@@ -10,7 +10,7 @@ import {
   selectCreating,
   selectUpdating
 } from '@store/bonds/bonds.state';
-import { Bond, BondStatus, CurrencyCode } from '@core/models/bond.models';
+import { Bond, BondStatus, CurrencyCode, InterestCalculationPeriod, IssuerType } from '@core/models/bond.models';
 
 @Component({
   selector: 'app-add-bond',
@@ -40,7 +40,10 @@ export class AddBond implements OnInit, OnDestroy {
   // Dropdown options
   statusOptions: BondStatus[] = ['active', 'inactive', 'matured', 'pre-allocation', 'sold-out'];
   currencyOptions: CurrencyCode[] = ['XAF', 'USD', 'EUR', 'NGN', 'GHS', 'KES'];
-  riskLevelOptions = ['low', 'medium', 'high'];
+  interestPeriodOptions: InterestCalculationPeriod[] = ['daily', 'monthly', 'annually'];
+  issuerTypeOptions: IssuerType[] = ['government', 'institution', 'corporate'];
+  blockchainOptions: string[] = ['tezos', 'ethereum'];
+  withdrawalPeriodOptions: string[] = ['maturity', 'anytime', 'after_period'];
 
   ngOnInit(): void {
     // Check if we have a bond ID in the route params
@@ -96,41 +99,65 @@ export class AddBond implements OnInit, OnDestroy {
       // Edit mode - populate with bond data
       this.bondForm = this.fb.group({
         name: [bond.name, [Validators.required, Validators.minLength(3)]],
-        code: [bond.code, [Validators.required, Validators.minLength(2)]],
-        description: [bond.descriptionEn || ''],
-        principalAmount: [bond.amount, [Validators.required, Validators.min(1)]],
-        interestRate: [bond.interestValue, [Validators.required, Validators.min(0)]],
-        couponRate: [bond.maturityPercentage, [Validators.required, Validators.min(0)]],
-        issueDate: [bond.startDate.split('T')[0], Validators.required],
+        descriptionEn: [bond.descriptionEn || ''],
+        descriptionFr: [bond.descriptionFr || ''],
+        colorCode: [bond.colorCode || '#3B82F6', [Validators.required, Validators.pattern(/^#[0-9A-F]{6}$/i)]],
+        amount: [bond.amount, [Validators.required, Validators.min(1)]],
+        ejaraInterestRate: [bond.ejaraInterestRate || 0, [Validators.required, Validators.min(0)]],
+        customerInterestRate: [bond.customerInterestRate, [Validators.required, Validators.min(0)]],
+        startDate: [bond.startDate.split('T')[0], Validators.required],
         maturityDate: [bond.maturityDate.split('T')[0], Validators.required],
-        valueDate: [bond.startDate.split('T')[0], Validators.required],
-        tenor: [bond.lifetime ? Math.round(bond.lifetime / 30) : 0, [Validators.required, Validators.min(1)]], // Convert days to months
-        fiatCurrency: [bond.defaultFiatCurrency, Validators.required],
-        minPurchaseAmount: [0, [Validators.required, Validators.min(0)]],
-        maxPurchaseAmount: [bond.amount],
-        issuer: [bond.issuerNameEn, [Validators.required, Validators.minLength(3)]],
+        smartContractId: [bond.smartContractId, Validators.required],
+        defaultFiatCurrency: [bond.defaultFiatCurrency, Validators.required],
+        fiatTokenEquivalent: [bond.fiatTokenEquivalent || 0, [Validators.required, Validators.min(0)]],
         status: [bond.status, Validators.required],
-        riskLevel: ['low']
+        isWithdrawalBlocked: [bond.isWithdrawalBlocked || false],
+        shouldBeDisplayedInApp: [bond.shouldBeDisplayedInApp || true],
+        momoMinimumDeposit: [bond.momoMinimumDeposit || 0, [Validators.required, Validators.min(0)]],
+        bankMinimumDeposit: [bond.bankMinimumDeposit || 0, [Validators.required, Validators.min(0)]],
+        interestCalculationPeriod: [bond.interestCalculationPeriod || 'daily', Validators.required],
+        rank: [bond.rank || 0, [Validators.required, Validators.min(0)]],
+        blockchain: [bond.blockchain, Validators.required],
+        issuerNameEn: [bond.issuerNameEn, [Validators.required, Validators.minLength(3)]],
+        issuerNameFr: [bond.issuerNameFr || '', [Validators.required, Validators.minLength(3)]],
+        issuerDescriptionEn: [bond.issuerDescriptionEn || ''],
+        issuerDescriptionFr: [bond.issuerDescriptionFr || ''],
+        issuerType: [bond.issuerType, Validators.required],
+        issuerIcon: [bond.issuerIcon, Validators.required],
+        withdrawalPeriod: [bond.withdrawalPeriod || 'maturity', Validators.required],
+        unlockingPenaltyRate: [bond.unlockingPenaltyRate || 0, [Validators.min(0), Validators.max(100)]]
       });
     } else {
       // Create mode - empty form
       this.bondForm = this.fb.group({
         name: ['', [Validators.required, Validators.minLength(3)]],
-        code: ['', [Validators.required, Validators.minLength(2)]],
-        description: [''],
-        principalAmount: [null, [Validators.required, Validators.min(1)]],
-        interestRate: [null, [Validators.required, Validators.min(0)]],
-        couponRate: [null, [Validators.required, Validators.min(0)]],
-        issueDate: ['', Validators.required],
+        descriptionEn: [''],
+        descriptionFr: [''],
+        colorCode: ['#3B82F6', [Validators.required, Validators.pattern(/^#[0-9A-F]{6}$/i)]],
+        amount: [null, [Validators.required, Validators.min(1)]],
+        ejaraInterestRate: [null, [Validators.required, Validators.min(0)]],
+        customerInterestRate: [null, [Validators.required, Validators.min(0)]],
+        startDate: ['', Validators.required],
         maturityDate: ['', Validators.required],
-        valueDate: ['', Validators.required],
-        tenor: [null, [Validators.required, Validators.min(1)]],
-        fiatCurrency: ['XAF', Validators.required],
-        minPurchaseAmount: [null, [Validators.required, Validators.min(0)]],
-        maxPurchaseAmount: [null],
-        issuer: ['', [Validators.required, Validators.minLength(3)]],
+        smartContractId: ['', Validators.required],
+        defaultFiatCurrency: ['XAF', Validators.required],
+        fiatTokenEquivalent: [null, [Validators.required, Validators.min(0)]],
         status: ['active', Validators.required],
-        riskLevel: ['low']
+        isWithdrawalBlocked: [false],
+        shouldBeDisplayedInApp: [true],
+        momoMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
+        bankMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
+        interestCalculationPeriod: ['daily', Validators.required],
+        rank: [0, [Validators.required, Validators.min(0)]],
+        blockchain: ['', Validators.required],
+        issuerNameEn: ['', [Validators.required, Validators.minLength(3)]],
+        issuerNameFr: ['', [Validators.required, Validators.minLength(3)]],
+        issuerDescriptionEn: [''],
+        issuerDescriptionFr: [''],
+        issuerType: ['', Validators.required],
+        issuerIcon: ['', Validators.required],
+        withdrawalPeriod: ['maturity', Validators.required],
+        unlockingPenaltyRate: [0, [Validators.min(0), Validators.max(100)]]
       });
     }
   }
@@ -143,49 +170,47 @@ export class AddBond implements OnInit, OnDestroy {
 
     const formValue = this.bondForm.value;
 
+    const bondData = {
+      name: formValue.name,
+      descriptionEn: formValue.descriptionEn,
+      descriptionFr: formValue.descriptionFr,
+      colorCode: formValue.colorCode,
+      amount: formValue.amount,
+      ejaraInterestRate: formValue.ejaraInterestRate,
+      customerInterestRate: formValue.customerInterestRate,
+      startDate: formValue.startDate,
+      maturityDate: formValue.maturityDate,
+      smartContractId: formValue.smartContractId,
+      defaultFiatCurrency: formValue.defaultFiatCurrency,
+      fiatTokenEquivalent: formValue.fiatTokenEquivalent,
+      status: formValue.status,
+      isWithdrawalBlocked: formValue.isWithdrawalBlocked,
+      shouldBeDisplayedInApp: formValue.shouldBeDisplayedInApp,
+      momoMinimumDeposit: formValue.momoMinimumDeposit,
+      bankMinimumDeposit: formValue.bankMinimumDeposit,
+      interestCalculationPeriod: formValue.interestCalculationPeriod,
+      rank: formValue.rank,
+      blockchain: formValue.blockchain,
+      issuerNameEn: formValue.issuerNameEn,
+      issuerNameFr: formValue.issuerNameFr,
+      issuerDescriptionEn: formValue.issuerDescriptionEn,
+      issuerDescriptionFr: formValue.issuerDescriptionFr,
+      issuerType: formValue.issuerType,
+      issuerIcon: formValue.issuerIcon,
+      withdrawalPeriod: formValue.withdrawalPeriod,
+      unlockingPenaltyRate: formValue.unlockingPenaltyRate
+    };
+
     if (this.isEditMode && this.bondId) {
       // Update existing bond
       this.store.dispatch(BondsActions.updateBond({
         bondId: this.bondId,
-        bondData: {
-          name: formValue.name,
-          description: formValue.description,
-          principalAmount: formValue.principalAmount,
-          interestRate: formValue.interestRate,
-          couponRate: formValue.couponRate,
-          issueDate: formValue.issueDate,
-          maturityDate: formValue.maturityDate,
-          valueDate: formValue.valueDate,
-          tenor: formValue.tenor,
-          fiatCurrency: formValue.fiatCurrency,
-          minPurchaseAmount: formValue.minPurchaseAmount,
-          maxPurchaseAmount: formValue.maxPurchaseAmount,
-          issuer: formValue.issuer,
-          status: formValue.status,
-          riskLevel: formValue.riskLevel
-        }
+        bondData
       }));
     } else {
       // Create new bond
       this.store.dispatch(BondsActions.createBond({
-        bondData: {
-          name: formValue.name,
-          code: formValue.code,
-          description: formValue.description,
-          principalAmount: formValue.principalAmount,
-          interestRate: formValue.interestRate,
-          couponRate: formValue.couponRate,
-          issueDate: formValue.issueDate,
-          maturityDate: formValue.maturityDate,
-          valueDate: formValue.valueDate,
-          tenor: formValue.tenor,
-          fiatCurrency: formValue.fiatCurrency,
-          minPurchaseAmount: formValue.minPurchaseAmount,
-          maxPurchaseAmount: formValue.maxPurchaseAmount,
-          issuer: formValue.issuer,
-          status: formValue.status,
-          riskLevel: formValue.riskLevel
-        }
+        bondData
       }));
     }
 
@@ -214,6 +239,7 @@ export class AddBond implements OnInit, OnDestroy {
     if (field.errors['required']) return 'This field is required';
     if (field.errors['minlength']) return `Minimum length is ${field.errors['minlength'].requiredLength}`;
     if (field.errors['min']) return `Minimum value is ${field.errors['min'].min}`;
+    if (field.errors['pattern']) return 'Invalid format';
 
     return 'Invalid value';
   }

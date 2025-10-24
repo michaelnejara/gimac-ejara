@@ -36,6 +36,7 @@ import {
 import { BondsActions } from '@store/bonds/bonds.actions';
 import {
   selectCurrentPageBonds,
+  selectPartnerBonds,
   selectCustomerBonds,
   selectLoading,
   selectError,
@@ -45,6 +46,7 @@ import {
 
 // Store - Partners Actions (for assigning/removing bonds)
 import { PartnersActions } from '@store/partners/partners.actions';
+import { selectPartnerById } from '@store/partners/partners.state';
 
 // Models
 import { 
@@ -114,6 +116,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   pagination$!: Observable<any>;
   currentFilters$!: Observable<any>;
   activeFiltersCount$!: Observable<number>;
+  partner$!: Observable<any>; // Partner data for partner context
 
   // UI State
   filtersExpanded = false;
@@ -173,11 +176,14 @@ export class BondsListComponent implements OnInit, OnDestroy {
     ).subscribe(params => {
       const hasPartnerId = params['partnerId'];
       const hasCustomerId = params['customerId'];
+      const previousContext = this.context;
+      let contextChanged = false;
 
       if (hasPartnerId && hasCustomerId) {
         this.context = 'customer';
         this.partnerId = +params['partnerId'];
         this.customerId = +params['customerId'];
+        contextChanged = previousContext !== 'customer';
 
         // Reset store when entering customer context (fresh data needed)
         this.store.dispatch(BondsActions.resetForContextView());
@@ -187,6 +193,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.context = 'partner';
         this.partnerId = +params['partnerId'];
         this.customerId = null;
+        contextChanged = previousContext !== 'partner';
 
         // Reset store when entering partner context (fresh data needed)
         this.store.dispatch(BondsActions.resetForContextView());
@@ -196,8 +203,20 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.context = 'default';
         this.partnerId = null;
         this.customerId = null;
+        contextChanged = previousContext !== 'default' && previousContext !== undefined;
         this.store.dispatch(BondsActions.setViewMode({ mode: 'all' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: null }));
+      }
+
+      // Reinitialize everything if context actually changed (not initial load)
+      if (contextChanged) {
+        this.initializeStatusOptions();
+        this.initializeFilterForm();
+        this.reinitializeObservablesForContext(); // Re-bind observables to correct selectors
+        this.initializeTableConfig();
+        this.setupDateValidation();
+        this.setupHoldingsStatsSubscription(); // Re-setup stats for customer context
+        this.loadBonds(); // Reload bonds for new context
       }
     });
   }
@@ -360,15 +379,53 @@ export class BondsListComponent implements OnInit, OnDestroy {
     this.pagination$ = this.store.select(selectPagination);
     this.currentFilters$ = this.store.select(selectFilters);
 
+    // Select bonds based on context
     if (this.context === 'customer') {
       this.bonds$ = this.store.select(selectCustomerBonds);
+    } else if (this.context === 'partner') {
+      // Use partner bonds selector for partner context
+      this.bonds$ = this.store.select(selectPartnerBonds);
     } else {
+      // Use default bonds selector for default context
       this.bonds$ = this.store.select(selectCurrentPageBonds);
+    }
+
+    // Load partner data if in partner context
+    if (this.context === 'partner' && this.partnerId) {
+      this.partner$ = this.store.select(selectPartnerById(this.partnerId));
+
+      // Load partner if not already cached
+      this.store.dispatch(PartnersActions.checkAndLoadPartner({
+        partnerId: this.partnerId
+      }));
     }
 
     this.activeFiltersCount$ = this.currentFilters$.pipe(
       map(filters => this.countActiveFilters(filters))
     );
+  }
+
+  /**
+   * Reinitialize observables when context changes
+   * This is needed to rebind to the correct selectors
+   */
+  private reinitializeObservablesForContext(): void {
+    // Rebind bonds$ to correct selector based on new context
+    if (this.context === 'customer') {
+      this.bonds$ = this.store.select(selectCustomerBonds);
+    } else if (this.context === 'partner') {
+      this.bonds$ = this.store.select(selectPartnerBonds);
+    } else {
+      this.bonds$ = this.store.select(selectCurrentPageBonds);
+    }
+
+    // Load partner data if switching to partner context
+    if (this.context === 'partner' && this.partnerId) {
+      this.partner$ = this.store.select(selectPartnerById(this.partnerId));
+      this.store.dispatch(PartnersActions.checkAndLoadPartner({
+        partnerId: this.partnerId
+      }));
+    }
   }
 
   /**
@@ -478,58 +535,88 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Bond Name',
           type: 'template',
           sortable: true,
-          width: '280px'
+          width: '220px'
         },
         {
           key: 'code',
           label: 'Bond Code',
           type: 'template',
           sortable: true,
-          width: '180px'
+          width: '160px'
+        },
+        {
+          key: 'colorCode',
+          label: 'Color',
+          type: 'template',
+          sortable: false,
+          width: '100px'
         },
         {
           key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
-          width: '220px'
-        },
-        {
-          key: 'amount',
-          label: 'Total Amount',
-          type: 'template',
-          align: 'right',
-          sortable: true,
           width: '180px'
         },
         {
-          key: 'interestValue',
-          label: 'Interest Rate',
+          key: 'issuerType',
+          label: 'Issuer Type',
+          type: 'template',
+          sortable: true,
+          width: '140px'
+        },
+        {
+          key: 'customerInterestRate',
+          label: 'Customer Rate',
           type: 'template',
           align: 'right',
           sortable: true,
-          width: '160px'
+          width: '140px'
         },
         {
-          key: 'lifetime',
-          label: 'Lifetime',
+          key: 'dailyCustomerEarningRate',
+          label: 'Daily Rate',
+          type: 'template',
+          align: 'right',
+          sortable: true,
+          width: '130px'
+        },
+        {
+          key: 'defaultFiatCurrency',
+          label: 'Currency',
           type: 'template',
           sortable: true,
-          width: '150px'
+          width: '110px'
         },
         {
           key: 'maturityDate',
           label: 'Maturity Date',
           type: 'template',
           sortable: true,
-          width: '170px'
+          width: '150px'
+        },
+        {
+          key: 'rank',
+          label: 'Rank',
+          type: 'template',
+          align: 'center',
+          sortable: true,
+          width: '90px'
+        },
+        {
+          key: 'shouldBeDisplayedInApp',
+          label: 'In App',
+          type: 'template',
+          align: 'center',
+          sortable: true,
+          width: '100px'
         },
         {
           key: 'status',
           label: 'Status',
           type: 'badge',
           sortable: true,
-          width: '140px',
+          width: '120px',
           badgeConfig: {
             colorMap: {
               'active': 'success',
@@ -540,27 +627,35 @@ export class BondsListComponent implements OnInit, OnDestroy {
         }
       ];
     } else {
+      // Default context - show comprehensive bond information
       return [
         {
           key: 'name',
           label: 'Bond Name',
           type: 'template',
           sortable: true,
-          width: '260px'
+          width: '220px'
         },
         {
           key: 'code',
-          label: 'Bond Code',
+          label: 'Code',
           type: 'template',
           sortable: true,
-          width: '180px'
+          width: '140px'
         },
         {
           key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
           sortable: true,
-          width: '200px'
+          width: '180px'
+        },
+        {
+          key: 'issuerType',
+          label: 'Type',
+          type: 'template',
+          sortable: true,
+          width: '120px'
         },
         {
           key: 'amount',
@@ -568,56 +663,81 @@ export class BondsListComponent implements OnInit, OnDestroy {
           type: 'template',
           align: 'right',
           sortable: true,
-          width: '170px'
+          width: '150px'
+        },
+        {
+          key: 'amountPurchased',
+          label: 'Purchased',
+          type: 'template',
+          align: 'right',
+          sortable: true,
+          width: '150px'
+        },
+        {
+          key: 'availableBalance',
+          label: 'Available',
+          type: 'template',
+          align: 'right',
+          sortable: true,
+          width: '150px'
         },
         {
           key: 'interestValue',
-          label: 'Interest Rate',
+          label: 'Interest',
           type: 'template',
           align: 'right',
           sortable: true,
-          width: '150px'
-        },
-        {
-          key: 'maturityPercentage',
-          label: 'Maturity %',
-          type: 'template',
-          align: 'right',
-          sortable: true,
-          width: '150px'
-        },
-        {
-          key: 'lifetime',
-          label: 'Lifetime',
-          type: 'template',
-          sortable: true,
-          width: '130px'
+          width: '110px'
         },
         {
           key: 'defaultFiatCurrency',
           label: 'Currency',
           type: 'template',
           sortable: true,
-          width: '130px'
+          width: '110px'
+        },
+        {
+          key: 'lifetime',
+          label: 'Lifetime',
+          type: 'template',
+          sortable: true,
+          width: '120px'
         },
         {
           key: 'maturityDate',
           label: 'Maturity Date',
           type: 'template',
           sortable: true,
-          width: '170px'
+          width: '150px'
+        },
+        {
+          key: 'maturityPercentage',
+          label: 'Progress',
+          type: 'template',
+          align: 'right',
+          sortable: true,
+          width: '120px'
+        },
+        {
+          key: 'blockchain',
+          label: 'Blockchain',
+          type: 'template',
+          sortable: true,
+          width: '130px'
         },
         {
           key: 'status',
           label: 'Status',
           type: 'badge',
           sortable: true,
-          width: '140px',
+          width: '120px',
           badgeConfig: {
             colorMap: {
               'active': 'success',
               'inactive': 'default',
-              'matured': 'info'
+              'matured': 'info',
+              'pre-allocation': 'warning',
+              'sold-out': 'error'
             }
           }
         }
@@ -769,6 +889,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
     } else {
       const filters: BondFilterParams = {
         ...formValue,
+        fiatCurrency: formValue.defaultFiatCurrency, // Map to correct filter parameter name
         startDate: formValue.creationDateStart,
         endDate: formValue.creationDateEnd,
         startMaturityDate: formValue.maturityDateStart,
@@ -776,6 +897,10 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
+
+      // Remove the incorrectly named field
+      delete (filters as any).defaultFiatCurrency;
+
       // Update filters in store first (for activeFiltersCount)
       this.store.dispatch(BondsActions.applyFilters({ filters }));
       // Then load filtered data (bypass cache)
@@ -810,13 +935,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
    */
   private countActiveFilters(filters: any): number {
     let count = 0;
-    const excludeKeys = ['limit', 'offset', 'partnerId', 'customerId'];
+    const excludeKeys = ['limit', 'offset', 'partnerId', 'customerId', 'startDate', 'endDate', 'startMaturityDate', 'endMaturityDate'];
 
     Object.keys(filters).forEach(key => {
       if (!excludeKeys.includes(key) && filters[key]) {
         count++;
       }
     });
+
+    // Count date ranges as single filters
+    if (filters.startDate || filters.endDate) {
+      count++;
+    }
+    if (filters.startMaturityDate || filters.endMaturityDate) {
+      count++;
+    }
+
     return count;
   }
 
@@ -836,6 +970,15 @@ export class BondsListComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/bonds']);
     }
+  }
+
+  /**
+   * Navigate to all bonds (default context)
+   */
+  viewAllBonds(): void {
+    // Reset state and navigate to default bonds view
+    this.store.dispatch(BondsActions.resetForContextView());
+    this.router.navigate(['/bonds']);
   }
 
   /**
@@ -1030,5 +1173,41 @@ export class BondsListComponent implements OnInit, OnDestroy {
       }
       return `${years}y ${months}m`;
     }
+  }
+
+  /**
+   * Format color code to ensure it has # prefix for CSS
+   */
+  formatColorCode(colorCode: string | undefined, color: string | undefined): string {
+    const colorValue = colorCode || color;
+    if (!colorValue) return '';
+
+    // If already has #, return as is
+    if (colorValue.startsWith('#')) {
+      return colorValue;
+    }
+
+    // If it's a hex code without #, add it
+    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
+      return `#${colorValue}`;
+    }
+
+    // Return as is for other formats (named colors, rgb, etc.)
+    return colorValue;
+  }
+
+  /**
+   * Get display text for color code
+   */
+  getColorDisplayText(colorCode: string | undefined, color: string | undefined): string {
+    const colorValue = colorCode || color;
+    if (!colorValue) return '-';
+
+    // If it's a 6-digit hex without #, add # for display
+    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
+      return `#${colorValue}`;
+    }
+
+    return colorValue;
   }
 }

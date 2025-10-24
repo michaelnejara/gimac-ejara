@@ -8,13 +8,14 @@ export type ColumnAlign = 'left' | 'center' | 'right';
 /**
  * Column type for special rendering
  */
-export type ColumnType = 
-  | 'text' 
-  | 'number' 
-  | 'date' 
-  | 'currency' 
-  | 'badge' 
+export type ColumnType =
+  | 'text'
+  | 'number'
+  | 'date'
+  | 'currency'
+  | 'badge'
   | 'boolean'
+  | 'color'  // Hex color code rendering with preview
   | 'template'; // New: custom template type
 
 /**

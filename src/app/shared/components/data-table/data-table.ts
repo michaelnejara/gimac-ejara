@@ -198,6 +198,34 @@ export class DataTable<T = any> implements OnInit, OnChanges, AfterContentInit {
     return new Intl.NumberFormat('en-US').format(value);
   }
 
+  /**
+   * Formats a color code to ensure it's a valid hex color
+   * Supports: "FBDE4A", "#FBDE4A", "fbde4a", "#fbde4a"
+   * Returns: "#FBDE4A" format for CSS
+   */
+  formatColorCode(value: any): string {
+    if (!value) return '';
+
+    const colorValue = String(value).trim();
+
+    // If already has #, return as-is (after validation)
+    if (colorValue.startsWith('#')) {
+      // Validate it's a proper 6-character hex code
+      if (/^#[0-9A-Fa-f]{6}$/.test(colorValue)) {
+        return colorValue.toUpperCase();
+      }
+      return '';
+    }
+
+    // If it's a 6-character hex code without #, add it
+    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
+      return `#${colorValue.toUpperCase()}`;
+    }
+
+    // Invalid format
+    return '';
+  }
+
   private emitSelectionChange(): void {
     this.selectionChange.emit({
       selected: this.selection.selected

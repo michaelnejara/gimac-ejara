@@ -2,6 +2,7 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import {
   Bond,
+  PartnerBond,
   CreateBondRequest,
   UpdateBondRequest,
   BondFilterParams,
@@ -53,7 +54,7 @@ export const BondsActions = createActionGroup({
     'Load Partner Bonds': props<{ filters: PartnerBondFilterParams }>(),
     'Load Partner Bonds Success': props<{
       partnerId: number;
-      bonds: any[];
+      bonds: PartnerBond[];
       total: number;
       limit: number;
       offset: number;

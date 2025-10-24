@@ -533,9 +533,14 @@
         </div>
       </ng-template>
 
-      <!-- Currency Template -->
+      <!-- Currency Template (Default context) -->
       <ng-template appTableColumn="defaultFiatCurrency" let-row>
         <span class="currency-badge">{{ row.defaultFiatCurrency }}</span>
+      </ng-template>
+
+      <!-- Currency Template (Partner context) -->
+      <ng-template appTableColumn="currency" let-row>
+        <span class="currency-badge">{{ row.currency }}</span>
       </ng-template>
 
       <!-- Purchase Date Template (Customer context) -->
@@ -551,6 +556,14 @@
         <div class="date-cell">
           <mat-icon class="date-icon">event</mat-icon>
           <span>{{ formatDate(row.maturityDate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Date Assigned Template (Partner context) -->
+      <ng-template appTableColumn="dateAssigned" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">assignment</mat-icon>
+          <span>{{ formatDate(row.dateAssigned) }}</span>
         </div>
       </ng-template>
 
@@ -589,14 +602,6 @@
       <ng-template appTableColumn="dailyCustomerEarningRate" let-row>
         <div class="rate-cell">
           <span class="rate daily-rate">{{ formatPercentage(row.dailyCustomerEarningRate) }}</span>
-        </div>
-      </ng-template>
-
-      <!-- Color Code Template -->
-      <ng-template appTableColumn="colorCode" let-row>
-        <div class="color-cell">
-          <div class="color-preview" [style.background-color]="formatColorCode(row.colorCode, row.color)"></div>
-          <span class="color-code">{{ getColorDisplayText(row.colorCode, row.color) }}</span>
         </div>
       </ng-template>
 

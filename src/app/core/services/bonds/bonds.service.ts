@@ -7,6 +7,7 @@ import {
   BondsResponse,
   BondResponse,
   BondMutationResponse,
+  PartnerBond,
   PartnerBondsResponse,
   CreateBondRequest,
   UpdateBondRequest,
@@ -108,7 +109,7 @@ export class BondsService {
    * @param filters - Partner bond filter parameters
    * @returns Observable with partner bonds list
    */
-  getPartnerBonds(filters: PartnerBondFilterParams): Observable<{ bonds: any[]; total: number; limit: number; offset: number }> {
+  getPartnerBonds(filters: PartnerBondFilterParams): Observable<{ bonds: PartnerBond[]; total: number; limit: number; offset: number }> {
     const { partnerId, ...queryParams } = filters;
     let params = new HttpParams();
 

@@ -50,6 +50,7 @@ export interface Bond {
   unlockingPenaltyRate: number; // Penalty rate for early withdrawal
   smartContractId: string; // ID of the associated smart contract
   defaultFiatCurrency: CurrencyCode; // Currency code (XAF, USD, etc.)
+  currency?: CurrencyCode; // Alternative currency field (used in partner bonds API response)
   fiatTokenEquivalent: number; // Fiat to token conversion rate
   rank: number; // Display order ranking
   interestCalculationPeriod: InterestCalculationPeriod; // Interest calculation period (daily, monthly, annually)
@@ -164,6 +165,13 @@ export interface BondFilterParams {
 }
 
 /**
+ * Partner Bond
+ * Represents a bond assigned to a partner
+ * Partner bonds are actually full Bond objects from the API
+ */
+export type PartnerBond = Bond;
+
+/**
  * Partner Bond Filter Parameters
  */
 export interface PartnerBondFilterParams {
@@ -251,13 +259,7 @@ export interface BondMutationResponse {
  */
 export interface PartnerBondsResponse {
   message: string;
-  data: {
-    bondId: number;
-    bondName: string;
-    bondCode: string;
-    status: BondStatus;
-    dateAssigned: string;
-  }[];
+  data: PartnerBond[];
   meta: {
     total: number;
     limit: number;

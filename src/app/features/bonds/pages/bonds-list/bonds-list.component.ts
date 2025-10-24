@@ -49,8 +49,9 @@ import { PartnersActions } from '@store/partners/partners.actions';
 import { selectPartnerById } from '@store/partners/partners.state';
 
 // Models
-import { 
-  Bond, 
+import {
+  Bond,
+  PartnerBond,
   CustomerBondHolding,
   BondFilterParams,
   PartnerBondFilterParams,
@@ -110,7 +111,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   customerId: number | null = null;
 
   // Observables
-  bonds$!: Observable<Bond[] | CustomerBondHolding[]>;
+  bonds$!: Observable<Bond[] | PartnerBond[] | CustomerBondHolding[]>;
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
   pagination$!: Observable<any>;
@@ -140,7 +141,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   ];
 
   // Table Configuration
-  tableConfig!: TableConfig<Bond | CustomerBondHolding>;
+  tableConfig!: TableConfig<Bond | PartnerBond | CustomerBondHolding>;
 
   // Customer Holdings Stats (computed from bonds$ for customer context)
   activeHoldingsCount = 0;
@@ -451,7 +452,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   /**
    * Get table columns based on context
    */
-  private getTableColumns(): TableColumn<Bond | CustomerBondHolding>[] {
+  private getTableColumns(): TableColumn<Bond | PartnerBond | CustomerBondHolding>[] {
     if (this.context === 'customer') {
       return [
         {
@@ -529,6 +530,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         }
       ];
     } else if (this.context === 'partner') {
+      // Partner context - Full Bond objects assigned to a partner
       return [
         {
           key: 'name',
@@ -547,9 +549,16 @@ export class BondsListComponent implements OnInit, OnDestroy {
         {
           key: 'colorCode',
           label: 'Color',
-          type: 'template',
+          type: 'color',
           sortable: false,
-          width: '100px'
+          width: '160px',
+          cellRenderer: (row: Bond | PartnerBond | CustomerBondHolding) => {
+            // Type guard: only Bond/PartnerBond have color fields
+            if ('colorCode' in row || 'color' in row) {
+              return (row as Bond).colorCode || (row as Bond).color;
+            }
+            return '';
+          }
         },
         {
           key: 'issuerNameEn',
@@ -582,7 +591,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           width: '130px'
         },
         {
-          key: 'defaultFiatCurrency',
+          key: 'currency',
           label: 'Currency',
           type: 'template',
           sortable: true,
@@ -1175,39 +1184,4 @@ export class BondsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Format color code to ensure it has # prefix for CSS
-   */
-  formatColorCode(colorCode: string | undefined, color: string | undefined): string {
-    const colorValue = colorCode || color;
-    if (!colorValue) return '';
-
-    // If already has #, return as is
-    if (colorValue.startsWith('#')) {
-      return colorValue;
-    }
-
-    // If it's a hex code without #, add it
-    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
-      return `#${colorValue}`;
-    }
-
-    // Return as is for other formats (named colors, rgb, etc.)
-    return colorValue;
-  }
-
-  /**
-   * Get display text for color code
-   */
-  getColorDisplayText(colorCode: string | undefined, color: string | undefined): string {
-    const colorValue = colorCode || color;
-    if (!colorValue) return '-';
-
-    // If it's a 6-digit hex without #, add # for display
-    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
-      return `#${colorValue}`;
-    }
-
-    return colorValue;
-  }
 }

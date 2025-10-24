@@ -1,6 +1,6 @@
 // src/app/store/bonds/bonds.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Bond, BondFilterParams, CustomerBondHolding } from '@core/models/bond.models';
+import { Bond, PartnerBond, BondFilterParams, CustomerBondHolding } from '@core/models/bond.models';
 
 /**
  * Bond Entity
@@ -36,7 +36,7 @@ export interface BondsState {
   // Structure: { 1: [...bonds], 2: [...bonds], ... }
   pageCache: PageCache<Bond>;
   customerBondsPageCache: PageCache<CustomerBondHolding>;
-  partnerBondsPageCache: Record<number, PageCache<any>>; // Keyed by partnerId
+  partnerBondsPageCache: Record<number, PageCache<PartnerBond>>; // Keyed by partnerId
 
   // Current active page number
   activePage: number;

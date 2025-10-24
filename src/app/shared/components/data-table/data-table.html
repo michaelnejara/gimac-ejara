@@ -114,6 +114,17 @@
                   {{ getBadgeValue(column, row[column.key]) }}
                 </span>
               }
+
+              <!-- Color Type -->
+              @if (column.type === 'color') {
+                <div class="color-cell">
+                  <div
+                    class="color-preview"
+                    [style.background-color]="formatColorCode(getCellValue(row, column))"
+                  ></div>
+                  <span class="color-code">{{ formatColorCode(getCellValue(row, column)) }}</span>
+                </div>
+              }
             }
           </td>
         </ng-container>

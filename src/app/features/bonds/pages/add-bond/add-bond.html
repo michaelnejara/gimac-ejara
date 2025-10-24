@@ -29,56 +29,6 @@
           </div>
 
           <div class="form-field">
-            <label for="code">Bond Code <span class="required">*</span></label>
-            <input
-              type="text"
-              id="code"
-              formControlName="code"
-              placeholder="e.g., BOND001"
-              [class.error]="isFieldInvalid('code')"
-              [readonly]="isEditMode"
-            />
-            @if (isFieldInvalid('code')) {
-              <span class="error-message">
-                {{ getFieldError('code') }}
-              </span>
-            }
-            @if (isEditMode) {
-              <span class="help-text">Bond code cannot be changed</span>
-            }
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-field full-width">
-            <label for="description">Description</label>
-            <textarea
-              id="description"
-              formControlName="description"
-              placeholder="Enter bond description"
-              rows="3"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-field">
-            <label for="issuer">Issuer <span class="required">*</span></label>
-            <input
-              type="text"
-              id="issuer"
-              formControlName="issuer"
-              placeholder="Enter issuer name"
-              [class.error]="isFieldInvalid('issuer')"
-            />
-            @if (isFieldInvalid('issuer')) {
-              <span class="error-message">
-                {{ getFieldError('issuer') }}
-              </span>
-            }
-          </div>
-
-          <div class="form-field">
             <label for="status">Status <span class="required">*</span></label>
             <select
               id="status"
@@ -99,6 +49,182 @@
             }
           </div>
         </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="colorCode">Color Code <span class="required">*</span></label>
+            <input
+              type="text"
+              id="colorCode"
+              formControlName="colorCode"
+              placeholder="#3B82F6"
+              [class.error]="isFieldInvalid('colorCode')"
+            />
+            @if (isFieldInvalid('colorCode')) {
+              <span class="error-message">
+                {{ getFieldError('colorCode') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="rank">Rank <span class="required">*</span></label>
+            <input
+              type="number"
+              id="rank"
+              formControlName="rank"
+              placeholder="0"
+              [class.error]="isFieldInvalid('rank')"
+            />
+            @if (isFieldInvalid('rank')) {
+              <span class="error-message">
+                {{ getFieldError('rank') }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="shouldBeDisplayedInApp">Display in App <span class="required">*</span></label>
+            <input
+              type="checkbox"
+              id="shouldBeDisplayedInApp"
+              formControlName="shouldBeDisplayedInApp"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Section -->
+      <div class="form-section">
+        <h2 class="section-title">Descriptions</h2>
+
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="descriptionEn">Description (English) <span class="required">*</span></label>
+            <textarea
+              id="descriptionEn"
+              formControlName="descriptionEn"
+              placeholder="Enter bond description in English"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="descriptionFr">Description (French) <span class="required">*</span></label>
+            <textarea
+              id="descriptionFr"
+              formControlName="descriptionFr"
+              placeholder="Enter bond description in French"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issuer Information Section -->
+      <div class="form-section">
+        <h2 class="section-title">Issuer Information</h2>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="issuerNameEn">Issuer Name (English) <span class="required">*</span></label>
+            <input
+              type="text"
+              id="issuerNameEn"
+              formControlName="issuerNameEn"
+              placeholder="Enter issuer name in English"
+              [class.error]="isFieldInvalid('issuerNameEn')"
+            />
+            @if (isFieldInvalid('issuerNameEn')) {
+              <span class="error-message">
+                {{ getFieldError('issuerNameEn') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="issuerNameFr">Issuer Name (French) <span class="required">*</span></label>
+            <input
+              type="text"
+              id="issuerNameFr"
+              formControlName="issuerNameFr"
+              placeholder="Enter issuer name in French"
+              [class.error]="isFieldInvalid('issuerNameFr')"
+            />
+            @if (isFieldInvalid('issuerNameFr')) {
+              <span class="error-message">
+                {{ getFieldError('issuerNameFr') }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="issuerDescriptionEn">Issuer Description (English) <span class="required">*</span></label>
+            <textarea
+              id="issuerDescriptionEn"
+              formControlName="issuerDescriptionEn"
+              placeholder="Enter issuer description in English"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="issuerDescriptionFr">Issuer Description (French) <span class="required">*</span></label>
+            <textarea
+              id="issuerDescriptionFr"
+              formControlName="issuerDescriptionFr"
+              placeholder="Enter issuer description in French"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="issuerType">Issuer Type <span class="required">*</span></label>
+            <select
+              id="issuerType"
+              formControlName="issuerType"
+              [class.error]="isFieldInvalid('issuerType')"
+            >
+              <option value="">Select issuer type</option>
+              @for (type of issuerTypeOptions; track type) {
+                <option [value]="type">
+                  {{ type | titlecase }}
+                </option>
+              }
+            </select>
+            @if (isFieldInvalid('issuerType')) {
+              <span class="error-message">
+                {{ getFieldError('issuerType') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="issuerIcon">Issuer Icon <span class="required">*</span></label>
+            <input
+              type="text"
+              id="issuerIcon"
+              formControlName="issuerIcon"
+              placeholder="Enter icon filename or URL"
+              [class.error]="isFieldInvalid('issuerIcon')"
+            />
+            @if (isFieldInvalid('issuerIcon')) {
+              <span class="error-message">
+                {{ getFieldError('issuerIcon') }}
+              </span>
+            }
+          </div>
+        </div>
       </div>
 
       <!-- Financial Details Section -->
@@ -107,28 +233,28 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label for="principalAmount">Principal Amount <span class="required">*</span></label>
+            <label for="amount">Amount <span class="required">*</span></label>
             <input
               type="number"
-              id="principalAmount"
-              formControlName="principalAmount"
+              id="amount"
+              formControlName="amount"
               placeholder="0.00"
               step="0.01"
-              [class.error]="isFieldInvalid('principalAmount')"
+              [class.error]="isFieldInvalid('amount')"
             />
-            @if (isFieldInvalid('principalAmount')) {
+            @if (isFieldInvalid('amount')) {
               <span class="error-message">
-                {{ getFieldError('principalAmount') }}
+                {{ getFieldError('amount') }}
               </span>
             }
           </div>
 
           <div class="form-field">
-            <label for="fiatCurrency">Currency <span class="required">*</span></label>
+            <label for="defaultFiatCurrency">Currency <span class="required">*</span></label>
             <select
-              id="fiatCurrency"
-              formControlName="fiatCurrency"
-              [class.error]="isFieldInvalid('fiatCurrency')"
+              id="defaultFiatCurrency"
+              formControlName="defaultFiatCurrency"
+              [class.error]="isFieldInvalid('defaultFiatCurrency')"
             >
               @for (currency of currencyOptions; track currency) {
                 <option [value]="currency">
@@ -136,9 +262,9 @@
                 </option>
               }
             </select>
-            @if (isFieldInvalid('fiatCurrency')) {
+            @if (isFieldInvalid('defaultFiatCurrency')) {
               <span class="error-message">
-                {{ getFieldError('fiatCurrency') }}
+                {{ getFieldError('defaultFiatCurrency') }}
               </span>
             }
           </div>
@@ -146,35 +272,35 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label for="interestRate">Interest Rate (%) <span class="required">*</span></label>
+            <label for="ejaraInterestRate">Ejara Interest Rate (%) <span class="required">*</span></label>
             <input
               type="number"
-              id="interestRate"
-              formControlName="interestRate"
+              id="ejaraInterestRate"
+              formControlName="ejaraInterestRate"
               placeholder="0.00"
               step="0.01"
-              [class.error]="isFieldInvalid('interestRate')"
+              [class.error]="isFieldInvalid('ejaraInterestRate')"
             />
-            @if (isFieldInvalid('interestRate')) {
+            @if (isFieldInvalid('ejaraInterestRate')) {
               <span class="error-message">
-                {{ getFieldError('interestRate') }}
+                {{ getFieldError('ejaraInterestRate') }}
               </span>
             }
           </div>
 
           <div class="form-field">
-            <label for="couponRate">Coupon Rate (%) <span class="required">*</span></label>
+            <label for="customerInterestRate">Customer Interest Rate (%) <span class="required">*</span></label>
             <input
               type="number"
-              id="couponRate"
-              formControlName="couponRate"
+              id="customerInterestRate"
+              formControlName="customerInterestRate"
               placeholder="0.00"
               step="0.01"
-              [class.error]="isFieldInvalid('couponRate')"
+              [class.error]="isFieldInvalid('customerInterestRate')"
             />
-            @if (isFieldInvalid('couponRate')) {
+            @if (isFieldInvalid('customerInterestRate')) {
               <span class="error-message">
-                {{ getFieldError('couponRate') }}
+                {{ getFieldError('customerInterestRate') }}
               </span>
             }
           </div>
@@ -182,44 +308,56 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label for="minPurchaseAmount">Min Purchase Amount <span class="required">*</span></label>
+            <label for="fiatTokenEquivalent">Fiat Token Equivalent <span class="required">*</span></label>
             <input
               type="number"
-              id="minPurchaseAmount"
-              formControlName="minPurchaseAmount"
+              id="fiatTokenEquivalent"
+              formControlName="fiatTokenEquivalent"
               placeholder="0.00"
               step="0.01"
-              [class.error]="isFieldInvalid('minPurchaseAmount')"
+              [class.error]="isFieldInvalid('fiatTokenEquivalent')"
             />
-            @if (isFieldInvalid('minPurchaseAmount')) {
+            @if (isFieldInvalid('fiatTokenEquivalent')) {
               <span class="error-message">
-                {{ getFieldError('minPurchaseAmount') }}
+                {{ getFieldError('fiatTokenEquivalent') }}
               </span>
             }
-          </div>
-
-          <div class="form-field">
-            <label for="maxPurchaseAmount">Max Purchase Amount</label>
-            <input
-              type="number"
-              id="maxPurchaseAmount"
-              formControlName="maxPurchaseAmount"
-              placeholder="0.00"
-              step="0.01"
-            />
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-field">
-            <label for="riskLevel">Risk Level</label>
-            <select id="riskLevel" formControlName="riskLevel">
-              @for (level of riskLevelOptions; track level) {
-                <option [value]="level">
-                  {{ level | titlecase }}
-                </option>
-              }
-            </select>
+            <label for="momoMinimumDeposit">Mobile Money Min Deposit <span class="required">*</span></label>
+            <input
+              type="number"
+              id="momoMinimumDeposit"
+              formControlName="momoMinimumDeposit"
+              placeholder="0.00"
+              step="0.01"
+              [class.error]="isFieldInvalid('momoMinimumDeposit')"
+            />
+            @if (isFieldInvalid('momoMinimumDeposit')) {
+              <span class="error-message">
+                {{ getFieldError('momoMinimumDeposit') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="bankMinimumDeposit">Bank Min Deposit <span class="required">*</span></label>
+            <input
+              type="number"
+              id="bankMinimumDeposit"
+              formControlName="bankMinimumDeposit"
+              placeholder="0.00"
+              step="0.01"
+              [class.error]="isFieldInvalid('bankMinimumDeposit')"
+            />
+            @if (isFieldInvalid('bankMinimumDeposit')) {
+              <span class="error-message">
+                {{ getFieldError('bankMinimumDeposit') }}
+              </span>
+            }
           </div>
         </div>
       </div>
@@ -230,37 +368,20 @@
 
         <div class="form-row">
           <div class="form-field">
-            <label for="issueDate">Issue Date <span class="required">*</span></label>
+            <label for="startDate">Start Date <span class="required">*</span></label>
             <input
               type="date"
-              id="issueDate"
-              formControlName="issueDate"
-              [class.error]="isFieldInvalid('issueDate')"
+              id="startDate"
+              formControlName="startDate"
+              [class.error]="isFieldInvalid('startDate')"
             />
-            @if (isFieldInvalid('issueDate')) {
+            @if (isFieldInvalid('startDate')) {
               <span class="error-message">
-                {{ getFieldError('issueDate') }}
+                {{ getFieldError('startDate') }}
               </span>
             }
           </div>
 
-          <div class="form-field">
-            <label for="valueDate">Value Date <span class="required">*</span></label>
-            <input
-              type="date"
-              id="valueDate"
-              formControlName="valueDate"
-              [class.error]="isFieldInvalid('valueDate')"
-            />
-            @if (isFieldInvalid('valueDate')) {
-              <span class="error-message">
-                {{ getFieldError('valueDate') }}
-              </span>
-            }
-          </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-field">
             <label for="maturityDate">Maturity Date <span class="required">*</span></label>
             <input
@@ -275,22 +396,130 @@
               </span>
             }
           </div>
+        </div>
 
+        <div class="form-row">
           <div class="form-field">
-            <label for="tenor">Tenor (months) <span class="required">*</span></label>
-            <input
-              type="number"
-              id="tenor"
-              formControlName="tenor"
-              placeholder="12"
-              min="1"
-              [class.error]="isFieldInvalid('tenor')"
-            />
-            @if (isFieldInvalid('tenor')) {
+            <label for="interestCalculationPeriod">Interest Calculation Period <span class="required">*</span></label>
+            <select
+              id="interestCalculationPeriod"
+              formControlName="interestCalculationPeriod"
+              [class.error]="isFieldInvalid('interestCalculationPeriod')"
+            >
+              <option value="">Select period</option>
+              @for (period of interestPeriodOptions; track period) {
+                <option [value]="period">
+                  {{ period | titlecase }}
+                </option>
+              }
+            </select>
+            @if (isFieldInvalid('interestCalculationPeriod')) {
               <span class="error-message">
-                {{ getFieldError('tenor') }}
+                {{ getFieldError('interestCalculationPeriod') }}
               </span>
             }
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdrawal Rules Section -->
+      <div class="form-section">
+        <h2 class="section-title">Withdrawal Rules</h2>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="withdrawalPeriod">Withdrawal Period <span class="required">*</span></label>
+            <select
+              id="withdrawalPeriod"
+              formControlName="withdrawalPeriod"
+              [class.error]="isFieldInvalid('withdrawalPeriod')"
+            >
+              <option value="">Select withdrawal period</option>
+              @for (period of withdrawalPeriodOptions; track period) {
+                <option [value]="period">
+                  {{ period === 'after_period' ? 'After Period' : (period | titlecase) }}
+                </option>
+              }
+            </select>
+            @if (isFieldInvalid('withdrawalPeriod')) {
+              <span class="error-message">
+                {{ getFieldError('withdrawalPeriod') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="unlockingPenaltyRate">Early Withdrawal Penalty (%)</label>
+            <input
+              type="number"
+              id="unlockingPenaltyRate"
+              formControlName="unlockingPenaltyRate"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              max="100"
+              [class.error]="isFieldInvalid('unlockingPenaltyRate')"
+            />
+            @if (isFieldInvalid('unlockingPenaltyRate')) {
+              <span class="error-message">
+                {{ getFieldError('unlockingPenaltyRate') }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Technical Details Section -->
+      <div class="form-section">
+        <h2 class="section-title">Technical Details</h2>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="smartContractId">Smart Contract ID <span class="required">*</span></label>
+            <input
+              type="text"
+              id="smartContractId"
+              formControlName="smartContractId"
+              placeholder="Enter smart contract ID"
+              [class.error]="isFieldInvalid('smartContractId')"
+            />
+            @if (isFieldInvalid('smartContractId')) {
+              <span class="error-message">
+                {{ getFieldError('smartContractId') }}
+              </span>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="blockchain">Blockchain <span class="required">*</span></label>
+            <select
+              id="blockchain"
+              formControlName="blockchain"
+              [class.error]="isFieldInvalid('blockchain')"
+            >
+              <option value="">Select blockchain</option>
+              @for (chain of blockchainOptions; track chain) {
+                <option [value]="chain">
+                  {{ chain | titlecase }}
+                </option>
+              }
+            </select>
+            @if (isFieldInvalid('blockchain')) {
+              <span class="error-message">
+                {{ getFieldError('blockchain') }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="isWithdrawalBlocked">Block Withdrawals <span class="required">*</span></label>
+            <input
+              type="checkbox"
+              id="isWithdrawalBlocked"
+              formControlName="isWithdrawalBlocked"
+            />
           </div>
         </div>
       </div>

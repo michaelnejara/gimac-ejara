@@ -357,4 +357,40 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
   calculateCurrentValue(bond: Bond): number {
     return bond.amount + this.calculateInterestEarned(bond);
   }
+
+  /**
+   * Format color code to ensure it has # prefix for CSS
+   */
+  formatColorCode(colorCode: string | undefined, color: string | undefined): string {
+    const colorValue = colorCode || color;
+    if (!colorValue) return '';
+
+    // If already has #, return as is
+    if (colorValue.startsWith('#')) {
+      return colorValue;
+    }
+
+    // If it's a hex code without #, add it
+    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
+      return `#${colorValue}`;
+    }
+
+    // Return as is for other formats (named colors, rgb, etc.)
+    return colorValue;
+  }
+
+  /**
+   * Get display text for color code
+   */
+  getColorDisplayText(colorCode: string | undefined, color: string | undefined): string {
+    const colorValue = colorCode || color;
+    if (!colorValue) return '-';
+
+    // If it's a 6-digit hex without #, add # for display
+    if (/^[0-9A-Fa-f]{6}$/.test(colorValue)) {
+      return `#${colorValue}`;
+    }
+
+    return colorValue;
+  }
 }

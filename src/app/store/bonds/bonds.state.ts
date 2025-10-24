@@ -180,6 +180,43 @@ export const selectIsBondCached = (bondId: number) => createSelector(
 );
 
 /**
+ * Partner Bonds Selectors
+ */
+export const selectPartnerBondsPageCache = createSelector(
+  selectBondsState,
+  (state) => state.partnerBondsPageCache
+);
+
+export const selectPartnerBonds = createSelector(
+  selectBondsState,
+  (state) => {
+    // Return partner bonds from current page cache for active partner
+    const currentPage = state.activePage;
+    const partnerId = state.activePartnerId;
+
+    if (!partnerId) {
+      return [];
+    }
+
+    return state.partnerBondsPageCache[partnerId]?.[currentPage] || [];
+  }
+);
+
+export const selectPartnerBondsForPartner = (partnerId: number) => createSelector(
+  selectBondsState,
+  (state) => {
+    // Return all partner bonds for a specific partner (all pages)
+    const partnerCache = state.partnerBondsPageCache[partnerId];
+    if (!partnerCache) {
+      return [];
+    }
+
+    // Flatten all pages
+    return Object.values(partnerCache).flat();
+  }
+);
+
+/**
  * Customer Bonds Selectors
  */
 export const selectCustomerBonds = createSelector(

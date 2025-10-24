@@ -9,7 +9,13 @@
       @if (context === 'partner') {
         <a routerLink="/partners">Partners</a>
         <mat-icon>chevron_right</mat-icon>
-        <span class="current">Partner Bonds</span>
+        @if (partner$ | async; as partner) {
+          <a [routerLink]="['/partners/details', partnerId]">{{ partner.name }}</a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="current">Bonds</span>
+        } @else {
+          <span class="current">Partner Bonds</span>
+        }
       } @else if (context === 'customer') {
         <a routerLink="/partners">Partners</a>
         <mat-icon>chevron_right</mat-icon>
@@ -40,7 +46,11 @@
           <h1 class="page-title">
             <mat-icon class="title-icon">account_balance</mat-icon>
             @if (context === 'partner') {
-              <span>Partner Bonds</span>
+              @if (partner$ | async; as partner) {
+                <span>{{ partner.name }} - Bonds</span>
+              } @else {
+                <span>Partner Bonds</span>
+              }
             } @else if (context === 'customer') {
               <span>Customer Bond Holdings</span>
             } @else {
@@ -49,7 +59,11 @@
           </h1>
           <p class="page-description">
             @if (context === 'partner') {
-              View and manage bonds assigned to this partner
+              @if (partner$ | async; as partner) {
+                <span>View and manage bonds assigned to <strong>{{ partner.name }}</strong></span>
+              } @else {
+                <span>View and manage bonds assigned to this partner</span>
+              }
             } @else if (context === 'customer') {
               View customer's bond holdings and investment performance
             } @else {
@@ -60,9 +74,19 @@
       </div>
 
       <div class="header-actions">
+        @if (context === 'partner' || context === 'customer') {
+          <button
+            mat-stroked-button
+            class="all-bonds-btn"
+            (click)="viewAllBonds()">
+            <mat-icon>view_list</mat-icon>
+            All Bonds
+          </button>
+        }
+
         @if (context === 'partner') {
-          <button 
-            mat-raised-button 
+          <button
+            mat-raised-button
             color="primary"
             class="assign-bonds-btn"
             (click)="openAssignBondsModal()">
@@ -70,8 +94,8 @@
             Assign Bonds
           </button>
         } @else if (context === 'default') {
-          <button 
-            mat-raised-button 
+          <button
+            mat-raised-button
             color="primary"
             class="add-bond-btn"
             (click)="addBond()">
@@ -528,6 +552,82 @@
           <mat-icon class="date-icon">event</mat-icon>
           <span>{{ formatDate(row.maturityDate) }}</span>
         </div>
+      </ng-template>
+
+      <!-- Amount Purchased Template -->
+      <ng-template appTableColumn="amountPurchased" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ formatCurrency(row.amountPurchased, row.defaultFiatCurrency) }}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="(row.amountPurchased / row.amount) * 100"></div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Available Balance Template -->
+      <ng-template appTableColumn="availableBalance" let-row>
+        <div class="amount-cell" [class.low-balance]="row.availableBalance < (row.amount * 0.1)">
+          <div class="amount">{{ formatCurrency(row.availableBalance, row.defaultFiatCurrency) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Ejara Interest Rate Template -->
+      <ng-template appTableColumn="ejaraInterestRate" let-row>
+        <div class="rate-cell">
+          <span class="rate ejara-rate">{{ formatPercentage(row.ejaraInterestRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Customer Interest Rate Template -->
+      <ng-template appTableColumn="customerInterestRate" let-row>
+        <div class="rate-cell">
+          <span class="rate customer-rate">{{ formatPercentage(row.customerInterestRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Daily Customer Earning Rate Template -->
+      <ng-template appTableColumn="dailyCustomerEarningRate" let-row>
+        <div class="rate-cell">
+          <span class="rate daily-rate">{{ formatPercentage(row.dailyCustomerEarningRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Color Code Template -->
+      <ng-template appTableColumn="colorCode" let-row>
+        <div class="color-cell">
+          <div class="color-preview" [style.background-color]="formatColorCode(row.colorCode, row.color)"></div>
+          <span class="color-code">{{ getColorDisplayText(row.colorCode, row.color) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Issuer Type Template -->
+      <ng-template appTableColumn="issuerType" let-row>
+        <span class="issuer-type-badge" [class]="'issuer-' + row.issuerType">
+          {{ row.issuerType | titlecase }}
+        </span>
+      </ng-template>
+
+      <!-- Rank Template -->
+      <ng-template appTableColumn="rank" let-row>
+        <div class="rank-cell">
+          <span class="rank-badge">{{ row.rank }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Should Be Displayed In App Template -->
+      <ng-template appTableColumn="shouldBeDisplayedInApp" let-row>
+        <div class="app-display-cell">
+          <mat-icon [class.visible]="row.shouldBeDisplayedInApp" [class.hidden]="!row.shouldBeDisplayedInApp">
+            {{ row.shouldBeDisplayedInApp ? 'visibility' : 'visibility_off' }}
+          </mat-icon>
+        </div>
+      </ng-template>
+
+      <!-- Blockchain Template -->
+      <ng-template appTableColumn="blockchain" let-row>
+        <span class="blockchain-badge" [class]="'blockchain-' + row.blockchain">
+          {{ row.blockchain | titlecase }}
+        </span>
       </ng-template>
 
       <!-- Custom Actions Template -->

@@ -42,7 +42,7 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# Claude Code documentation
-FONT_OPTIMIZATION_COMPLETE.md
-SCSS_OPTIMIZATION_STRATEGY.md
-SCSS_PHASE1_COMPLETE.md
+# Markdown files (ignore all except README.md)
+*.md
+!README.md
+!CLAUDE.md

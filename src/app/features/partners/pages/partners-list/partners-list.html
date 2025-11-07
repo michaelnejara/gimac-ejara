@@ -118,13 +118,13 @@
       <mat-card-content>
         <form [formGroup]="filterForm" class="filter-form">
           <div class="filter-grid">
-            <!-- Keyword Search -->
+            <!-- Keyword Search - Search across name and code (partial match) -->
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Search</mat-label>
               <input
                 matInput
                 formControlName="keyword"
-                placeholder="Partner name, code, or account"
+                placeholder="Search across name and code"
               />
               <mat-icon matPrefix>search</mat-icon>
               @if (filterForm.get('keyword')?.value) {
@@ -139,7 +139,7 @@
               }
             </mat-form-field>
 
-            <!-- Status Filter -->
+            <!-- Status Filter - Filter by partner status -->
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Status</mat-label>
               <mat-select formControlName="status">
@@ -152,54 +152,18 @@
               <mat-icon matPrefix>toggle_on</mat-icon>
             </mat-form-field>
 
-            <!-- Partner Code -->
+            <!-- Partner Code - Filter by partner code (exact match) -->
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Partner Code</mat-label>
-              <input matInput formControlName="code" placeholder="FTS-001, DPC-002" />
+              <input matInput formControlName="code" placeholder="e.g. FTS-001, DPC-002" />
               <mat-icon matPrefix>tag</mat-icon>
             </mat-form-field>
 
-            <!-- Partner Name -->
+            <!-- Partner Name - Filter by partner name (exact match) -->
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Partner Name</mat-label>
-              <input matInput formControlName="name" placeholder="Search by name" />
+              <input matInput formControlName="name" placeholder="Exact partner name" />
               <mat-icon matPrefix>business</mat-icon>
-            </mat-form-field>
-
-            <!-- Min Commission Rate -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Min Commission (%)</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="minCommissionRate"
-                min="0"
-                max="100"
-                step="0.1"
-              />
-              <mat-icon matPrefix>percent</mat-icon>
-            </mat-form-field>
-
-            <!-- Max Commission Rate -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Max Commission (%)</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="maxCommissionRate"
-                min="0"
-                max="100"
-                step="0.1"
-              />
-              <mat-icon matPrefix>percent</mat-icon>
-            </mat-form-field>
-
-            <!-- Bond ID Filter -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Filter by Bond ID</mat-label>
-              <input matInput type="number" formControlName="bondId" placeholder="Enter bond ID" />
-              <mat-icon matPrefix>account_balance</mat-icon>
-              <mat-hint>Show partners with specific bond</mat-hint>
             </mat-form-field>
           </div>
 

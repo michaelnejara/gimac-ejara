@@ -178,22 +178,28 @@
         flex: 1;
 
         .toggle-btn {
-          width: 36px;
-          height: 36px;
-          color: #64748b;
+          width: 40px;
+          height: 40px;
+          background: #8658ff; // Purple/primary background
+          color: white; // White icon color
           transition: all 0.2s;
-          border-radius: 8px;
+          border-radius: 50%; // Fully rounded
 
           mat-icon {
             font-size: 24px;
             width: 24px;
             height: 24px;
+            color: white; // White icon
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
 
           &:hover {
-            background: #f1f5f9;
-            color: #3b82f6;
+            background: #7549e6; // Slightly darker on hover
+            transform: scale(1.05); // Subtle scale
+
+            mat-icon {
+              transform: rotate(180deg); // Rotate animation on hover
+            }
           }
         }
 
@@ -877,7 +883,7 @@
     }
   }
 
-  // Dropdown Panels
+  // Dropdown Panels - CRITICAL: High z-index to appear above filter card
   .mat-mdc-select-panel {
     background: white !important;
     border-radius: 10px;
@@ -885,6 +891,7 @@
     border: 1px solid #e2e8f0;
     margin-top: 8px;
     padding: 8px;
+    z-index: 9999 !important; // Ensure dropdowns appear above all filter card content
   }
 
   .mat-mdc-select-panel .mat-mdc-option {
@@ -914,13 +921,14 @@
     font-weight: 500;
   }
 
-  // Menu Panel
+  // Menu Panel - CRITICAL: High z-index to appear above filter card
   .mat-mdc-menu-panel {
     background: white !important;
     border-radius: 10px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
     min-width: 200px;
+    z-index: 9999 !important; // Ensure menus appear above all filter card content
   }
 
   .mat-mdc-menu-content {

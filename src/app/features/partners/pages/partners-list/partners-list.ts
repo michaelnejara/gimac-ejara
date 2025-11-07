@@ -174,16 +174,14 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Initialize filter form
+   * Only includes: status, code, name, keyword as per requirements
    */
   private initializeFilterForm(): void {
     this.filterForm = this.fb.group({
-      keyword: [''],
-      status: [''],
-      code: [''],
-      name: [''],
-      minCommissionRate: [null],
-      maxCommissionRate: [null],
-      bondId: [null]
+      keyword: [''],    // Search across name and code (partial match)
+      status: [''],     // Filter by partner status (active, suspended, inactive)
+      code: [''],       // Filter by partner code (exact match)
+      name: ['']        // Filter by partner name (exact match)
     });
   }
 
@@ -306,6 +304,7 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Get active filters count
+   * Only counts the 4 filter fields: keyword, status, code, name
    */
   private getActiveFiltersCount(): number {
     const formValue = this.filterForm.value;
@@ -315,9 +314,6 @@ export class PartnersList implements OnInit, OnDestroy {
     if (formValue.status) count++;
     if (formValue.code) count++;
     if (formValue.name) count++;
-    if (formValue.minCommissionRate !== null && formValue.minCommissionRate !== '') count++;
-    if (formValue.maxCommissionRate !== null && formValue.maxCommissionRate !== '') count++;
-    if (formValue.bondId !== null && formValue.bondId !== '') count++;
 
     return count;
   }
@@ -335,9 +331,6 @@ export class PartnersList implements OnInit, OnDestroy {
       status: formValue.status || undefined,
       code: formValue.code || undefined,
       name: formValue.name || undefined,
-      minCommissionRate: formValue.minCommissionRate || undefined,
-      maxCommissionRate: formValue.maxCommissionRate || undefined,
-      bondId: formValue.bondId || undefined,
       limit: currentPagination?.pageSize || 20,
       offset: ((currentPagination?.pageIndex || 0) * (currentPagination?.pageSize || 20)),
       sortBy: 'dateCreated',
@@ -385,9 +378,6 @@ export class PartnersList implements OnInit, OnDestroy {
       status: formValue.status || undefined,
       code: formValue.code || undefined,
       name: formValue.name || undefined,
-      minCommissionRate: formValue.minCommissionRate || undefined,
-      maxCommissionRate: formValue.maxCommissionRate || undefined,
-      bondId: formValue.bondId || undefined,
       limit: 20,
       offset: 0,
       sortBy: 'dateCreated',
@@ -406,12 +396,9 @@ export class PartnersList implements OnInit, OnDestroy {
       keyword: '',
       status: '',
       code: '',
-      name: '',
-      minCommissionRate: null,
-      maxCommissionRate: null,
-      bondId: null
+      name: ''
     });
-    
+
     this.hasUnappliedFilters = false;
     
     // Reset pagination to first page

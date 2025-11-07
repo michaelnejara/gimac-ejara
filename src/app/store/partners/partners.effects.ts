@@ -218,6 +218,17 @@ export class PartnersEffects {
   );
 
   /**
+   * Clear Filters Effect - Like dashboard implementation
+   * Reloads partners list with empty filters when clearFilters is dispatched
+   */
+  clearFilters$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(PartnersActions.clearFilters),
+      map(() => PartnersActions.loadPartners({ filters: {} }))
+    )
+  );
+
+  /**
    * After Create Partner Success - Update Dashboard and Invalidate Partner Cache
    * Dispatches multiple actions to refresh both dashboard stats and partner list
    */

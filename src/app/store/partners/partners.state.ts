@@ -40,8 +40,8 @@ export interface PartnersState {
   selectedId: number | null;
   selectedIds: number[];
 
-  // NOTE: Filters are no longer stored in NgRx state
-  // They are managed locally in the component for better flexibility
+  // Filters - Stored in state like dashboard implementation
+  filters: PartnerFilterParams;
   previousPageSize: number; // Track page size changes
 
   // Pagination
@@ -72,6 +72,7 @@ export const initialState: PartnersState = {
 
   selectedId: null,
   selectedIds: [],
+  filters: {}, // Empty filters initially, like dashboard
   previousPageSize: 20,
   total: 0,
   limit: 20,
@@ -185,6 +186,19 @@ export const selectSelectedPartners = createSelector(
   selectSinglePartnerEntities,
   selectSelectedPartnerIds,
   (entities, ids) => ids.map((id: number) => entities[id]?.data).filter(Boolean)
+);
+
+/**
+ * Filter Selectors
+ */
+export const selectFilters = createSelector(
+  selectPartnersState,
+  (state) => state.filters
+);
+
+export const selectHasActiveFilters = createSelector(
+  selectFilters,
+  (filters) => !!(filters.status || filters.keyword || filters.code || filters.name)
 );
 
 /**

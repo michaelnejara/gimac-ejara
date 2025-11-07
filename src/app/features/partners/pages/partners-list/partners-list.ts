@@ -175,6 +175,7 @@ export class PartnersList implements OnInit, OnDestroy {
   /**
    * Initialize filter form
    * Only includes: status, code, name, keyword as per requirements
+   * Like dashboard, filters are simple fields without complex nesting
    */
   private initializeFilterForm(): void {
     this.filterForm = this.fb.group({
@@ -183,6 +184,9 @@ export class PartnersList implements OnInit, OnDestroy {
       code: [''],       // Filter by partner code (exact match)
       name: ['']        // Filter by partner name (exact match)
     });
+
+    // Load initial data on form init
+    this.loadPartners();
   }
 
   /**
@@ -320,7 +324,7 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Load partners with filters
-   * Uses cache-aware action to avoid redundant API calls
+   * Like dashboard: builds filters from form and dispatches loadPartners
    */
   loadPartners(): void {
     const formValue = this.filterForm.value;
@@ -337,8 +341,8 @@ export class PartnersList implements OnInit, OnDestroy {
       sortOrder: 'desc'
     };
 
-    // Use cache-aware action - checks cache before making API call
-    this.store.dispatch(PartnersActions.checkAndLoadPartners({ filters }));
+    // Dispatch loadPartners with filters - like dashboard does
+    this.store.dispatch(PartnersActions.loadPartners({ filters }));
   }
 
   /**
@@ -355,8 +359,8 @@ export class PartnersList implements OnInit, OnDestroy {
   }
 
   /**
-   * Apply filters manually
-   * Note: When filters change, we want fresh data (bypass cache)
+   * Apply filters - Like dashboard implementation
+   * Just calls loadPartners which builds and dispatches filters
    */
   applyFilters(): void {
     this.hasUnappliedFilters = false;
@@ -370,26 +374,13 @@ export class PartnersList implements OnInit, OnDestroy {
       }
     };
 
-    // Get filter values
-    const formValue = this.filterForm.value;
-
-    const filters: PartnerFilterParams = {
-      keyword: formValue.keyword || undefined,
-      status: formValue.status || undefined,
-      code: formValue.code || undefined,
-      name: formValue.name || undefined,
-      limit: 20,
-      offset: 0,
-      sortBy: 'dateCreated',
-      sortOrder: 'desc'
-    };
-
-    // Use direct load for filter changes (bypass cache to get fresh data)
-    this.store.dispatch(PartnersActions.loadPartners({ filters }));
+    // Load with current filter values
+    this.loadPartners();
   }
 
   /**
-   * Reset filters
+   * Reset filters - Like dashboard implementation
+   * Dispatches clearFilters action which triggers reload
    */
   resetFilters(): void {
     this.filterForm.reset({
@@ -400,7 +391,7 @@ export class PartnersList implements OnInit, OnDestroy {
     });
 
     this.hasUnappliedFilters = false;
-    
+
     // Reset pagination to first page
     this.tableConfig = {
       ...this.tableConfig,
@@ -409,8 +400,9 @@ export class PartnersList implements OnInit, OnDestroy {
         pageIndex: 0
       }
     };
-    
-    this.loadPartners();
+
+    // Dispatch clearFilters - effect will reload with empty filters
+    this.store.dispatch(PartnersActions.clearFilters());
   }
 
   /**

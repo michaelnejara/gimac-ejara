@@ -9,11 +9,12 @@ import { initialState, PartnerEntity } from './partners.state';
 export const partnersReducer = createReducer(
   initialState,
 
-  // Load Partners List
-  on(PartnersActions.loadPartners, (state) => ({
+  // Load Partners List - Update filters like dashboard implementation
+  on(PartnersActions.loadPartners, (state, { filters }) => ({
     ...state,
     loading: true,
-    error: null
+    error: null,
+    filters: filters || state.filters // Update filters when loading
   })),
 
   on(PartnersActions.loadPartnersSuccess, (state, { response }) => {
@@ -184,7 +185,14 @@ export const partnersReducer = createReducer(
     error
   })),
 
-  // Pagination - Note: Filters removed, managed locally in component
+  // Clear Filters - Like dashboard implementation
+  on(PartnersActions.clearFilters, (state) => ({
+    ...state,
+    filters: {},
+    pageCache: {} // Clear cache when filters change
+  })),
+
+  // Pagination
   on(PartnersActions.changePageSize, (state, { limit }) => {
     // Clear page cache when page size changes
     const shouldClearCache = state.previousPageSize !== limit;

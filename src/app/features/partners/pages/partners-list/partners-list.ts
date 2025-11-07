@@ -184,9 +184,7 @@ export class PartnersList implements OnInit, OnDestroy {
       code: [''],       // Filter by partner code (exact match)
       name: ['']        // Filter by partner name (exact match)
     });
-
-    // Load initial data on form init
-    this.loadPartners();
+    // Note: loadPartners() is called in ngOnInit after tableConfig is initialized
   }
 
   /**

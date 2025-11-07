@@ -71,9 +71,9 @@
   @if (!(loading$ | async) && (stats$ | async); as stats) {
     <div class="dashboard-content" @fadeIn>
 
-      <!-- Partners & Customers Section -->
+      <!-- Partners Section -->
       <section class="stats-section">
-        <h2 class="section-title">Partners & Customers Overview</h2>
+        <h2 class="section-title">Partners Overview</h2>
 
         <div class="stats-grid">
 
@@ -112,41 +112,6 @@
               </div>
               <div class="card-value" [matTooltip]="stats.totalActivePartners.toLocaleString()">
                 {{ formatNumber(stats.totalActivePartners) }}
-              </div>
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Total Customers Card -->
-          <mat-card class="stat-card card-blue" matRipple (click)="goToCustomers()">
-            <mat-card-content>
-              <div class="card-header">
-                <div class="card-icon-wrapper blue">
-                  <mat-icon>people</mat-icon>
-                </div>
-                <span class="card-label">Total Customers</span>
-              </div>
-              <div class="card-value" [matTooltip]="stats.totalCustomers.toLocaleString()">
-                {{ formatNumber(stats.totalCustomers) }}
-              </div>
-              @if (getActiveCustomersPercentage() !== null) {
-                <div class="card-badge">
-                  {{ stats.totalActiveCustomers }} active ({{ getActiveCustomersPercentage() }}%)
-                </div>
-              }
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Active Customers Card -->
-          <mat-card class="stat-card card-green" matRipple (click)="goToCustomers()">
-            <mat-card-content>
-              <div class="card-header">
-                <div class="card-icon-wrapper green">
-                  <mat-icon>person_check</mat-icon>
-                </div>
-                <span class="card-label">Active Customers</span>
-              </div>
-              <div class="card-value" [matTooltip]="stats.totalActiveCustomers.toLocaleString()">
-                {{ formatNumber(stats.totalActiveCustomers) }}
               </div>
             </mat-card-content>
           </mat-card>

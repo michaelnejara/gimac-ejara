@@ -206,20 +206,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Calculate percentage of active customers
-   *
-   * @returns Active customers percentage or null if no data
-   */
-  getActiveCustomersPercentage(): number | null {
-    if (!this.currentStats || this.currentStats.totalCustomers === 0) {
-      return null;
-    }
-    return Math.round(
-      (this.currentStats.totalActiveCustomers / this.currentStats.totalCustomers) * 100
-    );
-  }
-
-  /**
    * Calculate net transaction amount (deposits - withdrawals)
    *
    * @returns Net amount or null if no data
@@ -250,13 +236,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
    */
   goToPartners(): void {
     this.router.navigate(['/partners']);
-  }
-
-  /**
-   * Navigate to customers page
-   */
-  goToCustomers(): void {
-    this.router.navigate(['/customers']);
   }
 
   /**

@@ -52,6 +52,9 @@ import {
   selectSuspendedPartners,
   selectInactivePartners
 } from '@store/partners/partners.state';
+import { BondsActions } from '@store/bonds/bonds.actions';
+import { selectCurrentPageBonds } from '@store/bonds/bonds.state';
+import { Bond } from '@core/models/bond.models';
 
 @Component({
   selector: 'app-partners-list',
@@ -108,6 +111,9 @@ export class PartnersList implements OnInit, OnDestroy {
   suspendedPartners$: Observable<any[]>;
   inactivePartners$: Observable<any[]>;
 
+  // Bonds for filter dropdown
+  bonds$: Observable<Bond[]>;
+
   // Filter Form
   filterForm!: FormGroup;
   
@@ -140,21 +146,38 @@ export class PartnersList implements OnInit, OnDestroy {
     this.creating$ = this.store.select(selectCreating);
     this.updating$ = this.store.select(selectUpdating);
     this.deleting$ = this.store.select(selectDeleting);
-    
+
     // Stats selectors
     this.activePartners$ = this.store.select(selectActivePartners);
     this.suspendedPartners$ = this.store.select(selectSuspendedPartners);
     this.inactivePartners$ = this.store.select(selectInactivePartners);
+
+    // Bonds selector
+    this.bonds$ = this.store.select(selectCurrentPageBonds);
   }
 
   ngOnInit(): void {
     this.initializeFilterForm();
     this.tableConfig = this.buildTableConfig();
     this.loadPartners();
+    this.loadBonds();
     this.setupFilterChangeTracking();
     this.setupActiveFiltersCount();
     this.setupPaginationSync();
     this.setupLoadingSync();
+  }
+
+  /**
+   * Load bonds for filter dropdown
+   */
+  private loadBonds(): void {
+    // Load all bonds without pagination for the dropdown
+    this.store.dispatch(BondsActions.loadBonds({
+      filters: {
+        limit: 1000, // Load a large number to get all bonds
+        offset: 0
+      }
+    }));
   }
 
   /**
@@ -181,8 +204,6 @@ export class PartnersList implements OnInit, OnDestroy {
       status: [''],
       code: [''],
       name: [''],
-      minCommissionRate: [null],
-      maxCommissionRate: [null],
       bondId: [null]
     });
   }
@@ -315,8 +336,6 @@ export class PartnersList implements OnInit, OnDestroy {
     if (formValue.status) count++;
     if (formValue.code) count++;
     if (formValue.name) count++;
-    if (formValue.minCommissionRate !== null && formValue.minCommissionRate !== '') count++;
-    if (formValue.maxCommissionRate !== null && formValue.maxCommissionRate !== '') count++;
     if (formValue.bondId !== null && formValue.bondId !== '') count++;
 
     return count;
@@ -335,8 +354,6 @@ export class PartnersList implements OnInit, OnDestroy {
       status: formValue.status || undefined,
       code: formValue.code || undefined,
       name: formValue.name || undefined,
-      minCommissionRate: formValue.minCommissionRate || undefined,
-      maxCommissionRate: formValue.maxCommissionRate || undefined,
       bondId: formValue.bondId || undefined,
       limit: currentPagination?.pageSize || 20,
       offset: ((currentPagination?.pageIndex || 0) * (currentPagination?.pageSize || 20)),
@@ -385,8 +402,6 @@ export class PartnersList implements OnInit, OnDestroy {
       status: formValue.status || undefined,
       code: formValue.code || undefined,
       name: formValue.name || undefined,
-      minCommissionRate: formValue.minCommissionRate || undefined,
-      maxCommissionRate: formValue.maxCommissionRate || undefined,
       bondId: formValue.bondId || undefined,
       limit: 20,
       offset: 0,
@@ -407,13 +422,11 @@ export class PartnersList implements OnInit, OnDestroy {
       status: '',
       code: '',
       name: '',
-      minCommissionRate: null,
-      maxCommissionRate: null,
       bondId: null
     });
-    
+
     this.hasUnappliedFilters = false;
-    
+
     // Reset pagination to first page
     this.tableConfig = {
       ...this.tableConfig,
@@ -422,7 +435,7 @@ export class PartnersList implements OnInit, OnDestroy {
         pageIndex: 0
       }
     };
-    
+
     this.loadPartners();
   }
 

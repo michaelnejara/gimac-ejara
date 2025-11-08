@@ -5,7 +5,6 @@ import { Store } from '@ngrx/store';
 import { PartnersService } from '@core/services/partners/partners.service';
 import { PartnersActions } from './partners.actions';
 import {
-  selectFilters,
   selectIsPageCached,
   selectIsPartnerCached,
   selectLimit,
@@ -15,6 +14,7 @@ import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators'
 import { of } from 'rxjs';
 import { PartnersMockService } from '@core/services/partners/partners-mock.service';
 import { environment } from '@environments/environment';
+import { DashboardActions } from '@store/dashboard/dashboard.actions';
 
 /**
  * Partners Effects
@@ -218,79 +218,14 @@ export class PartnersEffects {
   );
 
   /**
-   * Apply Filters - Reload Partners
+   * Refresh Dashboard After Partner Creation
+   * When a partner is successfully created, reload dashboard stats
+   * to reflect the new total partner count
    */
-  applyFilters$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.applyFilters),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Clear Filters - Reload Partners
-   */
-  clearFilters$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.clearFilters),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Set Search Keyword - Reload Partners
-   */
-  setSearchKeyword$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.setSearchKeyword),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Change Page - Reload Partners
-   */
-  changePage$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.changePage),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Change Page Size - Reload Partners
-   */
-  changePageSize$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.changePageSize),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Reload List After Create Success
-   */
-  reloadAfterCreate$ = createEffect(() =>
+  refreshDashboardAfterCreate$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PartnersActions.createPartnerSuccess),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
-    )
-  );
-
-  /**
-   * Reload List After Status Update
-   */
-  reloadAfterStatusUpdate$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PartnersActions.updatePartnerStatusSuccess),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => PartnersActions.loadPartners({ filters }))
+      map(() => DashboardActions.loadStats({ filters: {} }))
     )
   );
 

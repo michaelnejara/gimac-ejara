@@ -1103,9 +1103,21 @@
     z-index: 1000;
     box-shadow: 0 4px 12px rgba(134, 88, 255, 0.4);
     background-color: #8658ff;
+    border-radius: 50% !important;
+    transition: all 0.3s ease;
+
+    mat-icon {
+      color: white !important;
+      transition: transform 0.3s ease;
+    }
 
     &:hover {
       box-shadow: 0 6px 16px rgba(134, 88, 255, 0.5);
+      transform: translateY(-2px);
+
+      mat-icon {
+        transform: rotate(180deg);
+      }
     }
 
     .filter-badge {
@@ -1205,6 +1217,7 @@
     .filter-panel-content {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 24px;
 
       .filter-form {
@@ -1219,6 +1232,8 @@
 
           .filter-field {
             width: 100%;
+            position: relative;
+            z-index: 1;
           }
         }
 
@@ -1275,5 +1290,17 @@
       width: 100%;
       right: -100%;
     }
+  }
+}
+
+// Global styles for Material select dropdowns in filter panel
+// These are rendered in CDK overlay container, so need to be outside component scope
+::ng-deep {
+  .cdk-overlay-pane {
+    z-index: 2000 !important; // Higher than filter panel (z-index: 1002)
+  }
+
+  .mat-mdc-select-panel {
+    z-index: 2000 !important;
   }
 }

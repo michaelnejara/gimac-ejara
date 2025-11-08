@@ -100,9 +100,10 @@ export const partnersReducer = createReducer(
 
   on(PartnersActions.createPartnerSuccess, (state, { response }) => {
     // Note: We only get partnerId, name, code, and status from the create response
-    // We won't add to entities until we do a full load/refresh
+    // Clear page cache to force reload of partners list with new partner
     return {
       ...state,
+      pageCache: {},
       creating: false,
       error: null
     };

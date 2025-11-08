@@ -40,8 +40,7 @@ export interface PartnersState {
   selectedId: number | null;
   selectedIds: number[];
 
-  // Filters & Search
-  filters: PartnerFilterParams;
+  // Pagination tracking
   previousPageSize: number; // Track page size changes
 
   // Pagination
@@ -72,12 +71,6 @@ export const initialState: PartnersState = {
 
   selectedId: null,
   selectedIds: [],
-  filters: {
-    limit: 20,
-    offset: 0,
-    sortBy: 'dateCreated',
-    sortOrder: 'desc'
-  },
   previousPageSize: 20,
   total: 0,
   limit: 20,
@@ -194,13 +187,8 @@ export const selectSelectedPartners = createSelector(
 );
 
 /**
- * Filter & Pagination Selectors
+ * Pagination Selectors
  */
-export const selectFilters = createSelector(
-  selectPartnersState,
-  (state) => state.filters
-);
-
 export const selectTotal = createSelector(
   selectPartnersState,
   (state) => state.total
@@ -278,11 +266,6 @@ export const selectInactivePartners = createSelector(
 export const selectPartnersByStatus = (status: string) => createSelector(
   selectCurrentPagePartners,
   (partners) => partners.filter((p: Partner) => p.status === status)
-);
-
-export const selectHasFilters = createSelector(
-  selectFilters,
-  (filters) => !!(filters.status || filters.keyword || filters.code || filters.name)
 );
 
 export const selectPartnerCount = createSelector(

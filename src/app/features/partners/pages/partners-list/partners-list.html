@@ -73,129 +73,142 @@
     }
   </div>
 
-  <!-- Filter Block -->
-  <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
-    <mat-card-header>
-      <div class="filter-header">
-        <div class="filter-header-left">
-          <button
-            mat-icon-button
-            class="toggle-btn"
-            (click)="toggleFilters()"
-            [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'"
-          >
-            <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-          </button>
+  <!-- Floating Filter Button -->
+  <button
+    class="floating-filter-btn"
+    mat-fab
+    (click)="toggleFilterPanel()"
+    [matTooltip]="'Filter Partners'"
+    matTooltipPosition="left"
+  >
+    <mat-icon>filter_list</mat-icon>
+    @if (getActiveFiltersCount() > 0) {
+      <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
+    }
+  </button>
 
-          <div class="filter-title">
-            <mat-icon>filter_list</mat-icon>
-            <span>Filters</span>
-            @if (activeFiltersCount$ | async; as count) { @if (count > 0) {
-            <mat-chip class="active-filters-chip">{{ count }}</mat-chip>
-            } } @if (hasUnappliedFilters) {
-            <mat-chip class="unapplied-chip">Not Applied</mat-chip>
-            }
-          </div>
-        </div>
+  <!-- Filter Offcanvas Panel -->
+  <div class="filter-offcanvas-overlay" [class.show]="filterPanelOpen" (click)="closeFilterPanel()"></div>
 
-        <div class="filter-header-right">
-          @if (filtersExpanded) {
-          <button
-            mat-button
-            class="clear-header-btn"
-            (click)="resetFilters()"
-            [disabled]="(activeFiltersCount$ | async) === 0"
-          >
-            <mat-icon>clear_all</mat-icon>
-            <span>Clear</span>
-          </button>
-          }
-        </div>
+  <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+    <div class="offcanvas-header">
+      <div class="header-left">
+        <mat-icon>filter_list</mat-icon>
+        <h2>Filter Partners</h2>
       </div>
-    </mat-card-header>
-
-    <div class="filter-content-wrapper" [class.show]="filtersExpanded">
-      <mat-card-content>
-        <form [formGroup]="filterForm" class="filter-form">
-          <div class="filter-grid">
-            <!-- Keyword Search - Search across name and code (partial match) -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Search</mat-label>
-              <input
-                matInput
-                formControlName="keyword"
-                placeholder="Search across name and code"
-              />
-              <mat-icon matPrefix>search</mat-icon>
-              @if (filterForm.get('keyword')?.value) {
-              <button
-                matSuffix
-                mat-icon-button
-                (click)="filterForm.patchValue({ keyword: '' })"
-                type="button"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
-              }
-            </mat-form-field>
-
-            <!-- Status Filter - Filter by partner status -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Status</mat-label>
-              <mat-select formControlName="status">
-                @for (option of statusOptions; track option.value) {
-                <mat-option [value]="option.value">
-                  {{ option.label }}
-                </mat-option>
-                }
-              </mat-select>
-              <mat-icon matPrefix>toggle_on</mat-icon>
-            </mat-form-field>
-
-            <!-- Partner Code - Filter by partner code (exact match) -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Partner Code</mat-label>
-              <input matInput formControlName="code" placeholder="e.g. FTS-001, DPC-002" />
-              <mat-icon matPrefix>tag</mat-icon>
-            </mat-form-field>
-
-            <!-- Partner Name - Filter by partner name (exact match) -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Partner Name</mat-label>
-              <input matInput formControlName="name" placeholder="Exact partner name" />
-              <mat-icon matPrefix>business</mat-icon>
-            </mat-form-field>
-          </div>
-
-          <!-- Filter Actions -->
-          <div class="filter-actions">
-            <button
-              mat-stroked-button
-              type="button"
-              class="clear-btn"
-              (click)="resetFilters()"
-              [disabled]="(activeFiltersCount$ | async) === 0"
-            >
-              <mat-icon>clear_all</mat-icon>
-              Clear All
-            </button>
-
-            <button
-              mat-raised-button
-              color="primary"
-              type="button"
-              class="apply-btn"
-              (click)="applyFilters()"
-              [disabled]="!hasUnappliedFilters"
-            >
-              <mat-icon>check</mat-icon>
-              Apply Filters
-            </button>
-          </div>
-        </form>
-      </mat-card-content>
+      <button mat-icon-button (click)="closeFilterPanel()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-  </mat-card>
+
+    <div class="offcanvas-body">
+      <form [formGroup]="filterForm" class="filter-form">
+        <!-- Keyword Search -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>search</mat-icon>
+            Search Keywords
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="keyword"
+              placeholder="Search across name and code (partial match)"
+            />
+            @if (filterForm.get('keyword')?.value) {
+            <button
+              matSuffix
+              mat-icon-button
+              (click)="filterForm.patchValue({ keyword: '' })"
+              type="button"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+            }
+          </mat-form-field>
+          <p class="filter-hint">Find partners by name or code using partial matching</p>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>toggle_on</mat-icon>
+            Partner Status
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (option of statusOptions; track option.value) {
+              <mat-option [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <p class="filter-hint">Filter partners by their current status</p>
+        </div>
+
+        <!-- Partner Code -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>tag</mat-icon>
+            Partner Code
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Code</mat-label>
+            <input
+              matInput
+              formControlName="code"
+              placeholder="e.g. FTS-001, DPC-002 (exact match)"
+            />
+          </mat-form-field>
+          <p class="filter-hint">Exact code match for specific partner</p>
+        </div>
+
+        <!-- Partner Name -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>business</mat-icon>
+            Partner Name
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Exact partner name"
+            />
+          </mat-form-field>
+          <p class="filter-hint">Exact name match for specific partner</p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Filter Actions -->
+    <div class="offcanvas-footer">
+      <button
+        mat-stroked-button
+        type="button"
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="getActiveFiltersCount() === 0"
+      >
+        <mat-icon>refresh</mat-icon>
+        Reset Filters
+      </button>
+
+      <button
+        mat-raised-button
+        type="button"
+        class="apply-btn"
+        (click)="applyFilters()"
+      >
+        <mat-icon>done</mat-icon>
+        Apply Filters
+      </button>
+    </div>
+  </div>
 
   <!-- Error Alert -->
   @if (error$ | async; as error) {

@@ -959,7 +959,7 @@
     }
   }
 
-  // Dropdown Panels - CRITICAL: High z-index to appear above filter card
+  // Dropdown Panels - CRITICAL: High z-index to appear above offcanvas
   .mat-mdc-select-panel {
     background: white !important;
     border-radius: 10px;
@@ -967,7 +967,16 @@
     border: 1px solid #e2e8f0;
     margin-top: 8px;
     padding: 8px;
-    z-index: 9999 !important; // Ensure dropdowns appear above all filter card content
+    z-index: 10000 !important; // Ensure dropdowns appear above offcanvas (z-index: 1050)
+  }
+
+  // CDK Overlay backdrop and container for select dropdowns
+  .cdk-overlay-container {
+    z-index: 10000;
+  }
+
+  .cdk-overlay-pane {
+    z-index: 10000 !important;
   }
 
   .mat-mdc-select-panel .mat-mdc-option {
@@ -997,14 +1006,14 @@
     font-weight: 500;
   }
 
-  // Menu Panel - CRITICAL: High z-index to appear above filter card
+  // Menu Panel - CRITICAL: High z-index to appear above offcanvas
   .mat-mdc-menu-panel {
     background: white !important;
     border-radius: 10px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
     min-width: 200px;
-    z-index: 9999 !important; // Ensure menus appear above all filter card content
+    z-index: 10000 !important; // Ensure menus appear above offcanvas (z-index: 1050)
   }
 
   .mat-mdc-menu-content {

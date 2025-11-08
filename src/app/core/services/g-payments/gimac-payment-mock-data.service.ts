@@ -42,8 +42,6 @@ export class GimacPaymentMockDataService {
     const mockStats: DashboardStatsDTO = {
       totalPartners: 15,
       totalActivePartners: 12,
-      totalCustomers: 1250,
-      totalActiveCustomers: 980,
       totalDeposits: 450,
       totalDepositAmount: 2500000.50,
       totalWithdrawals: 120,
@@ -73,8 +71,6 @@ export class GimacPaymentMockDataService {
     const randomStats: DashboardStatsDTO = {
       totalPartners: this.randomInt(10, 25),
       totalActivePartners: this.randomInt(8, 20),
-      totalCustomers: this.randomInt(1000, 2000),
-      totalActiveCustomers: this.randomInt(800, 1600),
       totalDeposits: this.randomInt(300, 600),
       totalDepositAmount: this.randomFloat(2000000, 3000000),
       totalWithdrawals: this.randomInt(80, 200),

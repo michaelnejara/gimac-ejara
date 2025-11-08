@@ -29,8 +29,6 @@ export interface DashboardState {
 export const MOCK_DASHBOARD_STATS: DashboardStatsDTO = {
   totalPartners: 15,
   totalActivePartners: 12,
-  totalCustomers: 1250,
-  totalActiveCustomers: 980,
   totalDeposits: 450,
   totalDepositAmount: 2500000.50,
   totalWithdrawals: 120,

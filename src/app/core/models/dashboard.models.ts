@@ -1,16 +1,12 @@
 /**
  * Data Transfer Object for Dashboard Statistics
- * Contains all metrics for partners, customers, transactions, and financial operations
+ * Contains all metrics for partners, transactions, and financial operations
  */
 export interface DashboardStatsDTO {
   /** Total number of partners */
   totalPartners: number;
   /** Number of active partners */
   totalActivePartners: number;
-  /** Total number of customers */
-  totalCustomers: number;
-  /** Number of active customers */
-  totalActiveCustomers: number;
   /** Total number of deposit transactions */
   totalDeposits: number;
   /** Total amount deposited */

@@ -53,15 +53,6 @@ export const routes: Routes = [
           import('./features/bond-transactions/bond-transactions.routes').then((m) => m.bondTransactionsRoutes),
       },
 
-      // Customers Management (protected)
-      {
-        path: 'customers',
-        data: { breadcrumb: 'Bond Transactions' },
-        canActivate: [authGuard],
-        loadChildren: () =>
-          import('./features/customers/cutomers.routes').then((m) => m.partnersRoutes),
-      },
-
       // Partners Management (protected)
       {
         path: 'partners',

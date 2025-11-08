@@ -159,7 +159,7 @@
     background: linear-gradient(135deg, #8658ff 0%, #7549e6 100%);
     box-shadow: 0 4px 12px rgba(134, 88, 255, 0.4), 0 2px 6px rgba(0, 0, 0, 0.1);
     border-radius: 50%;
-    z-index: 1000;
+    z-index: 800;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     mat-icon {
@@ -221,7 +221,7 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 1040;
+    z-index: 900;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -243,7 +243,7 @@
     height: 100%;
     background: white;
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-    z-index: 1050;
+    z-index: 950;
     display: flex;
     flex-direction: column;
     transform: translateX(100%);
@@ -967,16 +967,16 @@
     border: 1px solid #e2e8f0;
     margin-top: 8px;
     padding: 8px;
-    z-index: 10000 !important; // Ensure dropdowns appear above offcanvas (z-index: 1050)
+    z-index: 1100 !important; // Ensure dropdowns appear above offcanvas (z-index: 950)
   }
 
   // CDK Overlay backdrop and container for select dropdowns
   .cdk-overlay-container {
-    z-index: 10000;
+    z-index: 1100;
   }
 
   .cdk-overlay-pane {
-    z-index: 10000 !important;
+    z-index: 1100 !important;
   }
 
   .mat-mdc-select-panel .mat-mdc-option {
@@ -1013,7 +1013,7 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
     min-width: 200px;
-    z-index: 10000 !important; // Ensure menus appear above offcanvas (z-index: 1050)
+    z-index: 1100 !important; // Ensure menus appear above offcanvas (z-index: 950)
   }
 
   .mat-mdc-menu-content {

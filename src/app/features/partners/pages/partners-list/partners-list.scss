@@ -970,6 +970,20 @@
     z-index: 1100 !important; // Ensure dropdowns appear above offcanvas (z-index: 950)
   }
 
+  // Partner Status Dropdown - Custom high z-index
+  .partner-status-dropdown {
+    z-index: 9999 !important;
+  }
+
+  // CDK Overlay for partner status dropdown
+  .cdk-overlay-container:has(.partner-status-dropdown) {
+    z-index: 9999 !important;
+  }
+
+  .cdk-overlay-pane:has(.partner-status-dropdown) {
+    z-index: 9999 !important;
+  }
+
   // CDK Overlay backdrop and container for select dropdowns
   .cdk-overlay-container {
     z-index: 1100;

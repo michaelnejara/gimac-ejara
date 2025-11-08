@@ -138,7 +138,7 @@
           </label>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Status</mat-label>
-            <mat-select formControlName="status">
+            <mat-select formControlName="status" panelClass="partner-status-dropdown">
               @for (option of statusOptions; track option.value) {
               <mat-option [value]="option.value">
                 {{ option.label }}

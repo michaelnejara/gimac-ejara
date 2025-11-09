@@ -75,135 +75,138 @@
 
   <!-- Floating Filter Button -->
   <button
+    class="floating-filter-btn"
     mat-fab
-    class="floating-filter-button"
-    color="primary"
-    (click)="toggleFilters()"
-    matTooltip="Filter Partners"
-    matTooltipPosition="left">
+    (click)="toggleFilterPanel()"
+    [matTooltip]="'Filter Partners'"
+    matTooltipPosition="left"
+  >
     <mat-icon>filter_list</mat-icon>
-    @if (activeFiltersCount$ | async; as count) {
-      @if (count > 0) {
-        <span class="filter-badge">{{ count }}</span>
-      }
+    @if (getActiveFiltersCount() > 0) {
+      <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
     }
   </button>
 
-  <!-- Filter Overlay -->
-  @if (filtersExpanded) {
-    <div class="filter-overlay" (click)="toggleFilters()"></div>
-  }
+  <!-- Filter Offcanvas Panel -->
+  <div class="filter-offcanvas-overlay" [class.show]="filterPanelOpen" (click)="closeFilterPanel()"></div>
 
-  <!-- Filter Slide Panel -->
-  <div class="filter-slide-panel" [class.open]="filtersExpanded">
-    <div class="filter-panel-header">
-      <div class="filter-panel-title">
+  <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+    <div class="offcanvas-header">
+      <div class="header-left">
         <mat-icon>filter_list</mat-icon>
-        <h3>Filter Partners</h3>
-        @if (activeFiltersCount$ | async; as count) {
-          @if (count > 0) {
-            <span class="badge-count">{{ count }}</span>
-          }
-        }
+        <h2>Filter Partners</h2>
       </div>
-      <button mat-icon-button (click)="toggleFilters()">
+      <button mat-icon-button (click)="closeFilterPanel()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
 
-    <div class="filter-panel-content">
-        <form [formGroup]="filterForm" class="filter-form">
-          <div class="filter-grid">
-            <!-- Keyword Search -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Search</mat-label>
-              <input
-                matInput
-                formControlName="keyword"
-                placeholder="Partner name, code, or account"
-              />
-              <mat-icon matPrefix>search</mat-icon>
-              @if (filterForm.get('keyword')?.value) {
-              <button
-                matSuffix
-                mat-icon-button
-                (click)="filterForm.patchValue({ keyword: '' })"
-                type="button"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
+    <div class="offcanvas-body">
+      <form [formGroup]="filterForm" class="filter-form">
+        <!-- Keyword Search -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>search</mat-icon>
+            Search Keywords
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Search</mat-label>
+            <input
+              matInput
+              formControlName="keyword"
+              placeholder="Search across name and code (partial match)"
+            />
+            @if (filterForm.get('keyword')?.value) {
+            <button
+              matSuffix
+              mat-icon-button
+              (click)="filterForm.patchValue({ keyword: '' })"
+              type="button"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+            }
+          </mat-form-field>
+          <p class="filter-hint">Find partners by name or code using partial matching</p>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>toggle_on</mat-icon>
+            Partner Status
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status" panelClass="partner-status-dropdown">
+              @for (option of statusOptions; track option.value) {
+              <mat-option [value]="option.value">
+                {{ option.label }}
+              </mat-option>
               }
-            </mat-form-field>
+            </mat-select>
+          </mat-form-field>
+          <p class="filter-hint">Filter partners by their current status</p>
+        </div>
 
-            <!-- Status Filter -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Status</mat-label>
-              <mat-select formControlName="status">
-                @for (option of statusOptions; track option.value) {
-                <mat-option [value]="option.value">
-                  {{ option.label }}
-                </mat-option>
-                }
-              </mat-select>
-              <mat-icon matPrefix>toggle_on</mat-icon>
-            </mat-form-field>
+        <!-- Partner Code -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>tag</mat-icon>
+            Partner Code
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Code</mat-label>
+            <input
+              matInput
+              formControlName="code"
+              placeholder="e.g. FTS-001, DPC-002 (exact match)"
+            />
+          </mat-form-field>
+          <p class="filter-hint">Exact code match for specific partner</p>
+        </div>
 
-            <!-- Partner Code -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Partner Code</mat-label>
-              <input matInput formControlName="code" placeholder="FTS-001, DPC-002" />
-              <mat-icon matPrefix>tag</mat-icon>
-            </mat-form-field>
+        <!-- Partner Name -->
+        <div class="filter-field-wrapper">
+          <label class="filter-label">
+            <mat-icon>business</mat-icon>
+            Partner Name
+          </label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Exact partner name"
+            />
+          </mat-form-field>
+          <p class="filter-hint">Exact name match for specific partner</p>
+        </div>
+      </form>
+    </div>
 
-            <!-- Partner Name -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Partner Name</mat-label>
-              <input matInput formControlName="name" placeholder="Search by name" />
-              <mat-icon matPrefix>business</mat-icon>
-            </mat-form-field>
+    <!-- Filter Actions -->
+    <div class="offcanvas-footer">
+      <button
+        mat-stroked-button
+        type="button"
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="getActiveFiltersCount() === 0"
+      >
+        <mat-icon>refresh</mat-icon>
+        Reset Filters
+      </button>
 
-            <!-- Bond Filter -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Select Bond</mat-label>
-              <mat-select formControlName="bondId">
-                <mat-option [value]="null">All Bonds</mat-option>
-                @for (bond of bonds$ | async; track bond.id) {
-                <mat-option [value]="bond.id">
-                  {{ bond.name }}
-                </mat-option>
-                }
-              </mat-select>
-              <mat-icon matPrefix>account_balance</mat-icon>
-              <mat-hint>Show partners with specific bond</mat-hint>
-            </mat-form-field>
-          </div>
-
-          <!-- Filter Actions -->
-          <div class="filter-actions">
-            <button
-              mat-stroked-button
-              type="button"
-              class="reset-btn"
-              (click)="resetFilters()"
-              [disabled]="(activeFiltersCount$ | async) === 0"
-            >
-              <mat-icon>restart_alt</mat-icon>
-              Reset
-            </button>
-
-            <button
-              mat-raised-button
-              color="primary"
-              type="button"
-              class="search-btn"
-              (click)="applyFilters(); toggleFilters()"
-              [disabled]="!hasUnappliedFilters"
-            >
-              <mat-icon>search</mat-icon>
-              Search
-            </button>
-          </div>
-        </form>
+      <button
+        mat-raised-button
+        type="button"
+        class="apply-btn"
+        (click)="applyFilters()"
+      >
+        <mat-icon>done</mat-icon>
+        Apply Filters
+      </button>
     </div>
   </div>
 

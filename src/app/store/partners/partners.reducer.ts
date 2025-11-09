@@ -9,11 +9,12 @@ import { initialState, PartnerEntity } from './partners.state';
 export const partnersReducer = createReducer(
   initialState,
 
-  // Load Partners List
-  on(PartnersActions.loadPartners, (state) => ({
+  // Load Partners List - Update filters like dashboard implementation
+  on(PartnersActions.loadPartners, (state, { filters }) => ({
     ...state,
     loading: true,
-    error: null
+    error: null,
+    filters: filters || state.filters // Update filters when loading
   })),
 
   on(PartnersActions.loadPartnersSuccess, (state, { response }) => {
@@ -184,55 +185,20 @@ export const partnersReducer = createReducer(
     error
   })),
 
-  // Filters
-  on(PartnersActions.applyFilters, (state, { filters }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      ...filters,
-      offset: 0 // Reset to first page
-    }
-  })),
-
+  // Clear Filters - Like dashboard implementation
   on(PartnersActions.clearFilters, (state) => ({
     ...state,
-    filters: {
-      limit: state.filters.limit,
-      offset: 0,
-      sortBy: 'dateCreated',
-      sortOrder: 'desc'
-    }
-  })),
-
-  on(PartnersActions.setSearchKeyword, (state, { keyword }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      keyword,
-      offset: 0
-    }
+    filters: {},
+    pageCache: {} // Clear cache when filters change
   })),
 
   // Pagination
-  on(PartnersActions.changePage, (state, { offset }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      offset
-    }
-  })),
-
   on(PartnersActions.changePageSize, (state, { limit }) => {
     // Clear page cache when page size changes
     const shouldClearCache = state.previousPageSize !== limit;
 
     return {
       ...state,
-      filters: {
-        ...state.filters,
-        limit,
-        offset: 0
-      },
       limit,
       offset: 0,
       activePage: 1,
@@ -276,11 +242,7 @@ export const partnersReducer = createReducer(
   on(PartnersActions.resetToFirstPage, (state) => ({
     ...state,
     activePage: 1,
-    offset: 0,
-    filters: {
-      ...state.filters,
-      offset: 0
-    }
+    offset: 0
   })),
 
   // Assign Bonds to Partner

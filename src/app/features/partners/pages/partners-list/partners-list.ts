@@ -128,14 +128,11 @@ export class PartnersList implements OnInit, OnDestroy {
   // Table Configuration
   tableConfig!: TableConfig<Partner>;
 
-  // Active Filters Count
-  activeFiltersCount$!: Observable<number>;
+  // Filter panel state
+  filterPanelOpen = false;
 
-  // Add this property
-  hasUnappliedFilters = false;
-
-  // Add these properties
-  filtersExpanded = false;
+  // Stored filter params (not in NgRx, stored locally)
+  private appliedFilters: PartnerFilterParams = {};
 
   constructor() {
     this.partners$ = this.store.select(selectCurrentPagePartners);
@@ -160,9 +157,6 @@ export class PartnersList implements OnInit, OnDestroy {
     this.initializeFilterForm();
     this.tableConfig = this.buildTableConfig();
     this.loadPartners();
-    this.loadBonds();
-    this.setupFilterChangeTracking();
-    this.setupActiveFiltersCount();
     this.setupPaginationSync();
     this.setupLoadingSync();
   }
@@ -181,10 +175,17 @@ export class PartnersList implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggle filters collapse/expand
+   * Toggle filter panel
    */
-  toggleFilters(): void {
-    this.filtersExpanded = !this.filtersExpanded;
+  toggleFilterPanel(): void {
+    this.filterPanelOpen = !this.filterPanelOpen;
+  }
+
+  /**
+   * Close filter panel
+   */
+  closeFilterPanel(): void {
+    this.filterPanelOpen = false;
   }
 
   ngOnDestroy(): void {
@@ -197,14 +198,14 @@ export class PartnersList implements OnInit, OnDestroy {
 
   /**
    * Initialize filter form
+   * Form values prefilled from stored filter params
    */
   private initializeFilterForm(): void {
     this.filterForm = this.fb.group({
-      keyword: [''],
-      status: [''],
-      code: [''],
-      name: [''],
-      bondId: [null]
+      keyword: [this.appliedFilters.keyword || ''],
+      status: [this.appliedFilters.status || ''],
+      code: [this.appliedFilters.code || ''],
+      name: [this.appliedFilters.name || '']
     });
   }
 
@@ -280,15 +281,6 @@ export class PartnersList implements OnInit, OnDestroy {
     ];
   }
 
-  /**
-   * Setup active filters count
-   */
-  private setupActiveFiltersCount(): void {
-    this.activeFiltersCount$ = this.filterForm.valueChanges.pipe(
-      debounceTime(100),
-      map(() => this.getActiveFiltersCount())
-    );
-  }
 
   /**
    * Sync pagination from store
@@ -326,64 +318,53 @@ export class PartnersList implements OnInit, OnDestroy {
   }
 
   /**
-   * Get active filters count
+   * Get active filters count (public for template)
+   * Counts applied filters (not form values)
    */
-  private getActiveFiltersCount(): number {
-    const formValue = this.filterForm.value;
+  getActiveFiltersCount(): number {
     let count = 0;
 
-    if (formValue.keyword) count++;
-    if (formValue.status) count++;
-    if (formValue.code) count++;
-    if (formValue.name) count++;
-    if (formValue.bondId !== null && formValue.bondId !== '') count++;
+    if (this.appliedFilters.keyword) count++;
+    if (this.appliedFilters.status) count++;
+    if (this.appliedFilters.code) count++;
+    if (this.appliedFilters.name) count++;
 
     return count;
   }
 
   /**
    * Load partners with filters
-   * Uses cache-aware action to avoid redundant API calls
+   * Uses stored appliedFilters (not form values)
    */
   loadPartners(): void {
-    const formValue = this.filterForm.value;
     const currentPagination = this.tableConfig.pagination;
 
     const filters: PartnerFilterParams = {
-      keyword: formValue.keyword || undefined,
-      status: formValue.status || undefined,
-      code: formValue.code || undefined,
-      name: formValue.name || undefined,
-      bondId: formValue.bondId || undefined,
+      ...this.appliedFilters, // Use stored filters
       limit: currentPagination?.pageSize || 20,
       offset: ((currentPagination?.pageIndex || 0) * (currentPagination?.pageSize || 20)),
       sortBy: 'dateCreated',
       sortOrder: 'desc'
     };
 
-    // Use cache-aware action - checks cache before making API call
-    this.store.dispatch(PartnersActions.checkAndLoadPartners({ filters }));
+    // Dispatch loadPartners with filters
+    this.store.dispatch(PartnersActions.loadPartners({ filters }));
   }
 
   /**
-   * Track filter changes without auto-applying
-   */
-  private setupFilterChangeTracking(): void {
-    this.filterForm.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.hasUnappliedFilters = true;
-    });
-  }
-
-  /**
-   * Apply filters manually
-   * Note: When filters change, we want fresh data (bypass cache)
+   * Apply filters
+   * Stores filter params locally and triggers load
    */
   applyFilters(): void {
-    this.hasUnappliedFilters = false;
+    const formValue = this.filterForm.value;
+
+    // Store applied filters locally
+    this.appliedFilters = {
+      keyword: formValue.keyword || undefined,
+      status: formValue.status || undefined,
+      code: formValue.code || undefined,
+      name: formValue.name || undefined
+    };
 
     // Reset to first page when applying new filters
     this.tableConfig = {
@@ -394,38 +375,28 @@ export class PartnersList implements OnInit, OnDestroy {
       }
     };
 
-    // Get filter values
-    const formValue = this.filterForm.value;
+    // Close panel
+    this.closeFilterPanel();
 
-    const filters: PartnerFilterParams = {
-      keyword: formValue.keyword || undefined,
-      status: formValue.status || undefined,
-      code: formValue.code || undefined,
-      name: formValue.name || undefined,
-      bondId: formValue.bondId || undefined,
-      limit: 20,
-      offset: 0,
-      sortBy: 'dateCreated',
-      sortOrder: 'desc'
-    };
-
-    // Use direct load for filter changes (bypass cache to get fresh data)
-    this.store.dispatch(PartnersActions.loadPartners({ filters }));
+    // Load with current filter values
+    this.loadPartners();
   }
 
   /**
    * Reset filters
+   * Clears stored filter params and form
    */
   resetFilters(): void {
+    // Clear stored filters
+    this.appliedFilters = {};
+
+    // Reset form
     this.filterForm.reset({
       keyword: '',
       status: '',
       code: '',
-      name: '',
-      bondId: null
+      name: ''
     });
-
-    this.hasUnappliedFilters = false;
 
     // Reset pagination to first page
     this.tableConfig = {
@@ -436,7 +407,11 @@ export class PartnersList implements OnInit, OnDestroy {
       }
     };
 
-    this.loadPartners();
+    // Close panel
+    this.closeFilterPanel();
+
+    // Dispatch clearFilters - effect will reload with empty filters
+    this.store.dispatch(PartnersActions.clearFilters());
   }
 
   /**

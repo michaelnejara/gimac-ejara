@@ -103,6 +103,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private destroy$ = new Subject<void>();
+  private filterSubscriptions$ = new Subject<void>(); // For filter-specific subscriptions
 
   // Context
   context: BondContextType = 'default';
@@ -166,6 +167,8 @@ export class BondsListComponent implements OnInit, OnDestroy {
     // Reset to first page when leaving the bonds list
     this.store.dispatch(BondsActions.resetToFirstPage());
 
+    this.filterSubscriptions$.next();
+    this.filterSubscriptions$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -215,6 +218,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
       if (contextChanged) {
         this.initializeStatusOptions();
         this.initializeFilterForm();
+        this.setupFilterSubscriptions(); // Re-setup filter subscriptions for new form
         this.reinitializeObservablesForContext(); // Re-bind observables to correct selectors
         this.initializeTableConfig();
         this.setupDateValidation();
@@ -307,7 +311,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
     const control = this.filterForm.get(controlName);
     if (control) {
       control.valueChanges.pipe(
-        takeUntil(this.destroy$)
+        takeUntil(this.filterSubscriptions$)
       ).subscribe(value => {
         if (value) {
           const selectedDate = new Date(value);
@@ -337,14 +341,14 @@ export class BondsListComponent implements OnInit, OnDestroy {
     if (startControl && endControl) {
       // Validate when start date changes
       startControl.valueChanges.pipe(
-        takeUntil(this.destroy$)
+        takeUntil(this.filterSubscriptions$)
       ).subscribe(() => {
         this.validateDateRange(startControl, endControl);
       });
 
       // Validate when end date changes
       endControl.valueChanges.pipe(
-        takeUntil(this.destroy$)
+        takeUntil(this.filterSubscriptions$)
       ).subscribe(() => {
         this.validateDateRange(startControl, endControl);
       });
@@ -800,19 +804,25 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Setup filter subscriptions
    */
   private setupFilterSubscriptions(): void {
+    // Complete previous filter subscriptions if they exist
+    this.filterSubscriptions$.next();
+    this.filterSubscriptions$.complete();
+    // Create new Subject for this set of subscriptions
+    this.filterSubscriptions$ = new Subject<void>();
+
     // Create observable for active filters count
     this.activeFiltersCount$ = this.filterForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       map(formValue => this.countActiveFilters(formValue)),
-      takeUntil(this.destroy$)
+      takeUntil(this.filterSubscriptions$)
     );
 
     // Also update the property value
     this.filterForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      takeUntil(this.destroy$)
+      takeUntil(this.filterSubscriptions$)
     ).subscribe(() => {
       this.hasUnappliedFilters = true;
       // Update active filters count from local form

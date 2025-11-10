@@ -210,6 +210,13 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.partnerId = null;
         this.customerId = null;
         contextChanged = previousContext !== 'default' && previousContext !== undefined;
+
+        // Reset store when switching to default context from partner/customer context
+        // This ensures old totals from partner/customer context don't persist
+        if (contextChanged) {
+          this.store.dispatch(BondsActions.resetForContextView());
+        }
+
         this.store.dispatch(BondsActions.setViewMode({ mode: 'all' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: null }));
       }

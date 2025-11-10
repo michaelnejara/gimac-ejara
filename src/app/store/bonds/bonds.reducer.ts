@@ -315,8 +315,9 @@ export const bondsReducer = createReducer(
     pageCache: {},
     customerBondsPageCache: {},
     partnerBondsPageCache: {},
-    // Reset to first page
+    // Reset pagination to avoid showing stale totals from previous context
     activePage: 1,
-    offset: 0
+    offset: 0,
+    total: 0 // Reset total to prevent showing incorrect count from previous context
   }))
 );

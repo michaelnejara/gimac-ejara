@@ -41,7 +41,6 @@ import {
   selectLoading,
   selectError,
   selectPagination,
-  selectFilters,
   selectTransactionStats
 } from '@store/bond-transactions/bond-transactions.state';
 
@@ -104,13 +103,13 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   private customersService = inject(CustomersService);
   private bondsService = inject(BondsService);
   private destroy$ = new Subject<void>();
+  private filterSubscriptions$ = new Subject<void>();
 
   // Observables
   transactions$!: Observable<BondTransaction[]>;
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
   pagination$!: Observable<any>;
-  currentFilters$!: Observable<any>;
   activeFiltersCount$!: Observable<number>;
   stats$!: Observable<TransactionStats | null>;
 
@@ -120,7 +119,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   filteredBonds$!: Observable<Bond[]>;
 
   // UI State
-  filtersExpanded = false;
+  filterPanelOpen = false;
   hasUnappliedFilters = false;
   fromPartnerPage = false;
   partnerIdFromQuery: number | null = null;
@@ -164,6 +163,8 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.filterSubscriptions$.next();
+    this.filterSubscriptions$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -237,11 +238,13 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
     this.pagination$ = this.store.select(selectPagination);
-    this.currentFilters$ = this.store.select(selectFilters);
     // this.stats$ = this.store.select(selectTransactionStats);
 
-    this.activeFiltersCount$ = this.currentFilters$.pipe(
-      map(filters => this.countActiveFilters(filters))
+    this.activeFiltersCount$ = this.filterForm.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      map(formValue => this.countActiveFiltersFromForm(formValue)),
+      takeUntil(this.filterSubscriptions$)
     );
   }
 
@@ -523,10 +526,16 @@ export class BondTransactionsList implements OnInit, OnDestroy {
    * Setup filter subscriptions
    */
   private setupFilterSubscriptions(): void {
+    // Complete previous filter subscriptions
+    this.filterSubscriptions$.next();
+    this.filterSubscriptions$.complete();
+    // Create new Subject
+    this.filterSubscriptions$ = new Subject<void>();
+
     this.filterForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      takeUntil(this.destroy$)
+      takeUntil(this.filterSubscriptions$)
     ).subscribe(() => {
       this.hasUnappliedFilters = true;
     });
@@ -550,21 +559,22 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   applyFilters(): void {
     const formValue = this.filterForm.value;
     const dateRange = formValue.dateRange;
-    
+
     const filters: TransactionFilterParams = {
       status: formValue.status || undefined,
       type: formValue.type || undefined,
       bondId: formValue.bondId ? +formValue.bondId : undefined,
       partnerId: this.fromPartnerPage ? this.partnerIdFromQuery! : (formValue.partnerId ? +formValue.partnerId : undefined),
       customerId: formValue.customerId ? +formValue.customerId : undefined,
-      dateFrom: dateRange?.start ? this.formatDateForApi(dateRange.start) : undefined,
-      dateTo: dateRange?.end ? this.formatDateForApi(dateRange.end) : undefined,
+      dateFrom: dateRange?.start ? this.formatDateForApi(dateRange.start) as any : undefined,
+      dateTo: dateRange?.end ? this.formatDateForApi(dateRange.end) as any : undefined,
       limit: 20,
       offset: 0
     };
 
-    this.store.dispatch(BondTransactionsActions.applyFilters({ filters }));
+    this.store.dispatch(BondTransactionsActions.loadTransactions({ filters }));
     this.hasUnappliedFilters = false;
+    this.filterPanelOpen = false;
   }
 
   /**
@@ -572,7 +582,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
    */
   resetFilters(): void {
     this.filterForm.reset();
-    
+
     // If coming from partner page, maintain partner ID
     if (this.fromPartnerPage && this.partnerIdFromQuery) {
       this.filterForm.patchValue({
@@ -580,31 +590,39 @@ export class BondTransactionsList implements OnInit, OnDestroy {
       });
       this.loadPartnerDetails(this.partnerIdFromQuery);
     }
-    
-    this.store.dispatch(BondTransactionsActions.clearFilters());
+
+    this.loadTransactions();
     this.hasUnappliedFilters = false;
   }
 
   /**
-   * Count active filters
+   * Count active filters from form
    */
-  private countActiveFilters(filters: any): number {
+  private countActiveFiltersFromForm(formValue: any): number {
     let count = 0;
-    const excludeKeys = ['limit', 'offset'];
-    
-    Object.keys(filters).forEach(key => {
-      if (!excludeKeys.includes(key) && filters[key]) {
-        count++;
-      }
-    });
+
+    if (formValue.status) count++;
+    if (formValue.type) count++;
+    if (formValue.bondId) count++;
+    if (formValue.partnerId && !this.fromPartnerPage) count++; // Don't count locked partner filter
+    if (formValue.customerId) count++;
+    if (formValue.dateRange?.start || formValue.dateRange?.end) count++;
+
     return count;
   }
 
   /**
-   * Toggle filters collapse/expand
+   * Get active filters count for display
    */
-  toggleFilters(): void {
-    this.filtersExpanded = !this.filtersExpanded;
+  getActiveFiltersCount(): number {
+    return this.countActiveFiltersFromForm(this.filterForm.value);
+  }
+
+  /**
+   * Toggle filter panel
+   */
+  toggleFilterPanel(): void {
+    this.filterPanelOpen = !this.filterPanelOpen;
   }
 
   /**
@@ -669,12 +687,18 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   }
 
   /**
-   * Format date for API
+   * Format date for API (DD/MM/YYYY format)
    */
-  private formatDateForApi(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
+  private formatDateForApi(date: Date | string | null): string | null {
+    if (!date) return null;
+    const dateObj = date instanceof Date ? date : new Date(date);
+    if (isNaN(dateObj.getTime())) return null;
+
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+
+    return `${day}/${month}/${year}`;
   }
 
   /**

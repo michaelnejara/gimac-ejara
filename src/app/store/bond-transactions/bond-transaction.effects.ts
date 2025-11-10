@@ -5,7 +5,6 @@ import { Store } from '@ngrx/store';
 import { BondTransactionsService } from '@core/services/bond-transactions/bond-transactions.service';
 import { BondTransactionsActions } from './bond-transactions.actions';
 import {
-  selectFilters,
   selectLimit,
   selectOffset,
   selectIsPageCached,
@@ -142,116 +141,6 @@ export class BondTransactionsEffects {
           })
         );
       })
-    )
-  );
-
-  /**
-   * Apply Filters - Reload Transactions
-   */
-  applyFilters$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.applyFilters),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Clear Filters - Reload Transactions
-   */
-  clearFilters$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.clearFilters),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Set Date Range - Reload Transactions
-   */
-  setDateRange$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setDateRange),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Set Status Filter - Reload Transactions
-   */
-  setStatusFilter$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setStatusFilter),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
- * Set Transaction Type Filter - Reload Transactions
- */
-  setTransactionTypeFilter$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setTransactionTypeFilter),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Set Bond Filter - Reload Transactions
-   */
-  setBondFilter$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setBondFilter),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Set Partner Filter - Reload Transactions
-   */
-  setPartnerFilter$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setPartnerFilter),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Set Customer Filter - Reload Transactions
-   */
-  setCustomerFilter$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.setCustomerFilter),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Change Page - Reload Transactions
-   */
-  changePage$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.changePage),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
-    )
-  );
-
-  /**
-   * Change Page Size - Reload Transactions
-   */
-  changePageSize$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.changePageSize),
-      withLatestFrom(this.store.select(selectFilters)),
-      map(([_, filters]) => BondTransactionsActions.loadTransactions({ filters }))
     )
   );
 

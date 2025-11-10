@@ -1,6 +1,6 @@
 <div class="bond-transactions-page">
   <div class="page-container">
-    
+
     <!-- Page Header -->
     <div class="page-header">
       <div class="breadcrumbs">
@@ -27,305 +27,211 @@
           </div>
         </div>
       </div>
-
-      <!-- Stats Cards with Abbreviation and Tooltips -->
-      <!-- @if (stats$ | async; as stats) {
-        <div class="stats-cards">
-          <div class="stat-card total">
-            <div class="stat-icon">
-              <mat-icon>receipt_long</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Total Transactions</label>
-              <div class="stat-value" 
-                   [matTooltip]="shouldAbbreviate(stats.totalTransactions) ? formatNumberFull(stats.totalTransactions) : ''"
-                   matTooltipPosition="above">
-                {{ formatNumberShort(stats.totalTransactions) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card purchases">
-            <div class="stat-icon">
-              <mat-icon>shopping_cart</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Purchases</label>
-              <div class="stat-value"
-                   [matTooltip]="shouldAbbreviate(stats.totalPurchases) ? formatNumberFull(stats.totalPurchases) : ''"
-                   matTooltipPosition="above">
-                {{ formatNumberShort(stats.totalPurchases) }}
-              </div>
-              <div class="stat-subtext"
-                   [matTooltip]="shouldAbbreviate(stats.purchaseVolume || 0) ? formatCurrency(stats.purchaseVolume || 0) : ''"
-                   matTooltipPosition="above">
-                {{ formatCurrency(stats.purchaseVolume || 0) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card withdrawals">
-            <div class="stat-icon">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Withdrawals</label>
-              <div class="stat-value"
-                   [matTooltip]="shouldAbbreviate(stats.totalWithdrawals) ? formatNumberFull(stats.totalWithdrawals) : ''"
-                   matTooltipPosition="above">
-                {{ formatNumberShort(stats.totalWithdrawals) }}
-              </div>
-              <div class="stat-subtext"
-                   [matTooltip]="shouldAbbreviate(stats.withdrawalVolume || 0) ? formatCurrency(stats.withdrawalVolume || 0) : ''"
-                   matTooltipPosition="above">
-                {{ formatCurrency(stats.withdrawalVolume || 0) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card volume">
-            <div class="stat-icon">
-              <mat-icon>trending_up</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Total Volume</label>
-              <div class="stat-value"
-                   [matTooltip]="shouldAbbreviate(stats.totalVolume) ? formatCurrency(stats.totalVolume) : ''"
-                   matTooltipPosition="above">
-                {{ formatCurrency(stats.totalVolume) }}
-              </div>
-              <div class="stat-subtext"
-                   [matTooltip]="shouldAbbreviate(stats.averageTransactionSize) ? formatCurrency(stats.averageTransactionSize) : ''"
-                   matTooltipPosition="above">
-                Avg: {{ formatCurrency(stats.averageTransactionSize) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card pending">
-            <div class="stat-icon">
-              <mat-icon>schedule</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Pending</label>
-              <div class="stat-value"
-                   [matTooltip]="shouldAbbreviate(stats.pendingCount) ? formatNumberFull(stats.pendingCount) : ''"
-                   matTooltipPosition="above">
-                {{ formatNumberShort(stats.pendingCount) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card confirmed">
-            <div class="stat-icon">
-              <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="stat-content">
-              <label>Confirmed</label>
-              <div class="stat-value"
-                   [matTooltip]="shouldAbbreviate(stats.confirmedCount) ? formatNumberFull(stats.confirmedCount) : ''"
-                   matTooltipPosition="above">
-                {{ formatNumberShort(stats.confirmedCount) }}
-              </div>
-            </div>
-          </div>
-        </div>
-      } -->
     </div>
 
-    <!-- Filter Block -->
-    <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
-      <mat-card-header>
-        <div class="filter-header">
-          <div class="filter-header-left">
-            <button 
-              mat-icon-button 
-              class="toggle-btn"
-              (click)="toggleFilters()"
-              [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
-              <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-            </button>
-            
-            <div class="filter-title">
-              <mat-icon>filter_list</mat-icon>
-              <span>Filters</span>
-              @if (activeFiltersCount$ | async; as count) {
-                @if (count > 0) {
-                  <mat-chip class="active-filters-chip">{{ count }}</mat-chip>
-                }
-              }
-              @if (hasUnappliedFilters) {
-                <mat-chip class="unapplied-chip">Not Applied</mat-chip>
-              }
-            </div>
-          </div>
+    <!-- Floating Filter Button -->
+    <button
+      class="floating-filter-btn"
+      mat-fab
+      (click)="toggleFilterPanel()"
+      [matTooltip]="'Filter Transactions'"
+      matTooltipPosition="left">
+      <mat-icon>filter_list</mat-icon>
+      @if (getActiveFiltersCount() > 0) {
+        <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
+      }
+    </button>
 
-          <div class="filter-header-right">
-            @if (filtersExpanded) {
-              <button 
-                mat-button 
-                class="clear-header-btn"
-                (click)="resetFilters()"
-                [disabled]="(activeFiltersCount$ | async) === 0">
-                <mat-icon>clear_all</mat-icon>
-                <span>Clear</span>
-              </button>
-            }
-          </div>
+    <!-- Filter Offcanvas Overlay -->
+    <div
+      class="filter-offcanvas-overlay"
+      [class.show]="filterPanelOpen"
+      (click)="toggleFilterPanel()">
+    </div>
+
+    <!-- Filter Offcanvas Panel -->
+    <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+      <div class="offcanvas-header">
+        <div class="header-left">
+          <mat-icon>filter_list</mat-icon>
+          <h2>Filter Transactions</h2>
         </div>
-      </mat-card-header>
-
-      <div class="filter-content-wrapper" [class.show]="filtersExpanded">
-        <mat-card-content>
-          <form [formGroup]="filterForm" class="filter-form">
-            <div class="filter-grid">
-              <!-- Status Filter -->
-              <mat-form-field appearance="fill" class="filter-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  @for (option of statusOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>toggle_on</mat-icon>
-              </mat-form-field>
-
-              <!-- Type Filter -->
-              <mat-form-field appearance="fill" class="filter-field">
-                <mat-label>Transaction Type</mat-label>
-                <mat-select formControlName="type">
-                  @for (option of typeOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>category</mat-icon>
-              </mat-form-field>
-
-              <!-- Bond Search (Autocomplete) -->
-              <mat-form-field appearance="fill" class="filter-field">
-                <mat-label>Bond</mat-label>
-                <input 
-                  matInput 
-                  formControlName="bondSearch"
-                  [matAutocomplete]="bondAuto"
-                  placeholder="Search bond by name or code">
-                <mat-icon matPrefix>account_balance</mat-icon>
-                <mat-autocomplete 
-                  #bondAuto="matAutocomplete"
-                  [displayWith]="displayBond"
-                  (optionSelected)="onBondSelected($event.option.value)">
-                  @for (bond of filteredBonds$ | async; track bond.id) {
-                    <mat-option [value]="bond">
-                      <div class="autocomplete-option">
-                        <span class="option-name">{{ bond.name }}</span>
-                        <span class="option-code">{{ bond.code }}</span>
-                      </div>
-                    </mat-option>
-                  }
-                </mat-autocomplete>
-              </mat-form-field>
-
-              <!-- Partner Search (Autocomplete) - Disabled if from partner page -->
-              <mat-form-field appearance="fill" class="filter-field">
-                <mat-label>Partner</mat-label>
-                <input 
-                  matInput 
-                  formControlName="partnerSearch"
-                  [matAutocomplete]="partnerAuto"
-                  placeholder="Search partner by name or code"
-                  [readonly]="fromPartnerPage">
-                <mat-icon matPrefix>business</mat-icon>
-                @if (fromPartnerPage) {
-                  <mat-icon matSuffix matTooltip="Partner filter is locked when coming from partner page">lock</mat-icon>
-                }
-                <mat-autocomplete 
-                  #partnerAuto="matAutocomplete"
-                  [displayWith]="displayPartner"
-                  (optionSelected)="onPartnerSelected($event.option.value)">
-                  @for (partner of filteredPartners$ | async; track partner.id) {
-                    <mat-option [value]="partner">
-                      <div class="autocomplete-option">
-                        <span class="option-name">{{ partner.name }}</span>
-                        <span class="option-code">{{ partner.code }}</span>
-                      </div>
-                    </mat-option>
-                  }
-                </mat-autocomplete>
-              </mat-form-field>
-
-              <!-- Customer Search (Autocomplete) -->
-              <mat-form-field appearance="fill" class="filter-field">
-                <mat-label>Customer</mat-label>
-                <input 
-                  matInput 
-                  formControlName="customerSearch"
-                  [matAutocomplete]="customerAuto"
-                  placeholder="Search customer by name or email">
-                <mat-icon matPrefix>person</mat-icon>
-                <mat-autocomplete 
-                  #customerAuto="matAutocomplete"
-                  [displayWith]="displayCustomer"
-                  (optionSelected)="onCustomerSelected($event.option.value)">
-                  @for (customer of filteredCustomers$ | async; track customer.id) {
-                    <mat-option [value]="customer">
-                      <div class="autocomplete-option">
-                        <span class="option-name">{{ customer.firstName }} {{ customer.lastName }}</span>
-                        <span class="option-code">{{ customer.email }}</span>
-                      </div>
-                    </mat-option>
-                  }
-                </mat-autocomplete>
-              </mat-form-field>
-
-              <!-- Date Range Picker -->
-              <mat-form-field appearance="fill" class="filter-field date-range-field">
-                <mat-label>Date Range</mat-label>
-                <mat-date-range-input 
-                  [rangePicker]="dateRangePicker"
-                  [max]="maxDate"
-                  formGroupName="dateRange">
-                  <input 
-                    matStartDate 
-                    formControlName="start"
-                    placeholder="Start date">
-                  <input 
-                    matEndDate 
-                    formControlName="end"
-                    placeholder="End date">
-                </mat-date-range-input>
-                <mat-datepicker-toggle matIconSuffix [for]="dateRangePicker"></mat-datepicker-toggle>
-                <mat-date-range-picker #dateRangePicker></mat-date-range-picker>
-                <mat-icon matPrefix>date_range</mat-icon>
-              </mat-form-field>
-            </div>
-
-            <!-- Filter Actions -->
-            <div class="filter-actions">
-              <button 
-                mat-stroked-button 
-                type="button"
-                class="clear-btn"
-                (click)="resetFilters()"
-                [disabled]="(activeFiltersCount$ | async) === 0">
-                <mat-icon>clear_all</mat-icon>
-                Clear All
-              </button>
-
-              <button 
-                mat-raised-button 
-                color="primary"
-                type="button"
-                class="apply-btn"
-                (click)="applyFilters()"
-                [disabled]="!hasUnappliedFilters">
-                <mat-icon>check</mat-icon>
-                Apply Filters
-              </button>
-            </div>
-          </form>
-        </mat-card-content>
+        <button mat-icon-button (click)="toggleFilterPanel()">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
-    </mat-card>
+
+      <div class="offcanvas-body">
+        <form [formGroup]="filterForm" class="filter-form">
+
+          <!-- Status Filter -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              <span>Status</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select formControlName="status">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>category</mat-icon>
+              <span>Transaction Type</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select formControlName="type">
+                @for (option of typeOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Bond Search (Autocomplete) -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              <span>Bond</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <input
+                matInput
+                formControlName="bondSearch"
+                [matAutocomplete]="bondAuto"
+                placeholder="Search bond by name or code">
+              <mat-autocomplete
+                #bondAuto="matAutocomplete"
+                [displayWith]="displayBond"
+                (optionSelected)="onBondSelected($event.option.value)">
+                @for (bond of filteredBonds$ | async; track bond.id) {
+                  <mat-option [value]="bond">
+                    <div class="autocomplete-option">
+                      <span class="option-name">{{ bond.name }}</span>
+                      <span class="option-code">{{ bond.code }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Partner Search (Autocomplete) - Disabled if from partner page -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>business</mat-icon>
+              <span>Partner</span>
+              @if (fromPartnerPage) {
+                <mat-icon class="lock-icon" matTooltip="Partner filter is locked when coming from partner page">lock</mat-icon>
+              }
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <input
+                matInput
+                formControlName="partnerSearch"
+                [matAutocomplete]="partnerAuto"
+                placeholder="Search partner by name or code"
+                [readonly]="fromPartnerPage">
+              <mat-autocomplete
+                #partnerAuto="matAutocomplete"
+                [displayWith]="displayPartner"
+                (optionSelected)="onPartnerSelected($event.option.value)">
+                @for (partner of filteredPartners$ | async; track partner.id) {
+                  <mat-option [value]="partner">
+                    <div class="autocomplete-option">
+                      <span class="option-name">{{ partner.name }}</span>
+                      <span class="option-code">{{ partner.code }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Customer Search (Autocomplete) -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>person</mat-icon>
+              <span>Customer</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <input
+                matInput
+                formControlName="customerSearch"
+                [matAutocomplete]="customerAuto"
+                placeholder="Search customer by name or email">
+              <mat-autocomplete
+                #customerAuto="matAutocomplete"
+                [displayWith]="displayCustomer"
+                (optionSelected)="onCustomerSelected($event.option.value)">
+                @for (customer of filteredCustomers$ | async; track customer.id) {
+                  <mat-option [value]="customer">
+                    <div class="autocomplete-option">
+                      <span class="option-name">{{ customer.firstName }} {{ customer.lastName }}</span>
+                      <span class="option-code">{{ customer.email }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Date Range Picker -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>date_range</mat-icon>
+              <span>Date Range</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-date-range-input
+                [rangePicker]="dateRangePicker"
+                [max]="maxDate"
+                formGroupName="dateRange">
+                <input
+                  matStartDate
+                  formControlName="start"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="end"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="dateRangePicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #dateRangePicker></mat-date-range-picker>
+            </mat-form-field>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Offcanvas Footer -->
+      <div class="offcanvas-footer">
+        <button
+          mat-stroked-button
+          type="button"
+          class="reset-btn"
+          (click)="resetFilters()"
+          [disabled]="getActiveFiltersCount() === 0">
+          <mat-icon>clear_all</mat-icon>
+          Reset All
+        </button>
+
+        <button
+          mat-raised-button
+          type="button"
+          class="search-btn"
+          (click)="applyFilters()">
+          <mat-icon>search</mat-icon>
+          Apply Filters
+        </button>
+      </div>
+    </div>
 
     <!-- Error Alert -->
     @if (error$ | async; as error) {
@@ -351,7 +257,7 @@
         [config]="tableConfig"
         (pageChange)="onPageChange($event)"
         (sortChange)="onSortChange($event)">
-        
+
         <!-- Reference Template -->
         <ng-template appTableColumn="reference" let-row>
           <div class="reference-cell">

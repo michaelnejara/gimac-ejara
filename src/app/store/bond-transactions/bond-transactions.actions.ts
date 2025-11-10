@@ -31,16 +31,6 @@ export const BondTransactionsActions = createActionGroup({
     'Load Stats Success': props<{ stats: TransactionStats }>(),
     'Load Stats Failure': props<{ error: string }>(),
 
-    // Filter & Search
-    'Apply Filters': props<{ filters: TransactionFilterParams }>(),
-    'Clear Filters': emptyProps(),
-    'Set Date Range': props<{ dateFrom: string; dateTo: string }>(),
-    'Set Status Filter': props<{ status: string | null }>(),
-    'Set Transaction Type Filter': props<{ transactionType: string | null }>(), // FIXED: renamed from 'type' to 'transactionType'
-    'Set Bond Filter': props<{ bondId: number | null }>(),
-    'Set Partner Filter': props<{ partnerId: number | null }>(),
-    'Set Customer Filter': props<{ customerId: number | null }>(),
-
     // Pagination
     'Change Page': props<{ offset: number }>(),
     'Change Page Size': props<{ limit: number }>(),

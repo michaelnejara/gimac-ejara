@@ -104,86 +104,9 @@ export const bondTransactionsReducer = createReducer(
     statsLoading: false
   })),
 
-  // Filters
-  on(BondTransactionsActions.applyFilters, (state, { filters }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      ...filters,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.clearFilters, (state) => ({
-    ...state,
-    filters: {
-      limit: state.filters.limit,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.setDateRange, (state, { dateFrom, dateTo }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      dateFrom,
-      dateTo,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.setStatusFilter, (state, { status }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      status: status as any || undefined,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.setTransactionTypeFilter, (state, { transactionType }) => ({
-  ...state,
-  filters: {
-    ...state.filters,
-    type: transactionType as any || undefined, // Map transactionType to type in filters
-    offset: 0
-  }
-})),
-
-  on(BondTransactionsActions.setBondFilter, (state, { bondId }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      bondId: bondId || undefined,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.setPartnerFilter, (state, { partnerId }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      partnerId: partnerId || undefined,
-      offset: 0
-    }
-  })),
-
-  on(BondTransactionsActions.setCustomerFilter, (state, { customerId }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      customerId: customerId || undefined,
-      offset: 0
-    }
-  })),
-
   // Pagination
   on(BondTransactionsActions.changePage, (state, { offset }) => ({
     ...state,
-    filters: {
-      ...state.filters,
-      offset
-    },
     offset
   })),
 
@@ -192,11 +115,6 @@ export const bondTransactionsReducer = createReducer(
     return {
       ...state,
       pageCache: shouldClearCache ? {} : state.pageCache,
-      filters: {
-        ...state.filters,
-        limit,
-        offset: 0
-      },
       limit,
       offset: 0,
       previousPageSize: limit,
@@ -218,10 +136,6 @@ export const bondTransactionsReducer = createReducer(
   // Page Management
   on(BondTransactionsActions.resetToFirstPage, (state) => ({
     ...state,
-    filters: {
-      ...state.filters,
-      offset: 0
-    },
     offset: 0,
     activePage: 1
   })),

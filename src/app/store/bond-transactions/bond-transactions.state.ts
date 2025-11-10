@@ -39,9 +39,6 @@ export interface BondTransactionsState {
   // Selection
   selectedId: number | null;
 
-  // Filters & Search
-  filters: TransactionFilterParams;
-
   // Statistics
   stats: TransactionStats | null;
   statsLoading: boolean;
@@ -65,10 +62,6 @@ export const initialState: BondTransactionsState = {
   activePage: 1,
   previousPageSize: 20,
   selectedId: null,
-  filters: {
-    limit: 20,
-    offset: 0
-  },
   stats: null,
   statsLoading: false,
   total: 0,
@@ -174,13 +167,8 @@ export const selectStatsLoading = createSelector(
 );
 
 /**
- * Filter & Pagination Selectors
+ * Pagination Selectors
  */
-export const selectFilters = createSelector(
-  selectBondTransactionsState,
-  (state) => state.filters
-);
-
 export const selectTotal = createSelector(
   selectBondTransactionsState,
   (state) => state.total
@@ -222,18 +210,3 @@ export const selectError = createSelector(
   (state) => state.error
 );
 
-/**
- * Derived Selectors
- */
-export const selectHasFilters = createSelector(
-  selectFilters,
-  (filters) => !!(
-    filters.status ||
-    filters.type ||
-    filters.bondId ||
-    filters.partnerId ||
-    filters.customerId ||
-    filters.dateFrom ||
-    filters.dateTo
-  )
-);

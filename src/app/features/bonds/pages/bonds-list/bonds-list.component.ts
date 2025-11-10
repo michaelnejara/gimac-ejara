@@ -913,16 +913,26 @@ export class BondsListComponent implements OnInit, OnDestroy {
       const filters: BondFilterParams = {
         ...formValue,
         fiatCurrency: formValue.defaultFiatCurrency, // Map to correct filter parameter name
-        startDate: formValue.creationDateStart,
-        endDate: formValue.creationDateEnd,
-        startMaturityDate: formValue.maturityDateStart,
-        endMaturityDate: formValue.maturityDateEnd,
+        startDate: this.formatDateForApi(formValue.creationDateStart) as any,
+        endDate: this.formatDateForApi(formValue.creationDateEnd) as any,
+        startMaturityDate: this.formatDateForApi(formValue.maturityDateStart) as any,
+        endMaturityDate: this.formatDateForApi(formValue.maturityDateEnd) as any,
         limit: 20,
         offset: 0
       };
 
-      // Remove the incorrectly named field
+      // Remove the incorrectly named field and undefined/null date fields
       delete (filters as any).defaultFiatCurrency;
+      delete (filters as any).creationDateStart;
+      delete (filters as any).creationDateEnd;
+      delete (filters as any).maturityDateStart;
+      delete (filters as any).maturityDateEnd;
+
+      // Remove null date values
+      if (!filters.startDate) delete (filters as any).startDate;
+      if (!filters.endDate) delete (filters as any).endDate;
+      if (!filters.startMaturityDate) delete (filters as any).startMaturityDate;
+      if (!filters.endMaturityDate) delete (filters as any).endMaturityDate;
 
       // Load filtered data directly (filters managed locally)
       this.store.dispatch(BondsActions.loadBonds({ filters }));
@@ -1189,6 +1199,24 @@ export class BondsListComponent implements OnInit, OnDestroy {
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  /**
+   * Format date for API - converts Date object to DD/MM/YYYY format
+   */
+  formatDateForApi(date: Date | string | null): string | null {
+    if (!date) return null;
+
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Ensure valid date
+    if (isNaN(dateObj.getTime())) return null;
+
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = dateObj.getFullYear();
+
+    return `${day}/${month}/${year}`;
   }
 
   formatPercentage(value: number): string {

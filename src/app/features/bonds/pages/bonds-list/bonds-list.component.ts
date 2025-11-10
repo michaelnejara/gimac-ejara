@@ -460,21 +460,21 @@ export class BondsListComponent implements OnInit, OnDestroy {
           key: 'bondName',
           label: 'Bond Name',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '280px'
         },
         {
           key: 'bondCode',
           label: 'Bond Code',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
         {
           key: 'partnerName',
           label: 'Partner',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '220px'
         },
         {
@@ -482,7 +482,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Investment',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
         {
@@ -490,7 +490,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Current Value',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
         {
@@ -498,28 +498,28 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Interest Earned',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
         {
           key: 'purchaseDate',
           label: 'Purchase Date',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '170px'
         },
         {
           key: 'maturityDate',
           label: 'Maturity Date',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '170px'
         },
         {
           key: 'status',
           label: 'Status',
           type: 'badge',
-          sortable: true,
+          sortable: false,
           width: '140px',
           badgeConfig: {
             colorMap: {
@@ -537,14 +537,14 @@ export class BondsListComponent implements OnInit, OnDestroy {
           key: 'name',
           label: 'Bond Name',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '220px'
         },
         {
           key: 'code',
           label: 'Bond Code',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '160px'
         },
         {
@@ -565,14 +565,14 @@ export class BondsListComponent implements OnInit, OnDestroy {
           key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
         {
           key: 'issuerType',
           label: 'Issuer Type',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '140px'
         },
         {
@@ -580,7 +580,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Customer Rate',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '140px'
         },
         {
@@ -588,21 +588,21 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Daily Rate',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '130px'
         },
         {
           key: 'currency',
           label: 'Currency',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '110px'
         },
         {
           key: 'maturityDate',
           label: 'Maturity Date',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '150px'
         },
         {
@@ -610,7 +610,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Rank',
           type: 'template',
           align: 'center',
-          sortable: true,
+          sortable: false,
           width: '90px'
         },
         {
@@ -618,14 +618,14 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'In App',
           type: 'template',
           align: 'center',
-          sortable: true,
+          sortable: false,
           width: '100px'
         },
         {
           key: 'status',
           label: 'Status',
           type: 'badge',
-          sortable: true,
+          sortable: false,
           width: '120px',
           badgeConfig: {
             colorMap: {
@@ -643,36 +643,36 @@ export class BondsListComponent implements OnInit, OnDestroy {
           key: 'name',
           label: 'Bond Name',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '220px'
         },
         {
           key: 'code',
           label: 'Code',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '140px'
         },
         {
           key: 'issuerNameEn',
           label: 'Issuer',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '180px'
         },
-        {
-          key: 'issuerType',
-          label: 'Type',
-          type: 'template',
-          sortable: true,
-          width: '120px'
-        },
+        // {
+        //   key: 'issuerType',
+        //   label: 'Type',
+        //   type: 'template',
+        //   sortable: false,
+        //   width: '120px'
+        // },
         {
           key: 'amount',
           label: 'Total Amount',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '150px'
         },
         {
@@ -680,7 +680,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Purchased',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '150px'
         },
         {
@@ -688,7 +688,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Available',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '150px'
         },
         {
@@ -696,28 +696,42 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Interest',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '110px'
         },
         {
           key: 'defaultFiatCurrency',
           label: 'Currency',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '110px'
         },
         {
           key: 'lifetime',
           label: 'Lifetime',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '120px'
+        },
+        {
+          key: 'dateCreated',
+          label: 'Creation Date',
+          type: 'template',
+          sortable: false,
+          width: '150px'
+        },
+        {
+          key: 'startDate',
+          label: 'Start Date',
+          type: 'template',
+          sortable: false,
+          width: '250px'
         },
         {
           key: 'maturityDate',
           label: 'Maturity Date',
           type: 'template',
-          sortable: true,
+          sortable: false,
           width: '150px'
         },
         {
@@ -725,21 +739,21 @@ export class BondsListComponent implements OnInit, OnDestroy {
           label: 'Progress',
           type: 'template',
           align: 'right',
-          sortable: true,
+          sortable: false,
           width: '120px'
         },
-        {
-          key: 'blockchain',
-          label: 'Blockchain',
-          type: 'template',
-          sortable: true,
-          width: '130px'
-        },
+        // {
+        //   key: 'blockchain',
+        //   label: 'Blockchain',
+        //   type: 'template',
+        //   sortable: false,
+        //   width: '130px'
+        // },
         {
           key: 'status',
           label: 'Status',
           type: 'badge',
-          sortable: true,
+          sortable: false,
           width: '120px',
           badgeConfig: {
             colorMap: {

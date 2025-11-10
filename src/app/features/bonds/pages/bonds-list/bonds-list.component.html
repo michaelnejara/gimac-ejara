@@ -598,6 +598,22 @@
         </div>
       </ng-template>
 
+      <!-- Creation Date Template -->
+      <ng-template appTableColumn="dateCreated" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">event</mat-icon>
+          <span>{{ formatDate(row.dateCreated) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Start Date Template -->
+      <ng-template appTableColumn="startDate" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">event</mat-icon>
+          <span>{{ formatDate(row.startDate) }}</span>
+        </div>
+      </ng-template>
+
       <!-- Maturity Date Template -->
       <ng-template appTableColumn="maturityDate" let-row>
         <div class="date-cell">
@@ -709,15 +725,15 @@
             </button>
           }
 
-          @if (context === 'default') {
-            <mat-divider></mat-divider>
+          <!-- @if (context === 'default') { -->
+            <!-- <mat-divider></mat-divider> -->
             
             <!-- Delete Bond (Default context) -->
-            <button mat-menu-item class="delete-action" (click)="deleteBond(row)">
+            <!-- <button mat-menu-item class="delete-action" (click)="deleteBond(row)">
               <mat-icon class="menu-icon">delete</mat-icon>
               <span>Delete Bond</span>
-            </button>
-          }
+            </button> -->
+          <!-- } -->
         </mat-menu>
       </ng-template>
 

@@ -100,9 +100,9 @@ export const bondsReducer = createReducer(
 
   on(BondsActions.createBondSuccess, (state) => ({
     ...state,
+    pageCache: {}, // Clear page cache to force reload
     creating: false,
     error: null
-    // Note: Bond will be added when list is reloaded
   })),
 
   on(BondsActions.createBondFailure, (state, { error }) => ({
@@ -120,9 +120,9 @@ export const bondsReducer = createReducer(
 
   on(BondsActions.updateBondSuccess, (state) => ({
     ...state,
+    pageCache: {}, // Clear page cache to force reload
     updating: false,
     error: null
-    // Note: Bond will be updated when list is reloaded
   })),
 
   on(BondsActions.updateBondFailure, (state, { error }) => ({

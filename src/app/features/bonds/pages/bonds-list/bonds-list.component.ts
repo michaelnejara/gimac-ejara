@@ -40,8 +40,7 @@ import {
   selectCustomerBonds,
   selectLoading,
   selectError,
-  selectPagination,
-  selectFilters
+  selectPagination
 } from '@store/bonds/bonds.state';
 
 // Store - Partners Actions (for assigning/removing bonds)
@@ -115,13 +114,16 @@ export class BondsListComponent implements OnInit, OnDestroy {
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
   pagination$!: Observable<any>;
-  currentFilters$!: Observable<any>;
-  activeFiltersCount$!: Observable<number>;
   partner$!: Observable<any>; // Partner data for partner context
+
+  // Active filters count (computed from local form)
+  activeFiltersCount = 0;
+  activeFiltersCount$!: Observable<number>; // Observable for template async pipe
 
   // UI State
   filtersExpanded = false;
   hasUnappliedFilters = false;
+  filterPanelOpen = false; // Offcanvas panel state
 
   // Filter Form
   filterForm!: FormGroup;
@@ -378,7 +380,6 @@ export class BondsListComponent implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
     this.pagination$ = this.store.select(selectPagination);
-    this.currentFilters$ = this.store.select(selectFilters);
 
     // Select bonds based on context
     if (this.context === 'customer') {
@@ -400,10 +401,6 @@ export class BondsListComponent implements OnInit, OnDestroy {
         partnerId: this.partnerId
       }));
     }
-
-    this.activeFiltersCount$ = this.currentFilters$.pipe(
-      map(filters => this.countActiveFilters(filters))
-    );
   }
 
   /**
@@ -803,12 +800,23 @@ export class BondsListComponent implements OnInit, OnDestroy {
    * Setup filter subscriptions
    */
   private setupFilterSubscriptions(): void {
+    // Create observable for active filters count
+    this.activeFiltersCount$ = this.filterForm.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      map(formValue => this.countActiveFilters(formValue)),
+      takeUntil(this.destroy$)
+    );
+
+    // Also update the property value
     this.filterForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.hasUnappliedFilters = true;
+      // Update active filters count from local form
+      this.activeFiltersCount = this.countActiveFilters(this.filterForm.value);
     });
   }
 
@@ -875,9 +883,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
-      // Update filters in store first (for activeFiltersCount)
-      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
-      // Then load filtered data (bypass cache)
+      // Load filtered data directly (filters managed locally)
       this.store.dispatch(BondsActions.loadCustomerBonds({ filters }));
     } else if (this.context === 'partner') {
       if (!this.partnerId) {
@@ -891,9 +897,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
         limit: 20,
         offset: 0
       };
-      // Update filters in store first (for activeFiltersCount)
-      this.store.dispatch(BondsActions.applyFilters({ filters: filters as any }));
-      // Then load filtered data (bypass cache)
+      // Load filtered data directly (filters managed locally)
       this.store.dispatch(BondsActions.loadPartnerBonds({ filters }));
     } else {
       const filters: BondFilterParams = {
@@ -910,9 +914,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
       // Remove the incorrectly named field
       delete (filters as any).defaultFiatCurrency;
 
-      // Update filters in store first (for activeFiltersCount)
-      this.store.dispatch(BondsActions.applyFilters({ filters }));
-      // Then load filtered data (bypass cache)
+      // Load filtered data directly (filters managed locally)
       this.store.dispatch(BondsActions.loadBonds({ filters }));
     }
 
@@ -934,31 +936,28 @@ export class BondsListComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Dispatch clear filters action which will reload with empty filters
-    this.store.dispatch(BondsActions.clearFilters());
+    // Reload bonds with empty filters
+    this.loadBonds();
     this.hasUnappliedFilters = false;
+    this.activeFiltersCount = 0;
   }
 
   /**
-   * Count active filters
+   * Count active filters from form values
    */
-  private countActiveFilters(filters: any): number {
+  private countActiveFilters(formValue: any): number {
     let count = 0;
-    const excludeKeys = ['limit', 'offset', 'partnerId', 'customerId', 'startDate', 'endDate', 'startMaturityDate', 'endMaturityDate'];
+    const excludeKeys = ['partnerId', 'customerId'];
 
-    Object.keys(filters).forEach(key => {
-      if (!excludeKeys.includes(key) && filters[key]) {
+    Object.keys(formValue).forEach(key => {
+      if (!excludeKeys.includes(key) && formValue[key] !== null && formValue[key] !== '' && formValue[key] !== undefined) {
+        // Don't count end dates separately if they're part of a range
+        if (key === 'creationDateEnd' || key === 'maturityDateEnd') {
+          return;
+        }
         count++;
       }
     });
-
-    // Count date ranges as single filters
-    if (filters.startDate || filters.endDate) {
-      count++;
-    }
-    if (filters.startMaturityDate || filters.endMaturityDate) {
-      count++;
-    }
 
     return count;
   }
@@ -968,6 +967,35 @@ export class BondsListComponent implements OnInit, OnDestroy {
    */
   toggleFilters(): void {
     this.filtersExpanded = !this.filtersExpanded;
+  }
+
+  /**
+   * Toggle filter panel (offcanvas)
+   */
+  toggleFilterPanel(): void {
+    this.filterPanelOpen = !this.filterPanelOpen;
+  }
+
+  /**
+   * Close filter panel (offcanvas)
+   */
+  closeFilterPanel(): void {
+    this.filterPanelOpen = false;
+  }
+
+  /**
+   * Get active filters count for template
+   */
+  getActiveFiltersCount(): number {
+    return this.activeFiltersCount;
+  }
+
+  /**
+   * Apply filters and close the offcanvas panel
+   */
+  applyFiltersAndClose(): void {
+    this.applyFilters();
+    this.closeFilterPanel();
   }
 
   /**
@@ -983,11 +1011,17 @@ export class BondsListComponent implements OnInit, OnDestroy {
 
   /**
    * Navigate to all bonds (default context)
+   * Force component destruction and recreation by navigating away first
    */
   viewAllBonds(): void {
-    // Reset state and navigate to default bonds view
+    // Reset state
     this.store.dispatch(BondsActions.resetForContextView());
-    this.router.navigate(['/bonds']);
+
+    // Force component destruction by navigating to a dummy route then back
+    // This ensures clean state when switching from partner/customer context to default
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/bonds']);
+    });
   }
 
   /**

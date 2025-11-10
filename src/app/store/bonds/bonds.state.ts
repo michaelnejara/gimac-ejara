@@ -45,8 +45,7 @@ export interface BondsState {
   selectedId: number | null;
   selectedIds: number[];
 
-  // Filters & Search
-  filters: BondFilterParams;
+  // Pagination tracking
   previousPageSize: number; // Track page size changes
 
   // View mode and context
@@ -83,10 +82,6 @@ export const initialState: BondsState = {
 
   selectedId: null,
   selectedIds: [],
-  filters: {
-    limit: 20,
-    offset: 0
-  },
   previousPageSize: 20,
   viewMode: 'all',
   activePartnerId: null,
@@ -277,13 +272,8 @@ export const selectActivePartnerId = createSelector(
 );
 
 /**
- * Filter & Pagination Selectors
+ * Pagination Selectors
  */
-export const selectFilters = createSelector(
-  selectBondsState,
-  (state) => state.filters
-);
-
 export const selectTotal = createSelector(
   selectBondsState,
   (state) => state.total
@@ -373,18 +363,6 @@ export const selectBondsByIssuer = (issuer: string) => createSelector(
   (bonds) => bonds.filter((b: Bond) =>
     b.issuerNameEn.toLowerCase().includes(issuer.toLowerCase()) ||
     b.issuerNameFr.toLowerCase().includes(issuer.toLowerCase())
-  )
-);
-
-export const selectHasFilters = createSelector(
-  selectFilters,
-  (filters) => !!(
-    filters.status ||
-    filters.keyword ||
-    filters.bondName ||
-    filters.bondCode ||
-    filters.fiatCurrency ||
-    filters.issuer
   )
 );
 

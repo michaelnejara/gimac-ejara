@@ -145,266 +145,314 @@
     }
   </div>
 
-  <!-- Active Filters Banner -->
-  @if (activeFiltersCount$ | async; as count) {
-    @if (count > 0) {
-      <div class="active-filters-banner">
-        <div class="banner-content">
-          <mat-icon class="banner-icon">filter_alt</mat-icon>
-          <span class="banner-text">
-            <strong>{{ count }}</strong> {{ count === 1 ? 'filter' : 'filters' }} applied
-          </span>
-        </div>
-        <button
-          mat-button
-          class="clear-banner-btn"
-          (click)="resetFilters()">
-          <mat-icon>close</mat-icon>
-          Clear All Filters
-        </button>
-      </div>
+  <!-- Floating Filter Button -->
+  <button
+    class="floating-filter-btn"
+    mat-fab
+    (click)="toggleFilterPanel()"
+    [matTooltip]="'Filter Bonds'"
+    matTooltipPosition="left"
+  >
+    <mat-icon>filter_list</mat-icon>
+    @if (getActiveFiltersCount() > 0) {
+      <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
     }
-  }
+  </button>
 
-  <!-- Filter Block -->
-  <mat-card class="filter-card" [class.collapsed]="!filtersExpanded">
-    <mat-card-header>
-      <div class="filter-header">
-        <div class="filter-header-left">
-          <button
-            mat-icon-button
-            class="toggle-btn"
-            [class.has-active-filters]="(activeFiltersCount$ | async)! > 0"
-            (click)="toggleFilters()"
-            [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
-            <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-            @if (!filtersExpanded && (activeFiltersCount$ | async); as count) {
-              @if (count > 0) {
-                <span class="filter-badge">{{ count }}</span>
-              }
-            }
-          </button>
+  <!-- Filter Offcanvas Panel -->
+  <div class="filter-offcanvas-overlay" [class.show]="filterPanelOpen" (click)="closeFilterPanel()"></div>
 
-          <div class="filter-title">
-            <mat-icon [class.active-filter-icon]="(activeFiltersCount$ | async)! > 0">filter_list</mat-icon>
-            <span>Filters</span>
-            @if (activeFiltersCount$ | async; as count) {
-              @if (count > 0) {
-                <mat-chip class="active-filters-chip">{{ count }}</mat-chip>
-              }
-            }
-            @if (hasUnappliedFilters) {
-              <mat-chip class="unapplied-chip">Not Applied</mat-chip>
-            }
-          </div>
-        </div>
-
-        <div class="filter-header-right">
-          @if (filtersExpanded) {
-            <button 
-              mat-button 
-              class="clear-header-btn"
-              (click)="resetFilters()"
-              [disabled]="(activeFiltersCount$ | async) === 0">
-              <mat-icon>clear_all</mat-icon>
-              <span>Clear</span>
-            </button>
-          }
-        </div>
+  <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+    <div class="offcanvas-header">
+      <div class="header-left">
+        <mat-icon>filter_list</mat-icon>
+        <h2>Filter Bonds</h2>
       </div>
-    </mat-card-header>
-
-    <div class="filter-content-wrapper" [class.show]="filtersExpanded">
-      <mat-card-content>
-        <form [formGroup]="filterForm" class="filter-form">
-          
-          <!-- Customer Context Filters -->
-          @if (context === 'customer') {
-            <div class="filter-grid">
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Bond Name</mat-label>
-                <input matInput formControlName="bondName" placeholder="Search bond name">
-                <mat-icon matPrefix>account_balance</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  @for (option of statusOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>toggle_on</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Search</mat-label>
-                <input matInput formControlName="keyword" placeholder="Search bonds, partners">
-                <mat-icon matPrefix>search</mat-icon>
-              </mat-form-field>
-            </div>
-          }
-
-          <!-- Partner Context Filters -->
-          @if (context === 'partner') {
-            <div class="filter-grid">
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Bond Name</mat-label>
-                <input matInput formControlName="bondName" placeholder="Search bond name">
-                <mat-icon matPrefix>account_balance</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Bond Code</mat-label>
-                <input matInput formControlName="bondCode" placeholder="Enter bond code">
-                <mat-icon matPrefix>tag</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  @for (option of statusOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>toggle_on</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Search</mat-label>
-                <input matInput formControlName="keyword" placeholder="Search bond names">
-                <mat-icon matPrefix>search</mat-icon>
-              </mat-form-field>
-            </div>
-          }
-
-          <!-- Default Context Filters -->
-          @if (context === 'default') {
-            <div class="filter-grid">
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Bond Name</mat-label>
-                <input matInput formControlName="bondName" placeholder="Exact bond name">
-                <mat-icon matPrefix>account_balance</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Bond Code</mat-label>
-                <input matInput formControlName="bondCode" placeholder="Exact bond code">
-                <mat-icon matPrefix>tag</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  @for (option of statusOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>toggle_on</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Currency</mat-label>
-                <mat-select formControlName="defaultFiatCurrency">
-                  <mat-option value="">All Currencies</mat-option>
-                  @for (option of currencyOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matPrefix>attach_money</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Issuer</mat-label>
-                <input matInput formControlName="issuerNameEn" placeholder="Bond issuer">
-                <mat-icon matPrefix>business</mat-icon>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="filter-field">
-                <mat-label>Search</mat-label>
-                <input matInput formControlName="keyword" placeholder="Search name, code, issuer">
-                <mat-icon matPrefix>search</mat-icon>
-              </mat-form-field>
-
-              <!-- Creation Date Range -->
-              <mat-form-field appearance="outline" class="filter-field date-range-field">
-                <mat-label>Creation Date Range</mat-label>
-                <mat-date-range-input [rangePicker]="creationPicker" [max]="maxDate">
-                  <input 
-                    matStartDate 
-                    formControlName="creationDateStart" 
-                    placeholder="Start date">
-                  <input 
-                    matEndDate 
-                    formControlName="creationDateEnd" 
-                    placeholder="End date">
-                </mat-date-range-input>
-                <mat-datepicker-toggle matIconSuffix [for]="creationPicker"></mat-datepicker-toggle>
-                <mat-date-range-picker #creationPicker></mat-date-range-picker>
-                <mat-icon matPrefix>date_range</mat-icon>
-                
-                @if (filterForm.get('creationDateStart')?.hasError('futureDate')) {
-                  <mat-error>Start date cannot be in the future</mat-error>
-                }
-                @if (filterForm.get('creationDateEnd')?.hasError('futureDate')) {
-                  <mat-error>End date cannot be in the future</mat-error>
-                }
-                @if (filterForm.get('creationDateEnd')?.hasError('dateRangeInvalid')) {
-                  <mat-error>End date must be after start date</mat-error>
-                }
-              </mat-form-field>
-
-              <!-- Maturity Date Range -->
-              <mat-form-field appearance="outline" class="filter-field date-range-field">
-                <mat-label>Maturity Date Range</mat-label>
-                <mat-date-range-input [rangePicker]="maturityPicker">
-                  <input 
-                    matStartDate 
-                    formControlName="maturityDateStart" 
-                    placeholder="Start date">
-                  <input 
-                    matEndDate 
-                    formControlName="maturityDateEnd" 
-                    placeholder="End date">
-                </mat-date-range-input>
-                <mat-datepicker-toggle matIconSuffix [for]="maturityPicker"></mat-datepicker-toggle>
-                <mat-date-range-picker #maturityPicker></mat-date-range-picker>
-                <mat-icon matPrefix>event</mat-icon>
-                
-                @if (filterForm.get('maturityDateEnd')?.hasError('dateRangeInvalid')) {
-                  <mat-error>End date must be after start date</mat-error>
-                }
-              </mat-form-field>
-            </div>
-          }
-
-          <!-- Filter Actions -->
-          <div class="filter-actions">
-            <button 
-              mat-stroked-button 
-              type="button"
-              class="clear-btn"
-              (click)="resetFilters()"
-              [disabled]="(activeFiltersCount$ | async) === 0">
-              <mat-icon>clear_all</mat-icon>
-              Clear All
-            </button>
-
-            <button 
-              mat-raised-button 
-              color="primary"
-              type="button"
-              class="apply-btn"
-              (click)="applyFilters()"
-              [disabled]="!hasUnappliedFilters">
-              <mat-icon>check</mat-icon>
-              Apply Filters
-            </button>
-          </div>
-        </form>
-      </mat-card-content>
+      <button mat-icon-button (click)="closeFilterPanel()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-  </mat-card>
+
+    <div class="offcanvas-body">
+      <form [formGroup]="filterForm" class="filter-form">
+        <!-- Customer Context Filters -->
+        @if (context === 'customer') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Search bond name">
+            </mat-form-field>
+            <p class="filter-hint">Search bonds by name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search bonds, partners">
+            </mat-form-field>
+            <p class="filter-hint">Search across all fields</p>
+          </div>
+        }
+
+        <!-- Partner Context Filters -->
+        @if (context === 'partner') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Search bond name">
+            </mat-form-field>
+            <p class="filter-hint">Search bonds by name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>tag</mat-icon>
+              Bond Code
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Code</mat-label>
+              <input matInput formControlName="bondCode" placeholder="Enter bond code">
+            </mat-form-field>
+            <p class="filter-hint">Exact bond code</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search bond names">
+            </mat-form-field>
+            <p class="filter-hint">Search across bond fields</p>
+          </div>
+        }
+
+        <!-- Default Context Filters -->
+        @if (context === 'default') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Exact bond name">
+            </mat-form-field>
+            <p class="filter-hint">Exact name match</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>tag</mat-icon>
+              Bond Code
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Code</mat-label>
+              <input matInput formControlName="bondCode" placeholder="Exact bond code">
+            </mat-form-field>
+            <p class="filter-hint">Exact code match</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>attach_money</mat-icon>
+              Currency
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Currency</mat-label>
+              <mat-select formControlName="defaultFiatCurrency" panelClass="bond-currency-dropdown">
+                <mat-option value="">All Currencies</mat-option>
+                @for (option of currencyOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter by currency type</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>business</mat-icon>
+              Issuer
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Issuer</mat-label>
+              <input matInput formControlName="issuerNameEn" placeholder="Bond issuer">
+            </mat-form-field>
+            <p class="filter-hint">Filter by issuer name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search Keywords
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search name, code, issuer">
+              @if (filterForm.get('keyword')?.value) {
+                <button
+                  matSuffix
+                  mat-icon-button
+                  (click)="filterForm.patchValue({ keyword: '' })"
+                  type="button"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Search across name, code, and issuer</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>date_range</mat-icon>
+              Creation Date Range
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Creation Date Range</mat-label>
+              <mat-date-range-input [rangePicker]="creationPicker" [max]="maxDate">
+                <input
+                  matStartDate
+                  formControlName="creationDateStart"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="creationDateEnd"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="creationPicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #creationPicker></mat-date-range-picker>
+
+              @if (filterForm.get('creationDateStart')?.hasError('futureDate')) {
+                <mat-error>Start date cannot be in the future</mat-error>
+              }
+              @if (filterForm.get('creationDateEnd')?.hasError('futureDate')) {
+                <mat-error>End date cannot be in the future</mat-error>
+              }
+              @if (filterForm.get('creationDateEnd')?.hasError('dateRangeInvalid')) {
+                <mat-error>End date must be after start date</mat-error>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Filter by bond creation date</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>event</mat-icon>
+              Maturity Date Range
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Maturity Date Range</mat-label>
+              <mat-date-range-input [rangePicker]="maturityPicker">
+                <input
+                  matStartDate
+                  formControlName="maturityDateStart"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="maturityDateEnd"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="maturityPicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #maturityPicker></mat-date-range-picker>
+
+              @if (filterForm.get('maturityDateEnd')?.hasError('dateRangeInvalid')) {
+                <mat-error>End date must be after start date</mat-error>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Filter by maturity date</p>
+          </div>
+        }
+      </form>
+    </div>
+
+    <!-- Filter Actions -->
+    <div class="offcanvas-footer">
+      <button
+        mat-stroked-button
+        type="button"
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="getActiveFiltersCount() === 0"
+      >
+        <mat-icon>refresh</mat-icon>
+        Reset
+      </button>
+
+      <button
+        mat-raised-button
+        type="button"
+        class="search-btn"
+        (click)="applyFiltersAndClose()"
+      >
+        <mat-icon>search</mat-icon>
+        Search
+      </button>
+    </div>
+  </div>
 
   <!-- Error Alert -->
   @if (error$ | async; as error) {

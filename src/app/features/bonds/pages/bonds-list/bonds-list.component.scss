@@ -1286,7 +1286,27 @@
     }
   }
 
-  // Dropdown Panels - CRITICAL: High z-index to appear above offcanvas
+}
+
+// CRITICAL: Global styles for Material overlays (dropdowns, datepickers)
+// These MUST be outside the component scope or use ::ng-deep to affect CDK overlays
+::ng-deep {
+  // CDK Overlay Container - Set base z-index for all overlays
+  .cdk-overlay-container {
+    z-index: 2000;
+  }
+
+  // CDK Overlay Pane - Ensure all overlay panes appear above offcanvas
+  .cdk-overlay-pane {
+    z-index: 2000 !important;
+  }
+
+  // CDK Overlay Backdrop - Below the overlay pane
+  .cdk-overlay-backdrop {
+    z-index: 1999 !important;
+  }
+
+  // Material Select Dropdown Panels
   .mat-mdc-select-panel {
     background: white !important;
     border-radius: 10px;
@@ -1294,63 +1314,38 @@
     border: 1px solid #e2e8f0;
     margin-top: 8px;
     padding: 8px;
-    z-index: 2000 !important; // Ensure dropdowns appear above offcanvas (z-index: 1002)
+    z-index: 2000 !important; // Above offcanvas (z-index: 1002)
   }
 
-  // Bond Status and Currency Dropdowns - Custom high z-index
-  .bond-status-dropdown,
-  .bond-currency-dropdown {
-    z-index: 2000 !important;
-  }
-
-  // CDK Overlay for bond dropdowns
-  .cdk-overlay-container:has(.bond-status-dropdown),
-  .cdk-overlay-container:has(.bond-currency-dropdown) {
-    z-index: 2000 !important;
-  }
-
-  .cdk-overlay-pane:has(.bond-status-dropdown),
-  .cdk-overlay-pane:has(.bond-currency-dropdown) {
-    z-index: 2000 !important;
-  }
-
-  // CDK Overlay backdrop and container for select dropdowns
-  .cdk-overlay-container {
-    z-index: 2000;
-  }
-
-  .cdk-overlay-pane {
-    z-index: 2000 !important;
-  }
-
+  // Material Select Options
   .mat-mdc-select-panel .mat-mdc-option {
     padding: 10px 16px;
     border-radius: 6px;
     min-height: 40px;
     font-size: 14px;
     transition: all 0.2s;
+
+    &:hover {
+      background: #f8fafc;
+    }
+
+    &.mat-mdc-option-active {
+      background: #eff6ff;
+      color: #1e40af;
+    }
+
+    &.mdc-list-item--selected {
+      background: #eff6ff;
+      color: #1e40af;
+
+      &:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+        color: #1e40af;
+        font-weight: 500;
+      }
+    }
   }
 
-  .mat-mdc-select-panel .mat-mdc-option:hover {
-    background: #f8fafc;
-  }
-
-  .mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active {
-    background: #eff6ff;
-    color: #1e40af;
-  }
-
-  .mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected {
-    background: #eff6ff;
-    color: #1e40af;
-  }
-
-  .mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
-    color: #1e40af;
-    font-weight: 500;
-  }
-
-  // Date range picker panel styling
+  // Material Datepicker
   .mat-datepicker-content {
     z-index: 2000 !important;
 
@@ -1365,9 +1360,20 @@
     }
   }
 
-  // Datepicker backdrop
+  // Datepicker Backdrop
   .cdk-overlay-backdrop.mat-datepicker-backdrop {
     z-index: 1999 !important;
+  }
+
+  // Material Datepicker Toggle Button
+  .mat-datepicker-toggle {
+    .mat-mdc-icon-button {
+      color: #64748b;
+
+      &:hover {
+        color: #8658ff;
+      }
+    }
   }
 
   // Old filter field styles (for backward compatibility if needed)

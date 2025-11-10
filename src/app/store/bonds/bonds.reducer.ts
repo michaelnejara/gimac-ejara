@@ -236,40 +236,10 @@ export const bondsReducer = createReducer(
     error
   })),
 
-  // Filters
-  on(BondsActions.applyFilters, (state, { filters }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      ...filters,
-      offset: 0
-    }
-  })),
-
-  on(BondsActions.clearFilters, (state) => ({
-    ...state,
-    filters: {
-      limit: state.filters.limit,
-      offset: 0
-    }
-  })),
-
-  on(BondsActions.setSearchKeyword, (state, { keyword }) => ({
-    ...state,
-    filters: {
-      ...state.filters,
-      keyword,
-      offset: 0
-    }
-  })),
-
   // Pagination
   on(BondsActions.changePage, (state, { offset }) => ({
     ...state,
-    filters: {
-      ...state.filters,
-      offset
-    }
+    offset
   })),
 
   on(BondsActions.changePageSize, (state, { limit }) => {
@@ -278,11 +248,6 @@ export const bondsReducer = createReducer(
 
     return {
       ...state,
-      filters: {
-        ...state.filters,
-        limit,
-        offset: 0
-      },
       limit,
       offset: 0,
       activePage: 1,
@@ -339,11 +304,7 @@ export const bondsReducer = createReducer(
   on(BondsActions.resetToFirstPage, (state) => ({
     ...state,
     activePage: 1,
-    offset: 0,
-    filters: {
-      ...state.filters,
-      offset: 0
-    }
+    offset: 0
   })),
 
   // Reset for context view (partner/customer)
@@ -356,10 +317,6 @@ export const bondsReducer = createReducer(
     partnerBondsPageCache: {},
     // Reset to first page
     activePage: 1,
-    offset: 0,
-    filters: {
-      ...state.filters,
-      offset: 0
-    }
+    offset: 0
   }))
 );

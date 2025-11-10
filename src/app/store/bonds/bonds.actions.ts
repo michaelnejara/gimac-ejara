@@ -10,6 +10,7 @@ import {
   CustomerBondFilterParams,
   CustomerBondHolding
 } from '@core/models/bond.models';
+import { BondsContext } from './bonds.state';
 
 /**
  * Bonds Actions
@@ -91,6 +92,7 @@ export const BondsActions = createActionGroup({
     // View Mode
     'Set View Mode': props<{ mode: 'all' | 'partner' | 'customer' }>(),
     'Set Active Partner': props<{ partnerId: number | null }>(),
+    'Set Bonds Context': props<{ context: BondsContext }>(),
 
     // UI State
     'Set Loading': props<{ loading: boolean }>(),

@@ -287,6 +287,11 @@ export const bondsReducer = createReducer(
     activePartnerId: partnerId
   })),
 
+  on(BondsActions.setBondsContext, (state, { context }) => ({
+    ...state,
+    context
+  })),
+
   // UI State
   on(BondsActions.setLoading, (state, { loading }) => ({
     ...state,
@@ -318,6 +323,10 @@ export const bondsReducer = createReducer(
     // Reset pagination to avoid showing stale totals from previous context
     activePage: 1,
     offset: 0,
-    total: 0 // Reset total to prevent showing incorrect count from previous context
+    total: 0, // Reset total to prevent showing incorrect count from previous context
+    // Reset context to default when clearing
+    context: {
+      page: 'default'
+    }
   }))
 );

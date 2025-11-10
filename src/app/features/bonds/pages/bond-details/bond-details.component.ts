@@ -22,7 +22,9 @@ import { BondsActions } from '@store/bonds/bonds.actions';
 import {
   selectBondById,
   selectBondLoading,
-  selectBondError
+  selectBondError,
+  selectBondsContext,
+  BondsContext
 } from '@store/bonds/bonds.state';
 
 // Models
@@ -62,6 +64,7 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
   bond$!: Observable<Bond | null>;
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
+  bondsContext$!: Observable<BondsContext>;
 
   // Current bond
   bond: Bond | null = null;
@@ -69,6 +72,7 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
 
   // Context for navigation
   returnUrl: string = '/bonds';
+  bondsContext: BondsContext = { page: 'default' };
 
   ngOnInit(): void {
     // Get bond ID from route
@@ -103,6 +107,7 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
     this.bond$ = this.store.select(selectBondById(this.bondId!));
     this.loading$ = this.store.select(selectBondLoading(this.bondId!));
     this.error$ = this.store.select(selectBondError(this.bondId!));
+    this.bondsContext$ = this.store.select(selectBondsContext);
 
     this.bond$.subscribe(bond => {
       console.log('bond$', bond);
@@ -138,9 +143,30 @@ export class BondDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Setup return URL from query params
+   * Setup return URL based on context from store
+   * Uses the context object from bonds store to determine correct return URL
    */
   private setupReturnUrl(): void {
+    // Subscribe to bonds context from store
+    this.bondsContext$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(context => {
+      this.bondsContext = context;
+
+      // Build return URL based on context
+      if (context.page === 'partner' && context.partnerId) {
+        // Return to partner's bonds
+        this.returnUrl = `/bonds?partnerId=${context.partnerId}`;
+      } else if (context.page === 'customer' && context.partnerId && context.customerId) {
+        // Return to customer's bonds
+        this.returnUrl = `/bonds?partnerId=${context.partnerId}&customerId=${context.customerId}`;
+      } else {
+        // Return to default bonds list
+        this.returnUrl = '/bonds';
+      }
+    });
+
+    // Also check query params as fallback (for direct navigation)
     this.route.queryParams.pipe(
       takeUntil(this.destroy$)
     ).subscribe(params => {

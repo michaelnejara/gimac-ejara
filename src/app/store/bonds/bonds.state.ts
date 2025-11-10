@@ -18,6 +18,15 @@ export interface BondEntity {
 export type BondViewMode = 'all' | 'partner' | 'customer';
 
 /**
+ * Context Object - Tracks current bonds page context for navigation
+ */
+export interface BondsContext {
+  page: 'default' | 'partner' | 'customer';
+  partnerId?: number;
+  customerId?: number;
+}
+
+/**
  * Page Cache - Stores paginated data by page number
  */
 export interface PageCache<T> {
@@ -51,6 +60,7 @@ export interface BondsState {
   // View mode and context
   viewMode: BondViewMode;
   activePartnerId: number | null;
+  context: BondsContext; // Current page context for navigation
 
   // Pagination
   total: number;
@@ -85,6 +95,9 @@ export const initialState: BondsState = {
   previousPageSize: 20,
   viewMode: 'all',
   activePartnerId: null,
+  context: {
+    page: 'default'
+  },
   total: 0,
   limit: 20,
   offset: 0,
@@ -269,6 +282,11 @@ export const selectViewMode = createSelector(
 export const selectActivePartnerId = createSelector(
   selectBondsState,
   (state) => state.activePartnerId
+);
+
+export const selectBondsContext = createSelector(
+  selectBondsState,
+  (state) => state.context
 );
 
 /**

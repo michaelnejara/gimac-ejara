@@ -195,6 +195,13 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'customer' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
+        this.store.dispatch(BondsActions.setBondsContext({
+          context: {
+            page: 'customer',
+            partnerId: this.partnerId,
+            customerId: this.customerId
+          }
+        }));
       } else if (hasPartnerId && !hasCustomerId) {
         this.context = 'partner';
         this.partnerId = +params['partnerId'];
@@ -205,6 +212,12 @@ export class BondsListComponent implements OnInit, OnDestroy {
         this.store.dispatch(BondsActions.resetForContextView());
         this.store.dispatch(BondsActions.setViewMode({ mode: 'partner' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: this.partnerId }));
+        this.store.dispatch(BondsActions.setBondsContext({
+          context: {
+            page: 'partner',
+            partnerId: this.partnerId
+          }
+        }));
       } else {
         this.context = 'default';
         this.partnerId = null;
@@ -219,6 +232,11 @@ export class BondsListComponent implements OnInit, OnDestroy {
 
         this.store.dispatch(BondsActions.setViewMode({ mode: 'all' }));
         this.store.dispatch(BondsActions.setActivePartner({ partnerId: null }));
+        this.store.dispatch(BondsActions.setBondsContext({
+          context: {
+            page: 'default'
+          }
+        }));
       }
 
       // Reinitialize everything if context actually changed (not initial load)

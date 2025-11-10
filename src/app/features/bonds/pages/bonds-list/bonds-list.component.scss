@@ -341,7 +341,8 @@
     }
 
     @keyframes badgePulse {
-      0%, 100% {
+      0%,
+      100% {
         transform: scale(1);
       }
       50% {
@@ -363,7 +364,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.show {
       opacity: 1;
@@ -792,7 +793,7 @@
     .progress-bar {
       width: 100%;
       height: 4px;
-      background: rgba(0,0,0,0.1);
+      background: rgba(0, 0, 0, 0.1);
       border-radius: 2px;
       margin-top: 4px;
       overflow: hidden;
@@ -840,22 +841,22 @@
 
       &.issuer-government {
         background: rgba(33, 150, 243, 0.1);
-        color: #2196F3;
+        color: #2196f3;
       }
 
       &.issuer-institution {
         background: rgba(76, 175, 80, 0.1);
-        color: #4CAF50;
+        color: #4caf50;
       }
 
       &.issuer-corporate {
         background: rgba(255, 152, 0, 0.1);
-        color: #FF9800;
+        color: #ff9800;
       }
 
       &.issuer-country {
         background: rgba(156, 39, 176, 0.1);
-        color: #9C27B0;
+        color: #9c27b0;
       }
     }
 
@@ -903,12 +904,12 @@
 
       &.blockchain-tezos {
         background: rgba(33, 150, 243, 0.1);
-        color: #2196F3;
+        color: #2196f3;
       }
 
       &.blockchain-ethereum {
         background: rgba(98, 126, 234, 0.1);
-        color: #627EEA;
+        color: #627eea;
       }
     }
 
@@ -1285,7 +1286,6 @@
       }
     }
   }
-
 }
 
 // CRITICAL: Global styles for Material overlays (dropdowns, datepickers)
@@ -1304,6 +1304,10 @@
   // CDK Overlay Backdrop - Below the overlay pane
   .cdk-overlay-backdrop {
     z-index: 1999 !important;
+  }
+
+  .cdk-overlay-connected-position-bounding-box {
+    z-index: 9999;
   }
 
   // Material Select Dropdown Panels
@@ -1348,7 +1352,8 @@
   // Material Datepicker
   .mat-datepicker-content {
     z-index: 2000 !important;
-
+    background-color: #fff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     .mat-calendar {
       .mat-calendar-body-selected {
         background-color: #8658ff;

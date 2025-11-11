@@ -40,9 +40,9 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // Forms for each step
-  emailForm!: FormGroup;
-  otpForm!: FormGroup;
-  passwordForm!: FormGroup;
+  emailForm: FormGroup;
+  otpForm: FormGroup;
+  passwordForm: FormGroup;
 
   // Loading states
   initiatingReset = false;
@@ -64,26 +64,46 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   resendTimer = 0;
   private resendInterval: any;
 
-  ngOnInit(): void {
-    this.initializeForms();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    if (this.resendInterval) {
-      clearInterval(this.resendInterval);
-    }
-
-    // Clear sensitive data
-    this.passwordForm?.get('newPassword')?.setValue('');
-    this.passwordForm?.get('confirmPassword')?.setValue('');
+  /**
+   * Get formatted countdown timer (MM:SS)
+   */
+  get formattedTimer(): string {
+    const minutes = Math.floor(this.resendTimer / 60);
+    const seconds = this.resendTimer % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
   /**
-   * Initialize all forms
+   * Password validation getters
    */
-  private initializeForms(): void {
+  get passwordHasMinLength(): boolean {
+    const password = this.passwordForm.get('newPassword')?.value || '';
+    return password.length >= 8;
+  }
+
+  get passwordHasCapitalLetter(): boolean {
+    const password = this.passwordForm.get('newPassword')?.value || '';
+    return /[A-Z]/.test(password);
+  }
+
+  get passwordHasNumber(): boolean {
+    const password = this.passwordForm.get('newPassword')?.value || '';
+    return /\d/.test(password);
+  }
+
+  get passwordHasSpecialChar(): boolean {
+    const password = this.passwordForm.get('newPassword')?.value || '';
+    return /[@#*&]/.test(password);
+  }
+
+  get passwordsMatch(): boolean {
+    const newPassword = this.passwordForm.get('newPassword')?.value || '';
+    const confirmPassword = this.passwordForm.get('confirmPassword')?.value || '';
+    return newPassword === confirmPassword && newPassword !== '';
+  }
+
+  constructor() {
+    // Initialize forms in constructor to ensure they're available before template rendering
     this.emailForm = this.fb.group({
       emailOrPhoneNumber: ['', [Validators.required, Validators.email]]
     });
@@ -98,10 +118,31 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     });
 
     this.passwordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern(/^(?=.*[A-Z])(?=.*\d)(?=.*[@#*&]).+$/)
+      ]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
+
+  ngOnInit(): void {
+    // Forms are already initialized in constructor
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.resendInterval) {
+      clearInterval(this.resendInterval);
+    }
+
+    // Clear sensitive data
+    this.passwordForm?.get('newPassword')?.setValue('');
+    this.passwordForm?.get('confirmPassword')?.setValue('');
+  }
+
 
   /**
    * Custom validator to check if passwords match

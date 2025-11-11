@@ -88,7 +88,8 @@
       .footer-text {
         font-family: var(--font-family-sans);
         font-weight: normal;
-        @apply text-[14px] leading-[20px] !text-[#4D5D63] m-0;
+        margin: 0;
+        @apply text-[14px] leading-[20px] !text-[#4D5D63];
 
         .footer-link {
           @apply text-[var(--color-primary-500)] font-medium underline cursor-pointer transition-colors duration-200;

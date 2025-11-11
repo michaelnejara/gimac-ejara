@@ -156,14 +156,14 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
           this.resetReference = response.resetReference;
           this.mfaReference = response.reference;
           this.initiatingReset = false;
-          this.notificationService.success('Verification code sent successfully!');
+          this.notificationService.showSuccess('Success', 'Verification code sent successfully!');
           this.stepper.next();
           this.startResendTimer(response.expiresAt);
         },
         error: (error) => {
           this.initiatingReset = false;
           const errorMessage = error?.error?.message || 'Failed to initiate password reset';
-          this.notificationService.error(errorMessage);
+          this.notificationService.showError('Error', errorMessage);
         }
       });
   }
@@ -178,7 +178,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     }
 
     if (!this.mfaReference) {
-      this.notificationService.error('Invalid session. Please start over.');
+      this.notificationService.showError('Error', 'Invalid session. Please start over.');
       return;
     }
 
@@ -195,13 +195,13 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.validatingOtp = false;
-          this.notificationService.success('Code verified successfully!');
+          this.notificationService.showSuccess('Success', 'Code verified successfully!');
           this.stepper.next();
         },
         error: (error) => {
           this.validatingOtp = false;
           const errorMessage = error?.error?.message || 'Invalid verification code';
-          this.notificationService.error(errorMessage);
+          this.notificationService.showError('Error', errorMessage);
         }
       });
   }
@@ -216,7 +216,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     }
 
     if (!this.mfaReference || !this.resetReference) {
-      this.notificationService.error('Invalid session. Please start over.');
+      this.notificationService.showError('Error', 'Invalid session. Please start over.');
       return;
     }
 
@@ -234,7 +234,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.completingReset = false;
-          this.notificationService.success('Password reset successful! Redirecting to login...');
+          this.notificationService.showSuccess('Success', 'Password reset successful! Redirecting to login...');
 
           // Clear sensitive data before redirecting
           this.passwordForm.get('newPassword')?.setValue('');
@@ -247,7 +247,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.completingReset = false;
           const errorMessage = error?.error?.message || 'Failed to reset password';
-          this.notificationService.error(errorMessage);
+          this.notificationService.showError('Error', errorMessage);
         }
       });
   }

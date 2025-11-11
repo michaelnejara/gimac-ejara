@@ -13,7 +13,7 @@
   @apply h-[100vh] flex justify-center bg-[url(/assets/bg/icons-background.svg)] overflow-hidden overflow-y-auto;
   
   .main-block {
-    @apply flex flex-col min-w-[487px] items-center mt-[82px] gap-[90px];
+    @apply flex flex-col min-w-[387px] items-center mt-[82px] gap-[90px];
     
     /* Logo Container */
     .logo-container {
@@ -26,7 +26,7 @@
     /* Form Container */
     .form-container {
       @apply bg-[var(--color-background-primary)] border border-solid border-[var(--color-border-neutral)] 
-             w-full p-[32px_48px] rounded-[16px] flex flex-col items-center gap-[24px];
+             w-[70%] p-[32px_48px] rounded-[16px] flex flex-col items-center gap-[24px];
       
       /* Title Section */
       .form-title {

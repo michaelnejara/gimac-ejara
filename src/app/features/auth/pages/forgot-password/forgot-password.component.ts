@@ -1,12 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatStepperModule, MatStepper } from '@angular/material/stepper';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '@core/services/api/auth.service';
@@ -19,25 +13,21 @@ import * as AuthModels from '@core/models/auth.models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatStepperModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
     RouterLink
   ],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss']
 })
 export class ForgotPasswordComponent implements OnInit, OnDestroy {
-  @ViewChild('stepper') stepper!: MatStepper;
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
+
+  // Current step tracking
+  currentStep: 1 | 2 | 3 = 1;
 
   // Forms for each step
   emailForm!: FormGroup;
@@ -235,7 +225,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
           this.mfaReference = response.data.reference;
           this.initiatingReset = false;
           this.notificationService.showSuccess('Success', 'Verification code sent successfully!');
-          this.stepper.next();
+          this.currentStep = 2;
           this.startResendTimer(response.data.expiresAt);
         },
         error: (error) => {
@@ -274,7 +264,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
         next: () => {
           this.validatingOtp = false;
           this.notificationService.showSuccess('Success', 'Code verified successfully!');
-          this.stepper.next();
+          this.currentStep = 3;
         },
         error: (error) => {
           this.validatingOtp = false;
@@ -311,14 +301,15 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.completingReset = false;
           this.notificationService.showSuccess('Success', 'Password reset successful! Redirecting to login...');
 
           // Clear sensitive data before redirecting
           this.passwordForm.get('newPassword')?.setValue('');
           this.passwordForm.get('confirmPassword')?.setValue('');
 
+          // Keep loading state active while redirecting
           setTimeout(() => {
+            this.completingReset = false;
             this.router.navigate(['/auth/login']);
           }, 2000);
         },
@@ -424,7 +415,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
    * Reset and start over
    */
   onStartOver(): void {
-    this.stepper.reset();
+    this.currentStep = 1;
     this.emailForm.reset();
     this.otpForm.reset();
     this.passwordForm.reset();
@@ -435,5 +426,13 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     if (this.resendInterval) {
       clearInterval(this.resendInterval);
     }
+  }
+
+  /**
+   * Helper to check if control has error
+   */
+  hasError(formGroup: FormGroup, controlName: string, errorType: string): boolean {
+    const control = formGroup.get(controlName);
+    return !!(control && control.hasError(errorType) && control.touched);
   }
 }

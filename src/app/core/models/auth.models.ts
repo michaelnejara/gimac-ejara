@@ -191,3 +191,83 @@ export interface MenuItem {
   children?: MenuItem[];
   expanded?: boolean;
 }
+
+/**
+ * Forgot Password Flow Interfaces
+ */
+
+/**
+ * Initiate password reset payload
+ */
+export interface InitiatePasswordResetPayload {
+  /** Unique device identifier */
+  deviceId: string;
+  /** Email or phone number for password reset */
+  emailOrPhoneNumber: string;
+  /** Reset option type */
+  resetOption: 'email' | 'phone';
+}
+
+/**
+ * Initiate password reset success response
+ */
+export interface InitiatePasswordResetResponse {
+  /** Reset reference ID for completing the flow */
+  resetReference: string;
+  /** Type of reset (email or phone) */
+  type: 'email' | 'phone';
+  /** MFA reference for validation */
+  reference: string;
+  /** Expiration time in seconds */
+  expiresAt: number;
+  /** Time to wait before resending (ISO 8601) */
+  timeToWait: string;
+}
+
+/**
+ * Initiate password reset error response
+ */
+export interface InitiatePasswordResetErrorResponse {
+  /** Error code identifier */
+  errorCode: string;
+  /** Human-readable error message */
+  message: string;
+}
+
+/**
+ * Validate password reset code payload
+ */
+export interface ValidatePasswordResetCodePayload {
+  /** MFA reference from initiate step */
+  mfaReference: string;
+  /** 6-digit OTP code */
+  otpCode: string;
+}
+
+/**
+ * Validate password reset code success response
+ */
+export interface ValidatePasswordResetCodeResponse {
+  /** Success message */
+  message: string;
+}
+
+/**
+ * Complete password reset payload
+ */
+export interface CompletePasswordResetPayload {
+  /** MFA reference from initiate step */
+  mfaReference: string;
+  /** Reset reference from initiate step */
+  resetReference: string;
+  /** New password */
+  newPassword: string;
+}
+
+/**
+ * Complete password reset success response
+ */
+export interface CompletePasswordResetResponse {
+  /** Success message */
+  message: string;
+}

@@ -40,9 +40,9 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // Forms for each step
-  emailForm: FormGroup;
-  otpForm: FormGroup;
-  passwordForm: FormGroup;
+  emailForm!: FormGroup;
+  otpForm!: FormGroup;
+  passwordForm!: FormGroup;
 
   // Loading states
   initiatingReset = false;
@@ -128,7 +128,43 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Forms are already initialized in constructor
+    // Ensure forms are initialized (safety check)
+    if (!this.emailForm || !this.otpForm || !this.passwordForm) {
+      this.initializeForms();
+    }
+  }
+
+  /**
+   * Initialize all forms (safety method)
+   */
+  private initializeForms(): void {
+    if (!this.emailForm) {
+      this.emailForm = this.fb.group({
+        emailOrPhoneNumber: ['', [Validators.required, Validators.email]]
+      });
+    }
+
+    if (!this.otpForm) {
+      this.otpForm = this.fb.group({
+        digit1: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+        digit2: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+        digit3: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+        digit4: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+        digit5: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+        digit6: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+      });
+    }
+
+    if (!this.passwordForm) {
+      this.passwordForm = this.fb.group({
+        newPassword: ['', [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.pattern(/^(?=.*[A-Z])(?=.*\d)(?=.*[@#*&]).+$/)
+        ]],
+        confirmPassword: ['', [Validators.required]]
+      }, { validators: this.passwordMatchValidator });
+    }
   }
 
   ngOnDestroy(): void {

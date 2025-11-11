@@ -625,7 +625,7 @@
 
   // CDK Overlay Backdrop - Below the overlay pane
   .cdk-overlay-backdrop {
-    z-index: 1999 !important;
+    // z-index: 1999 !important;
   }
 
   // Material Select Dropdown Panels
@@ -641,6 +641,8 @@
   // Material Datepicker
   .mat-datepicker-content {
     z-index: 2000 !important;
+    background-color: #fff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
   }
 
   // Material Datepicker Backdrop

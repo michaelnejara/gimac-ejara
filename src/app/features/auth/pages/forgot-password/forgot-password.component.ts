@@ -153,12 +153,13 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.resetReference = response.resetReference;
-          this.mfaReference = response.reference;
+          console.log('response data: ', response)
+          this.resetReference = response.data.resetReference;
+          this.mfaReference = response.data.reference;
           this.initiatingReset = false;
           this.notificationService.showSuccess('Success', 'Verification code sent successfully!');
           this.stepper.next();
-          this.startResendTimer(response.expiresAt);
+          this.startResendTimer(response.data.expiresAt);
         },
         error: (error) => {
           this.initiatingReset = false;
@@ -319,6 +320,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
    * Start resend timer
    */
   private startResendTimer(expiresAt: number): void {
+    console.log('expiresat: ',expiresAt)
     this.resendTimer = expiresAt;
     this.canResendOtp = false;
 

@@ -212,16 +212,25 @@ export interface InitiatePasswordResetPayload {
  * Initiate password reset success response
  */
 export interface InitiatePasswordResetResponse {
-  /** Reset reference ID for completing the flow */
-  resetReference: string;
-  /** Type of reset (email or phone) */
-  type: 'email' | 'phone';
-  /** MFA reference for validation */
-  reference: string;
-  /** Expiration time in seconds */
-  expiresAt: number;
-  /** Time to wait before resending (ISO 8601) */
-  timeToWait: string;
+  /**
+   * Data property
+  */
+  data: {
+    /** Reset reference ID for completing the flow */
+    resetReference: string;
+    /** Type of reset (email or phone) */
+    type: 'email' | 'phone';
+    /** MFA reference for validation */
+    reference: string;
+    /** Expiration time in seconds */
+    expiresAt: number;
+    /** Time to wait before resending (ISO 8601) */
+    timeToWait: string;
+  }
+  /**
+   * Message property
+   */
+  message: string
 }
 
 /**

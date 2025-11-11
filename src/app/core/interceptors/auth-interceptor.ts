@@ -20,6 +20,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Skip auth for login endpoints
   const skipAuth = [
+    '/authentication/initiate-password-reset',
+    '/authentication/validate-password-reset-code',
+    '/authentication/complete-password-reset',
     '/authentication/login',
     '/authentication/complete-login',
     '/authentication/refresh',

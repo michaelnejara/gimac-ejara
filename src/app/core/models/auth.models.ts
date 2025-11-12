@@ -280,3 +280,88 @@ export interface CompletePasswordResetResponse {
   /** Success message */
   message: string;
 }
+
+/**
+ * MFA Setup Flow Interfaces (when shouldCompleteMfa is false)
+ */
+
+/**
+ * Login response when MFA setup is required (shouldCompleteMfa: false)
+ */
+export interface LoginSetupMfaResponse {
+  /** Whether user can access admin panel */
+  canAccessPanel: boolean;
+  /** Whether phone verification is required */
+  shouldVerifyPhoneNumber: boolean;
+  /** Whether MFA setup is required (false for setup flow) */
+  shouldCompleteMfa: boolean;
+  /** Temporary auth token for MFA setup (used as Bearer token) */
+  authToken: string;
+  /** Customer data */
+  customerData: CustomerData;
+}
+
+/**
+ * Setup authenticator response
+ */
+export interface SetupAuthenticatorResponse {
+  /** Response message */
+  message: string;
+  /** Setup data */
+  data: {
+    /** MFA type */
+    type: 'authenticator';
+    /** Setup status */
+    status: 'pending';
+    /** QR code data URI */
+    qrCodeUri: string;
+    /** Manual setup key for authenticator app */
+    setupKey: string;
+  };
+}
+
+/**
+ * Validate authenticator payload
+ */
+export interface ValidateAuthenticatorPayload {
+  /** 6-digit code from authenticator app */
+  code: string;
+}
+
+/**
+ * Validate authenticator response
+ */
+export interface ValidateAuthenticatorResponse {
+  /** Success message */
+  message: string;
+  /** Response data (if any) */
+  data?: any;
+}
+
+/**
+ * Verify MFA code payload
+ */
+export interface VerifyMfaCodePayload {
+  /** Array of verification data */
+  data: Array<{
+    /** 6-digit verification code */
+    code: string;
+  }>;
+}
+
+/**
+ * Verify MFA code response
+ */
+export interface VerifyMfaCodeResponse {
+  /** Response message */
+  message: string;
+  /** Response data */
+  data: {
+    /** JWT authentication token */
+    authToken: string;
+    /** JWT refresh token */
+    refreshToken: string;
+    /** Complete customer data */
+    customerData: CustomerData;
+  };
+}

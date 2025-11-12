@@ -14,7 +14,11 @@ export const AUTH_STORAGE_KEYS = {
   LAST_ACTIVITY: 'last_activity',
   MFA_REQUIRED: 'mfa_required',
   LOGIN_REFERENCE: 'login_reference',
-  MFA_DATA: 'mfa_data'
+  MFA_DATA: 'mfa_data',
+  SHOULD_COMPLETE_MFA: 'should_complete_mfa',
+  SETUP_AUTH_TOKEN: 'setup_auth_token',
+  QR_CODE_URI: 'qr_code_uri',
+  SETUP_KEY: 'setup_key'
 } as const;
 
 /**
@@ -49,13 +53,21 @@ export interface AuthState {
   deviceId: string | null;
   /** ISO timestamp of last user activity */
   lastActivity: string | null;
+  /** Whether MFA needs to be completed (true) or set up (false) */
+  shouldCompleteMfa: boolean | null;
+  /** Temporary auth token for MFA setup (when shouldCompleteMfa is false) */
+  setupAuthToken: string | null;
+  /** QR code data URI for authenticator app setup */
+  qrCodeUri: string | null;
+  /** Manual setup key for authenticator app */
+  setupKey: string | null;
 }
 
 /**
  * Get default initial auth state
  * Returns a clean state with no authentication data
  * Used when storage is empty or on logout
- * 
+ *
  * @returns Default AuthState with all null/false values
  */
 function getDefaultInitialState(): AuthState {
@@ -73,6 +85,10 @@ function getDefaultInitialState(): AuthState {
     error: null,
     deviceId: null,
     lastActivity: null,
+    shouldCompleteMfa: null,
+    setupAuthToken: null,
+    qrCodeUri: null,
+    setupKey: null,
   };
 }
 
@@ -97,7 +113,7 @@ function getDefaultInitialState(): AuthState {
  */
 function initializeAuthStateFromStorage(): AuthState {
   const storageService = new StorageService();
-  
+
   try {
     // Load all persisted authentication data from localStorage
     const authToken = storageService.getLocal<string>(AUTH_STORAGE_KEYS.AUTH_TOKEN);
@@ -108,6 +124,10 @@ function initializeAuthStateFromStorage(): AuthState {
     const mfaRequired = storageService.getLocal<boolean>(AUTH_STORAGE_KEYS.MFA_REQUIRED);
     const loginReference = storageService.getLocal<string>(AUTH_STORAGE_KEYS.LOGIN_REFERENCE);
     const mfaData = storageService.getLocal<AuthModels.MfaData[]>(AUTH_STORAGE_KEYS.MFA_DATA);
+    const shouldCompleteMfa = storageService.getLocal<boolean>(AUTH_STORAGE_KEYS.SHOULD_COMPLETE_MFA);
+    const setupAuthToken = storageService.getLocal<string>(AUTH_STORAGE_KEYS.SETUP_AUTH_TOKEN);
+    const qrCodeUri = storageService.getLocal<string>(AUTH_STORAGE_KEYS.QR_CODE_URI);
+    const setupKey = storageService.getLocal<string>(AUTH_STORAGE_KEYS.SETUP_KEY);
 
     // Determine authentication status: user is authenticated if both token and user exist
     const isAuthenticated = !!(authToken && user);
@@ -127,6 +147,10 @@ function initializeAuthStateFromStorage(): AuthState {
       error: null,
       deviceId: deviceId || null,
       lastActivity: lastActivity || null,
+      shouldCompleteMfa: shouldCompleteMfa ?? null,
+      setupAuthToken: setupAuthToken || null,
+      qrCodeUri: qrCodeUri || null,
+      setupKey: setupKey || null,
     };
   } catch (error) {
     // If storage read fails, log error and return clean state
@@ -165,7 +189,7 @@ export const initialAuthState: AuthState = initializeAuthStateFromStorage();
  */
 export function persistAuthState(state: AuthState): void {
   const storageService = new StorageService();
-  
+
   try {
     // Persist or remove auth token
     if (state.authToken) {
@@ -218,6 +242,31 @@ export function persistAuthState(state: AuthState): void {
     } else {
       storageService.removeLocal(AUTH_STORAGE_KEYS.MFA_DATA);
     }
+
+    // Persist MFA setup data (for setup flow)
+    if (state.shouldCompleteMfa !== null) {
+      storageService.setLocal(AUTH_STORAGE_KEYS.SHOULD_COMPLETE_MFA, state.shouldCompleteMfa);
+    } else {
+      storageService.removeLocal(AUTH_STORAGE_KEYS.SHOULD_COMPLETE_MFA);
+    }
+
+    if (state.setupAuthToken) {
+      storageService.setLocal(AUTH_STORAGE_KEYS.SETUP_AUTH_TOKEN, state.setupAuthToken);
+    } else {
+      storageService.removeLocal(AUTH_STORAGE_KEYS.SETUP_AUTH_TOKEN);
+    }
+
+    if (state.qrCodeUri) {
+      storageService.setLocal(AUTH_STORAGE_KEYS.QR_CODE_URI, state.qrCodeUri);
+    } else {
+      storageService.removeLocal(AUTH_STORAGE_KEYS.QR_CODE_URI);
+    }
+
+    if (state.setupKey) {
+      storageService.setLocal(AUTH_STORAGE_KEYS.SETUP_KEY, state.setupKey);
+    } else {
+      storageService.removeLocal(AUTH_STORAGE_KEYS.SETUP_KEY);
+    }
   } catch (error) {
     console.error('Failed to persist auth state to storage:', error);
   }
@@ -240,7 +289,7 @@ export function persistAuthState(state: AuthState): void {
  */
 export function clearAuthStorage(): void {
   const storageService = new StorageService();
-  
+
   try {
     // Remove all auth-related items from localStorage
     storageService.removeLocal(AUTH_STORAGE_KEYS.AUTH_TOKEN);
@@ -251,6 +300,10 @@ export function clearAuthStorage(): void {
     storageService.removeLocal(AUTH_STORAGE_KEYS.MFA_REQUIRED);
     storageService.removeLocal(AUTH_STORAGE_KEYS.LOGIN_REFERENCE);
     storageService.removeLocal(AUTH_STORAGE_KEYS.MFA_DATA);
+    storageService.removeLocal(AUTH_STORAGE_KEYS.SHOULD_COMPLETE_MFA);
+    storageService.removeLocal(AUTH_STORAGE_KEYS.SETUP_AUTH_TOKEN);
+    storageService.removeLocal(AUTH_STORAGE_KEYS.QR_CODE_URI);
+    storageService.removeLocal(AUTH_STORAGE_KEYS.SETUP_KEY);
   } catch (error) {
     console.error('Failed to clear auth storage:', error);
   }
@@ -376,6 +429,42 @@ export const selectDeviceId = createSelector(
 export const selectLastActivity = createSelector(
   selectAuthState,
   (state: AuthState) => state.lastActivity
+);
+
+/**
+ * Selector to check if MFA setup is required
+ * @returns true/false/null - false means setup needed, true means verification needed
+ */
+export const selectShouldCompleteMfa = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.shouldCompleteMfa
+);
+
+/**
+ * Selector to get setup auth token
+ * @returns Temporary auth token for MFA setup or null
+ */
+export const selectSetupAuthToken = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.setupAuthToken
+);
+
+/**
+ * Selector to get QR code URI
+ * @returns QR code data URI or null
+ */
+export const selectQrCodeUri = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.qrCodeUri
+);
+
+/**
+ * Selector to get setup key
+ * @returns Manual setup key for authenticator or null
+ */
+export const selectSetupKey = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.setupKey
 );
 
 // Export helper function for getting default state

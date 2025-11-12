@@ -1,0 +1,284 @@
+.mfa-setup-page {
+  background-position: center;
+  background-repeat: no-repeat;
+  @apply h-[100vh] flex justify-center bg-[url(/assets/bg/icons-background.svg)] overflow-hidden overflow-y-auto;
+
+  .main-block {
+    @apply flex flex-col min-w-[487px] items-center mt-[82px] gap-[40px] mb-[40px];
+
+    .logo-container {
+      @apply w-[266px] h-[91px];
+      .logo {
+        @apply object-contain;
+      }
+    }
+
+    .form-container {
+      @apply bg-[var(--color-background-primary)] border border-solid border-[var(--color-border-neutral)] w-full p-[32px_48px] rounded-[16px] flex flex-col items-center gap-[24px];
+
+      .form-title {
+        @apply flex flex-col items-center;
+        .main-title {
+          font-weight: 700;
+          @apply text-[#00171F] text-[36px] leading-[40px] tracking-[-0.72px] text-center;
+        }
+        .sub-title {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          @apply text-[14px] leading-[20px] !text-[#4D5D63] text-center;
+        }
+      }
+
+      // Loading State
+      .loading-container {
+        @apply flex flex-col items-center gap-[16px] py-[40px];
+
+        .spinner {
+          height: 48px;
+          width: 48px;
+          animation: spin 1s linear infinite;
+
+          .spinner-circle {
+            stroke: var(--color-primary-500);
+            stroke-dasharray: 60;
+            stroke-dashoffset: 60;
+            animation: dash 1.5s ease-in-out infinite;
+          }
+        }
+
+        p {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          margin: 0;
+          @apply text-[14px] text-[#64748B];
+        }
+      }
+
+      // QR Code Section
+      .qr-code-section {
+        @apply flex flex-col items-center gap-[24px] w-full;
+
+        .qr-code-container {
+          @apply flex justify-center items-center p-[16px] bg-white rounded-[12px] border border-solid border-[#E5E7EB];
+
+          .qr-code-image {
+            @apply w-[200px] h-[200px] object-contain;
+          }
+        }
+
+        .instructions {
+          @apply w-full flex flex-col gap-[12px];
+
+          .instruction-text {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            margin: 0;
+            @apply text-[14px] leading-[20px] !text-[#4D5D63];
+
+            strong {
+              @apply text-[var(--color-primary-500)];
+              font-weight: 600;
+            }
+          }
+        }
+
+        // Manual Setup
+        .manual-setup {
+          @apply w-full flex flex-col items-center gap-[12px];
+
+          .toggle-key-btn {
+            @apply px-[16px] py-[8px] rounded-[8px] border-none bg-transparent cursor-pointer;
+            font-family: var(--font-family-sans);
+            font-weight: 500;
+            @apply text-[14px] text-[var(--color-primary-500)];
+            transition: background-color 0.2s ease;
+
+            &:hover {
+              background: rgba(22, 119, 255, 0.1);
+            }
+          }
+
+          .setup-key-container {
+            @apply w-full p-[16px] bg-[#F8F9FA] rounded-[8px] border border-solid border-[#E5E7EB];
+
+            .setup-key-label {
+              font-family: var(--font-family-sans);
+              font-weight: 600;
+              margin: 0 0 8px 0;
+              @apply text-[13px] text-[#475569];
+            }
+
+            .setup-key-box {
+              @apply flex items-center gap-[8px] p-[12px] bg-white rounded-[8px] border border-solid border-[#D1D5DB];
+
+              .setup-key {
+                flex: 1;
+                font-family: 'Courier New', monospace;
+                font-weight: 600;
+                @apply text-[14px] text-[#1e293b] break-all;
+              }
+
+              .copy-btn {
+                @apply flex items-center justify-center p-[8px] rounded-[6px] border-none bg-transparent cursor-pointer;
+                color: #64748B;
+                transition: all 0.2s ease;
+
+                &:hover {
+                  background: #F1F5F9;
+                  color: var(--color-primary-500);
+                }
+
+                svg {
+                  width: 16px;
+                  height: 16px;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Setup Form
+      .setup-form {
+        @apply flex flex-col gap-[16px] w-full;
+
+        .form-group {
+          @apply w-full;
+
+          .form-label {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[12px] !text-[#4D5D63] mb-[8px] block;
+
+            .required {
+              @apply text-[var(--color-secondary-700)];
+            }
+          }
+
+          .input-wrapper {
+            @apply relative w-full;
+
+            .form-input {
+              font-family: var(--font-family-sans);
+              font-weight: normal;
+              outline: none;
+              text-align: center;
+              letter-spacing: 0.5em;
+              font-size: 18px;
+              @apply w-full rounded-[12px] p-[16px] border border-solid border-[var(--color-border-neutral)] bg-[var(--color-background-primary)];
+              @apply !text-[#4D5D63];
+
+              &::placeholder {
+                @apply text-[var(--color-placholder)];
+                letter-spacing: normal;
+              }
+
+              &:active,
+              &:focus {
+                border-color: var(--color-primary-500);
+              }
+
+              &.input-error {
+                border-color: var(--color-error-700);
+              }
+            }
+          }
+
+          .error-message {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[16px] !text-[var(--color-error-700)] mt-[4px];
+          }
+        }
+
+        .submit-button {
+          @apply mt-[16px] p-[16px] rounded-[100px] outline-none bg-[var(--color-primary-500)] flex gap-[8px] items-center justify-center border-none;
+          @apply text-[14px] leading-[16px] !text-[#fff] cursor-pointer;
+          font-family: var(--font-family-sans);
+          font-weight: 500;
+          transition: all 0.2s ease;
+
+          .spinner {
+            height: 24px;
+            width: 24px;
+          }
+
+          &:hover:not([disabled]) {
+            background: #0d5cd9;
+          }
+
+          &[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+
+      // Error Container
+      .error-container {
+        @apply w-full p-[12px] bg-[#FEF2F2] rounded-[8px] border border-solid border-[#FCA5A5];
+
+        .error-text {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          margin: 0;
+          @apply text-[14px] text-[#DC2626];
+        }
+      }
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 768px) {
+    .main-block {
+      @apply min-w-[320px] max-w-[400px] mt-[40px] gap-[24px];
+
+      .logo-container {
+        @apply w-[200px] h-[68px];
+      }
+
+      .form-container {
+        @apply p-[24px_32px];
+
+        .form-title {
+          .main-title {
+            @apply text-[28px] leading-[32px];
+          }
+        }
+
+        .qr-code-section {
+          .qr-code-container {
+            .qr-code-image {
+              @apply w-[160px] h-[160px];
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Keyframe Animations
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}

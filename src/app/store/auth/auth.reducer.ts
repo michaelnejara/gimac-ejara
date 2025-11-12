@@ -277,10 +277,10 @@ export const authReducer = createReducer(
   
   /**
    * Handle clear error action
-   * 
+   *
    * Removes current error from state
    * Typically called when user dismisses error message
-   * 
+   *
    * State changes:
    * - error: null
    */
@@ -289,6 +289,248 @@ export const authReducer = createReducer(
       ...state,
       error: null
     };
+    return newState;
+  }),
+
+  /**
+   * Handle login MFA setup required
+   *
+   * Called when login succeeds but user needs to set up MFA (shouldCompleteMfa: false)
+   * Stores temporary auth token and sets flags for setup flow
+   *
+   * State changes:
+   * - loading: false
+   * - shouldCompleteMfa: false (indicates setup needed)
+   * - setupAuthToken: temporary token for MFA API calls
+   * - canAccessPanel: from response
+   * - shouldVerifyPhoneNumber: from response
+   * - error: null
+   *
+   * @param response - Login response with setup auth token
+   */
+  on(AuthActions.loginMfaSetupRequired, (state, { response }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      shouldCompleteMfa: response.shouldCompleteMfa,
+      setupAuthToken: response.authToken,
+      canAccessPanel: response.canAccessPanel,
+      shouldVerifyPhoneNumber: response.shouldVerifyPhoneNumber,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle setup MFA authenticator start
+   *
+   * Called when initiating QR code request
+   * Sets loading flag while fetching QR code
+   *
+   * State changes:
+   * - loading: true
+   * - error: null
+   */
+  on(AuthActions.setupMfaAuthenticatorStart, (state) => {
+    const newState = {
+      ...state,
+      loading: true,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle setup MFA authenticator success
+   *
+   * Called when QR code is successfully retrieved
+   * Stores QR code data URI and setup key for display
+   *
+   * State changes:
+   * - loading: false
+   * - qrCodeUri: QR code image data URI
+   * - setupKey: manual setup key
+   * - error: null
+   *
+   * @param response - Setup authenticator response with QR code
+   */
+  on(AuthActions.setupMfaAuthenticatorSuccess, (state, { response }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      qrCodeUri: response.data.qrCodeUri,
+      setupKey: response.data.setupKey,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle setup MFA authenticator failure
+   *
+   * Called when QR code request fails
+   * Stores error for display to user
+   *
+   * State changes:
+   * - loading: false
+   * - error: set with error details
+   *
+   * @param error - Error response from API
+   */
+  on(AuthActions.setupMfaAuthenticatorFailure, (state, { error }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      error
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle validate MFA authenticator start
+   *
+   * Called when user submits code from authenticator app
+   * Sets loading flag while validating code
+   *
+   * State changes:
+   * - loading: true
+   * - error: null
+   */
+  on(AuthActions.validateMfaAuthenticatorStart, (state) => {
+    const newState = {
+      ...state,
+      loading: true,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle validate MFA authenticator success
+   *
+   * Called when authenticator code is successfully validated
+   * Code is valid, user can now proceed to final verification
+   *
+   * State changes:
+   * - loading: false
+   * - error: null
+   */
+  on(AuthActions.validateMfaAuthenticatorSuccess, (state) => {
+    const newState = {
+      ...state,
+      loading: false,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle validate MFA authenticator failure
+   *
+   * Called when authenticator code validation fails
+   * Stores error for display to user
+   *
+   * State changes:
+   * - loading: false
+   * - error: set with error details
+   *
+   * @param error - Error response from API
+   */
+  on(AuthActions.validateMfaAuthenticatorFailure, (state, { error }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      error
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle verify MFA code start
+   *
+   * Called when completing final MFA verification
+   * Sets loading flag while verifying
+   *
+   * State changes:
+   * - loading: true
+   * - error: null
+   */
+  on(AuthActions.verifyMfaCodeStart, (state) => {
+    const newState = {
+      ...state,
+      loading: true,
+      error: null
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle verify MFA code success
+   *
+   * Called when MFA verification succeeds and login is complete
+   * Stores final authentication tokens and marks user as authenticated
+   * Clears MFA setup data as setup is complete
+   *
+   * State changes:
+   * - loading: false
+   * - authToken: final JWT token
+   * - refreshToken: refresh token
+   * - isAuthenticated: true
+   * - shouldCompleteMfa: null (setup complete)
+   * - setupAuthToken: null (no longer needed)
+   * - qrCodeUri: null (no longer needed)
+   * - setupKey: null (no longer needed)
+   * - lastActivity: current timestamp
+   * - error: null
+   *
+   * @param response - Verify MFA code response with final tokens
+   */
+  on(AuthActions.verifyMfaCodeSuccess, (state, { response }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      authToken: response.data.authToken,
+      refreshToken: response.data.refreshToken,
+      user: state.user, // Will be updated by setUser action from effect
+      isAuthenticated: true,
+      shouldCompleteMfa: null,
+      setupAuthToken: null,
+      qrCodeUri: null,
+      setupKey: null,
+      error: null,
+      lastActivity: new Date().toISOString()
+    };
+    persistAuthState(newState);
+    return newState;
+  }),
+
+  /**
+   * Handle verify MFA code failure
+   *
+   * Called when MFA verification fails
+   * Stores error for display to user
+   *
+   * State changes:
+   * - loading: false
+   * - error: set with error details
+   *
+   * @param error - Error response from API
+   */
+  on(AuthActions.verifyMfaCodeFailure, (state, { error }) => {
+    const newState = {
+      ...state,
+      loading: false,
+      error
+    };
+    persistAuthState(newState);
     return newState;
   })
 );

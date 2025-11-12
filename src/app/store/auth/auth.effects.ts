@@ -394,8 +394,10 @@ export class AuthEffects {
    * Login MFA Setup Required Effect
    *
    * Handles navigation when MFA setup is required
+   * Maps customer data to user and stores it
    * Automatically initiates QR code setup
    *
+   * @dispatches AuthActions.setUser - To store user data
    * @dispatches AuthActions.setupMfaAuthenticatorStart - To get QR code
    */
   loginMfaSetupRequired$ = createEffect(() =>
@@ -411,7 +413,16 @@ export class AuthEffects {
           'Please set up two-factor authentication to secure your account'
         );
       }),
-      map(() => AuthActions.setupMfaAuthenticatorStart())
+      switchMap(({ response }) => {
+        // Map customer data to user
+        const user = this.authService.mapCustomerDataToUser(response.customerData);
+
+        // Dispatch multiple actions: set user and start MFA setup
+        return [
+          AuthActions.setUser({ user }),
+          AuthActions.setupMfaAuthenticatorStart()
+        ];
+      })
     )
   );
 

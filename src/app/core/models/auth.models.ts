@@ -297,6 +297,8 @@ export interface LoginSetupMfaResponse {
   shouldCompleteMfa: boolean;
   /** Temporary auth token for MFA setup (used as Bearer token) */
   authToken: string;
+  /** Temporary refresh token (replaced after MFA verification) */
+  refreshToken: string;
   /** Customer data */
   customerData: CustomerData;
 }

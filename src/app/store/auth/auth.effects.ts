@@ -575,12 +575,10 @@ export class AuthEffects {
    * Flow:
    * 1. Get setupAuthToken from state
    * 2. Call verify MFA code API
-   * 3. Store final tokens
-   * 4. Map customer data to user
-   * 5. Navigate to dashboard
+   * 3. Check if verification succeeded (status === 'verified')
+   * 4. Dispatch success (tokens already stored from login)
    *
    * @dispatches AuthActions.verifyMfaCodeSuccess - On successful verification
-   * @dispatches AuthActions.setUser - To store user data
    * @dispatches AuthActions.verifyMfaCodeFailure - On verification failure
    */
   verifyMfaCode$ = createEffect(() =>
@@ -599,20 +597,17 @@ export class AuthEffects {
         };
 
         return this.mfaService.verifyMfaCode(payload, setupAuthToken).pipe(
-          switchMap(response => {
-            // Store tokens
-            this.storageService.setSession('auth_token', response.data.authToken);
-            this.storageService.setLocal('refresh_token', response.data.refreshToken);
-
-            // Map customer data to user
-            const user = this.authService.mapCustomerDataToUser(response.data.customerData);
-            this.storageService.setSession('user_data', user);
-
-            // Dispatch multiple actions
-            return [
-              AuthActions.verifyMfaCodeSuccess({ response }),
-              AuthActions.setUser({ user })
-            ];
+          map(response => {
+            // Check if verification was successful
+            if (Array.isArray(response) && response.length > 0 && response[0].status === 'verified') {
+              // Verification successful - tokens already stored from login response
+              return AuthActions.verifyMfaCodeSuccess({ response });
+            } else {
+              // Verification failed
+              return AuthActions.verifyMfaCodeFailure({
+                error: { message: 'MFA verification failed - invalid status' }
+              });
+            }
           }),
           catchError(error => {
             const errorMessage = error.error?.message || 'MFA verification failed';
@@ -634,15 +629,15 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.verifyMfaCodeSuccess),
-        tap(({ response }) => {
-          const customerData = response.data.customerData;
-
+        withLatestFrom(this.store.select((state: any) => state.auth.user)),
+        tap(([action, user]) => {
           // Navigate to dashboard
           this.router.navigate(['/dashboard']);
 
           // Show welcome notification
+          const firstName = user?.firstName || 'User';
           this.notificationService.showSuccess(
-            `Welcome, ${customerData.firstName}!`,
+            `Welcome, ${firstName}!`,
             'MFA has been successfully configured and you are now logged in'
           );
         })

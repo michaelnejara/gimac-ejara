@@ -341,8 +341,13 @@ export interface ValidateAuthenticatorPayload {
 export interface ValidateAuthenticatorResponse {
   /** Success message */
   message: string;
-  /** Response data (if any) */
-  data?: any;
+  /** Response data */
+  data: {
+    /** MFA type */
+    type: 'authenticator';
+    /** Status after validation */
+    status: 'active';
+  };
 }
 
 /**
@@ -357,18 +362,18 @@ export interface VerifyMfaCodePayload {
 }
 
 /**
- * Verify MFA code response
+ * Verify MFA code response item
  */
-export interface VerifyMfaCodeResponse {
-  /** Response message */
-  message: string;
-  /** Response data */
-  data: {
-    /** JWT authentication token */
-    authToken: string;
-    /** JWT refresh token */
-    refreshToken: string;
-    /** Complete customer data */
-    customerData: CustomerData;
-  };
+export interface VerifyMfaCodeResponseItem {
+  /** MFA type */
+  type: 'authenticator';
+  /** Verification reference ID */
+  reference: string;
+  /** Verification status */
+  status: 'verified';
 }
+
+/**
+ * Verify MFA code response (returns array directly)
+ */
+export type VerifyMfaCodeResponse = VerifyMfaCodeResponseItem[];

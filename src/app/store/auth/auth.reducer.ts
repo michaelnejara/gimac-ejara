@@ -314,6 +314,8 @@ export const authReducer = createReducer(
       loading: false,
       shouldCompleteMfa: response.data.shouldCompleteMfa,
       setupAuthToken: response.data.authToken,
+      authToken: response.data.authToken, // Store for later use after MFA verification
+      refreshToken: response.data.refreshToken, // Store for later use after MFA verification
       canAccessPanel: response.data.canAccessPanel,
       shouldVerifyPhoneNumber: response.data.shouldVerifyPhoneNumber,
       error: null
@@ -476,13 +478,11 @@ export const authReducer = createReducer(
    * Handle verify MFA code success
    *
    * Called when MFA verification succeeds and login is complete
-   * Stores final authentication tokens and marks user as authenticated
-   * Clears MFA setup data as setup is complete
+   * Marks user as authenticated and clears MFA setup data
+   * (Tokens are already stored from loginMfaSetupRequired)
    *
    * State changes:
    * - loading: false
-   * - authToken: final JWT token
-   * - refreshToken: refresh token
    * - isAuthenticated: true
    * - shouldCompleteMfa: null (setup complete)
    * - setupAuthToken: null (no longer needed)
@@ -491,15 +491,12 @@ export const authReducer = createReducer(
    * - lastActivity: current timestamp
    * - error: null
    *
-   * @param response - Verify MFA code response with final tokens
+   * @param response - Verify MFA code response with verification status
    */
-  on(AuthActions.verifyMfaCodeSuccess, (state, { response }) => {
+  on(AuthActions.verifyMfaCodeSuccess, (state) => {
     const newState = {
       ...state,
       loading: false,
-      authToken: response.data.authToken,
-      refreshToken: response.data.refreshToken,
-      user: state.user, // Will be updated by setUser action from effect
       isAuthenticated: true,
       shouldCompleteMfa: null,
       setupAuthToken: null,

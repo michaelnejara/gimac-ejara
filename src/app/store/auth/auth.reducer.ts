@@ -312,10 +312,10 @@ export const authReducer = createReducer(
     const newState = {
       ...state,
       loading: false,
-      shouldCompleteMfa: response.shouldCompleteMfa,
-      setupAuthToken: response.authToken,
-      canAccessPanel: response.canAccessPanel,
-      shouldVerifyPhoneNumber: response.shouldVerifyPhoneNumber,
+      shouldCompleteMfa: response.data.shouldCompleteMfa,
+      setupAuthToken: response.data.authToken,
+      canAccessPanel: response.data.canAccessPanel,
+      shouldVerifyPhoneNumber: response.data.shouldVerifyPhoneNumber,
       error: null
     };
     persistAuthState(newState);

@@ -289,18 +289,23 @@ export interface CompletePasswordResetResponse {
  * Login response when MFA setup is required (shouldCompleteMfa: false)
  */
 export interface LoginSetupMfaResponse {
-  /** Whether user can access admin panel */
-  canAccessPanel: boolean;
-  /** Whether phone verification is required */
-  shouldVerifyPhoneNumber: boolean;
-  /** Whether MFA setup is required (false for setup flow) */
-  shouldCompleteMfa: boolean;
-  /** Temporary auth token for MFA setup (used as Bearer token) */
-  authToken: string;
-  /** Temporary refresh token (replaced after MFA verification) */
-  refreshToken: string;
-  /** Customer data */
-  customerData: CustomerData;
+  /** Response message */
+  message: string;
+  /** Response data */
+  data: {
+    /** Whether user can access admin panel */
+    canAccessPanel: boolean;
+    /** Whether phone verification is required */
+    shouldVerifyPhoneNumber: boolean;
+    /** Whether MFA setup is required (false for setup flow) */
+    shouldCompleteMfa: boolean;
+    /** Temporary auth token for MFA setup (used as Bearer token) */
+    authToken: string;
+    /** Temporary refresh token (replaced after MFA verification) */
+    refreshToken: string;
+    /** Customer data */
+    customerData: CustomerData;
+  };
 }
 
 /**

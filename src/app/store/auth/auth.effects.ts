@@ -73,15 +73,17 @@ export class AuthEffects {
             // Call login API
             return this.authService.login(payload).pipe(
               map((response: any) => {
-                // Check if response has shouldCompleteMfa property
-                if ('shouldCompleteMfa' in response && response.shouldCompleteMfa === false) {
-                  // MFA setup required
-                  return AuthActions.loginMfaSetupRequired({ response: response as AuthModels.LoginSetupMfaResponse });
-                } else if ('data' in response && 'shouldCompleteMfa' in response.data) {
-                  // MFA verification required (existing flow)
-                  return AuthActions.loginMfaRequired({ response: response as AuthModels.LoginMfaResponse });
+                // Check if response has data.shouldCompleteMfa property
+                if ('data' in response && 'shouldCompleteMfa' in response.data) {
+                  if (response.data.shouldCompleteMfa === false) {
+                    // MFA setup required (shouldCompleteMfa: false)
+                    return AuthActions.loginMfaSetupRequired({ response: response as AuthModels.LoginSetupMfaResponse });
+                  } else {
+                    // MFA verification required (shouldCompleteMfa: true)
+                    return AuthActions.loginMfaRequired({ response: response as AuthModels.LoginMfaResponse });
+                  }
                 } else {
-                  // Unknown response format
+                  // Unknown response format - default to MFA verification flow
                   return AuthActions.loginMfaRequired({ response: response as AuthModels.LoginMfaResponse });
                 }
               }),
@@ -415,7 +417,7 @@ export class AuthEffects {
       }),
       switchMap(({ response }) => {
         // Map customer data to user
-        const user = this.authService.mapCustomerDataToUser(response.customerData);
+        const user = this.authService.mapCustomerDataToUser(response.data.customerData);
 
         // Dispatch multiple actions: set user and start MFA setup
         return [

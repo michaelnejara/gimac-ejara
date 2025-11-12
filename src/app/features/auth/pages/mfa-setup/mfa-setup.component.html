@@ -52,15 +52,15 @@
               }
             </button>
 
-            @if (showManualKey && (setupKey$ | async)) {
+            @if (showManualKey && (setupKey$ | async); as setupKey) {
               <div class="setup-key-container">
                 <p class="setup-key-label">Manual Setup Key:</p>
                 <div class="setup-key-box">
-                  <code class="setup-key">{{ setupKey$ | async }}</code>
+                  <code class="setup-key">{{ setupKey }}</code>
                   <button
                     type="button"
                     class="copy-btn"
-                    (click)="copySetupKey(setupKey$ | async)"
+                    (click)="copySetupKey(setupKey)"
                     title="Copy to clipboard">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

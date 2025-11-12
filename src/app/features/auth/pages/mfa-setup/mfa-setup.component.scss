@@ -166,7 +166,7 @@
               letter-spacing: 0.5em;
               font-size: 18px;
               @apply w-full rounded-[12px] p-[16px] border border-solid border-[var(--color-border-neutral)] bg-[var(--color-background-primary)];
-              @apply !text-[#4D5D63];
+              @apply text-[#4D5D63];
 
               &::placeholder {
                 @apply text-[var(--color-placholder)];

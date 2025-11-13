@@ -326,4 +326,11 @@ export class DatePicker implements ControlValueAccessor, OnInit {
   getDayNames(): string[] {
     return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   }
+
+  /**
+   * Select today's date
+   */
+  selectToday(): void {
+    this.selectDate(new Date());
+  }
 }

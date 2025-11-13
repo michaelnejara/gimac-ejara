@@ -400,26 +400,20 @@ export const bondsReducer = createReducer(
         code: bond.code,
         name: bond.name,
         defaultFiatCurrency: bond.defaultFiatCurrency,
-        tokenSymbol: bond.tokenSymbol,
         status: bond.status,
         maturityDate: bond.maturityDate,
-        issueDate: bond.issueDate,
-        faceValue: bond.faceValue,
-        couponRate: bond.couponRate,
-        paymentFrequency: bond.paymentFrequency,
-        minimumInvestment: bond.minimumInvestment,
-        maximumInvestment: bond.maximumInvestment,
-        totalSupply: bond.totalSupply,
+        issueDate: bond.startDate, // Map startDate to issueDate
+        faceValue: bond.amount, // Map amount to faceValue
+        couponRate: bond.customerInterestRate, // Map customerInterestRate to couponRate
+        paymentFrequency: bond.interestCalculationPeriod, // Map interestCalculationPeriod to paymentFrequency
+        minimumInvestment: bond.momoMinimumDeposit, // Map momoMinimumDeposit to minimumInvestment
+        totalSupply: bond.amount, // Map amount to totalSupply
         issuerNameEn: bond.issuerNameEn,
         issuerNameFr: bond.issuerNameFr,
         issuerType: bond.issuerType,
-        descriptionEn: bond.descriptionEn,
-        descriptionFr: bond.descriptionFr,
-        riskLevel: bond.riskLevel,
-        creditRating: bond.creditRating,
-        earlyRedemption: bond.earlyRedemption,
-        earlyRedemptionTerms: bond.earlyRedemptionTerms || undefined,
-        colorCode: bond.colorCode
+        descriptionEn: bond.descriptionEn || '',
+        descriptionFr: bond.descriptionFr || '',
+        colorCode: bond.colorCode || `#${bond.color}`
       },
       step: 0,
       lastSaved: new Date().toISOString(),

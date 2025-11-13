@@ -184,6 +184,9 @@ export const selectBondEntityById = (bondId: number) => createSelector(
   (entities) => entities[bondId]
 );
 
+// Alias for wizard compatibility
+export const selectSingleEntity = selectBondEntityById;
+
 export const selectBondLoading = (bondId: number) => createSelector(
   selectBondEntityById(bondId),
   (entity) => entity?.loading || false

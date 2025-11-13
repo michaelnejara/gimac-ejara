@@ -166,6 +166,9 @@ export const selectPartnerEntityById = (partnerId: number) => createSelector(
   (entities) => entities[partnerId]
 );
 
+// Alias for wizard compatibility
+export const selectSingleEntity = selectPartnerEntityById;
+
 export const selectPartnerLoading = (partnerId: number) => createSelector(
   selectPartnerEntityById(partnerId),
   (entity) => entity?.loading || false

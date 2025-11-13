@@ -1,0 +1,94 @@
+<!-- src/app/shared/components/forms/date-picker/date-picker.html -->
+<div class="date-picker-wrapper">
+  <!-- Label -->
+  <label *ngIf="label" class="date-picker-label">
+    {{ label }}
+    <span *ngIf="required" class="required-indicator">*</span>
+  </label>
+
+  <!-- Input field -->
+  <div class="date-picker-input-wrapper">
+    <input
+      type="text"
+      class="date-picker-input"
+      [placeholder]="placeholder"
+      [value]="inputValue"
+      [disabled]="isDisabled"
+      (input)="onInputChange($any($event.target).value)"
+      (focus)="toggleCalendar()"
+      (blur)="onTouched()"
+    />
+    <button
+      type="button"
+      class="calendar-toggle-btn"
+      [disabled]="isDisabled"
+      (click)="toggleCalendar()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Help text -->
+  <div *ngIf="helpText" class="help-text">
+    {{ helpText }}
+  </div>
+
+  <!-- Calendar popup -->
+  <div *ngIf="showCalendar" class="calendar-popup">
+    <!-- Calendar header -->
+    <div class="calendar-header">
+      <button type="button" class="nav-btn" (click)="previousMonth()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <span class="month-year">{{ getMonthName() }} {{ getYear() }}</span>
+      <button type="button" class="nav-btn" (click)="nextMonth()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Day names -->
+    <div class="calendar-day-names">
+      <div *ngFor="let dayName of getDayNames()" class="day-name">
+        {{ dayName }}
+      </div>
+    </div>
+
+    <!-- Calendar grid -->
+    <div class="calendar-grid">
+      <div *ngFor="let week of weeks" class="calendar-week">
+        <button
+          *ngFor="let date of week"
+          type="button"
+          class="calendar-day"
+          [class.other-month]="!isCurrentMonth(date)"
+          [class.selected]="isSelected(date)"
+          [class.today]="isToday(date)"
+          [class.disabled]="isDateDisabled(date)"
+          [disabled]="isDateDisabled(date)"
+          (click)="selectDate(date)"
+        >
+          {{ date.getDate() }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Calendar footer -->
+    <div class="calendar-footer">
+      <button type="button" class="btn-today" (click)="selectDate(new Date())">
+        Today
+      </button>
+      <button type="button" class="btn-close" (click)="closeCalendar()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

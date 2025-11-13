@@ -15,6 +15,7 @@ import {
   BondAssignmentResponse,
   RemoveBondsRequest
 } from '@core/models/partner.models';
+import { PartnerDraft } from './partners.state';
 
 /**
  * Partners Actions
@@ -102,14 +103,24 @@ export const PartnersActions = createActionGroup({
     'Assign Bonds Failure': props<{ partnerId: number; error: string }>(),
 
     // Remove Bonds from Partner
-    'Remove Bonds': props<{ 
-      partnerId: number; 
-      bondsData: RemoveBondsRequest 
+    'Remove Bonds': props<{
+      partnerId: number;
+      bondsData: RemoveBondsRequest
     }>(),
-    'Remove Bonds Success': props<{ 
-      partnerId: number; 
-      response: BondAssignmentResponse 
+    'Remove Bonds Success': props<{
+      partnerId: number;
+      response: BondAssignmentResponse
     }>(),
     'Remove Bonds Failure': props<{ partnerId: number; error: string }>(),
+
+    // Draft Management
+    'Save Draft': props<{ draft: PartnerDraft }>(),
+    'Update Draft Data': props<{ data: Partial<CreatePartnerRequest | UpdatePartnerRequest> }>(),
+    'Update Draft Step': props<{ step: number }>(),
+    'Initialize Draft From Entity': props<{ partnerId: number; partner: Partner | PartnerDetail }>(),
+    'Initialize New Draft': emptyProps(),
+    'Clear Draft': emptyProps(),
+    'Load Draft From Storage': emptyProps(),
+    'Auto Save Draft': props<{ data: Partial<CreatePartnerRequest | UpdatePartnerRequest> }>(),
   }
 });

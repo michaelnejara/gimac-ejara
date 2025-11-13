@@ -1,0 +1,106 @@
+<!-- src/app/shared/components/forms/color-picker/color-picker.html -->
+<div class="color-picker-wrapper">
+  <!-- Label -->
+  <label *ngIf="label" class="color-picker-label">
+    {{ label }}
+    <span *ngIf="required" class="required-indicator">*</span>
+  </label>
+
+  <!-- Input field with color preview -->
+  <div class="color-picker-input-wrapper">
+    <div
+      class="color-preview"
+      [style.backgroundColor]="selectedColor"
+      [title]="selectedColor"
+    ></div>
+    <input
+      type="text"
+      class="color-picker-input"
+      [placeholder]="placeholder"
+      [value]="inputValue"
+      [disabled]="isDisabled"
+      (input)="onInputChange($any($event.target).value)"
+      (blur)="onTouched()"
+      maxlength="7"
+    />
+    <button
+      type="button"
+      class="picker-toggle-btn"
+      [disabled]="isDisabled"
+      (click)="togglePicker()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Help text -->
+  <div *ngIf="helpText" class="help-text">
+    {{ helpText }}
+  </div>
+
+  <!-- Color picker popup -->
+  <div *ngIf="showPicker" class="picker-popup">
+    <!-- Current color display -->
+    <div class="current-color-section">
+      <div class="current-color-display">
+        <div
+          class="current-color-swatch"
+          [style.backgroundColor]="selectedColor"
+        >
+          <span [style.color]="getContrastColor(selectedColor)">
+            {{ selectedColor }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color palette -->
+    <div *ngIf="showPalette" class="palette-section">
+      <h4 class="palette-title">Color Palette</h4>
+      <div class="color-grid">
+        <button
+          *ngFor="let color of colorPalette"
+          type="button"
+          class="color-swatch"
+          [class.selected]="color === selectedColor"
+          [style.backgroundColor]="color"
+          [title]="color"
+          (click)="selectColor(color)"
+        >
+          <svg *ngIf="color === selectedColor" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="getContrastColor(color)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent colors -->
+    <div *ngIf="recentColors.length > 0" class="recent-colors-section">
+      <h4 class="recent-title">Recent Colors</h4>
+      <div class="recent-colors-grid">
+        <button
+          *ngFor="let color of recentColors"
+          type="button"
+          class="color-swatch"
+          [class.selected]="color === selectedColor"
+          [style.backgroundColor]="color"
+          [title]="color"
+          (click)="selectColor(color)"
+        >
+          <svg *ngIf="color === selectedColor" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="getContrastColor(color)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Picker footer -->
+    <div class="picker-footer">
+      <button type="button" class="btn-close" (click)="closePicker()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

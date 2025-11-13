@@ -1,6 +1,6 @@
 // src/app/store/partners/partners.state.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Partner, PartnerDetail, PartnerFilterParams } from '@core/models/partner.models';
+import { Partner, PartnerDetail, PartnerFilterParams, CreatePartnerRequest, UpdatePartnerRequest } from '@core/models/partner.models';
 
 /**
  * Partner Entity
@@ -19,6 +19,22 @@ export interface PartnerEntity {
  */
 export interface PageCache<T> {
   [pageNumber: number]: T[];
+}
+
+/**
+ * Partner Draft - For multi-step wizard with auto-save
+ */
+export interface PartnerDraft {
+  /** Partner ID - null for new partner, number for editing */
+  partnerId: number | null;
+  /** Draft data */
+  data: Partial<CreatePartnerRequest | UpdatePartnerRequest>;
+  /** Current wizard step (0-indexed) */
+  step: number;
+  /** Last saved timestamp */
+  lastSaved: string | null;
+  /** Whether draft is from editing existing partner or creating new */
+  isEditing: boolean;
 }
 
 /**
@@ -56,6 +72,9 @@ export interface PartnersState {
   creating: boolean;
   updating: boolean;
   deleting: boolean;
+
+  // Draft Management
+  draft: PartnerDraft | null;
 }
 
 /**
@@ -79,7 +98,8 @@ export const initialState: PartnersState = {
   error: null,
   creating: false,
   updating: false,
-  deleting: false
+  deleting: false,
+  draft: null
 };
 
 /**
@@ -271,4 +291,42 @@ export const selectPartnersByStatus = (status: string) => createSelector(
 export const selectPartnerCount = createSelector(
   selectCurrentPagePartners,
   (partners) => partners.length
+);
+
+/**
+ * Draft Selectors
+ */
+export const selectDraft = createSelector(
+  selectPartnersState,
+  (state) => state.draft
+);
+
+export const selectDraftData = createSelector(
+  selectDraft,
+  (draft) => draft?.data || null
+);
+
+export const selectDraftStep = createSelector(
+  selectDraft,
+  (draft) => draft?.step || 0
+);
+
+export const selectDraftPartnerId = createSelector(
+  selectDraft,
+  (draft) => draft?.partnerId || null
+);
+
+export const selectDraftIsEditing = createSelector(
+  selectDraft,
+  (draft) => draft?.isEditing || false
+);
+
+export const selectDraftLastSaved = createSelector(
+  selectDraft,
+  (draft) => draft?.lastSaved || null
+);
+
+export const selectHasDraft = createSelector(
+  selectDraft,
+  (draft) => !!draft
 );

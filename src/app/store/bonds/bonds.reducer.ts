@@ -361,5 +361,97 @@ export const bondsReducer = createReducer(
       ...state.filters,
       offset: 0
     }
+  })),
+
+  // Draft Management
+  on(BondsActions.saveDraft, (state, { draft }) => ({
+    ...state,
+    draft: {
+      ...draft,
+      lastSaved: new Date().toISOString()
+    }
+  })),
+
+  on(BondsActions.updateDraftData, (state, { data }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      data: {
+        ...state.draft.data,
+        ...data
+      },
+      lastSaved: new Date().toISOString()
+    } : null
+  })),
+
+  on(BondsActions.updateDraftStep, (state, { step }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      step
+    } : null
+  })),
+
+  on(BondsActions.initializeDraftFromEntity, (state, { bondId, bond }) => ({
+    ...state,
+    draft: {
+      bondId,
+      data: {
+        code: bond.code,
+        name: bond.name,
+        defaultFiatCurrency: bond.defaultFiatCurrency,
+        tokenSymbol: bond.tokenSymbol,
+        status: bond.status,
+        maturityDate: bond.maturityDate,
+        issueDate: bond.issueDate,
+        faceValue: bond.faceValue,
+        couponRate: bond.couponRate,
+        paymentFrequency: bond.paymentFrequency,
+        minimumInvestment: bond.minimumInvestment,
+        maximumInvestment: bond.maximumInvestment,
+        totalSupply: bond.totalSupply,
+        issuerNameEn: bond.issuerNameEn,
+        issuerNameFr: bond.issuerNameFr,
+        issuerType: bond.issuerType,
+        descriptionEn: bond.descriptionEn,
+        descriptionFr: bond.descriptionFr,
+        riskLevel: bond.riskLevel,
+        creditRating: bond.creditRating,
+        earlyRedemption: bond.earlyRedemption,
+        earlyRedemptionTerms: bond.earlyRedemptionTerms || undefined,
+        colorCode: bond.colorCode
+      },
+      step: 0,
+      lastSaved: new Date().toISOString(),
+      isEditing: true
+    }
+  })),
+
+  on(BondsActions.initializeNewDraft, (state) => ({
+    ...state,
+    draft: {
+      bondId: null,
+      data: {},
+      step: 0,
+      lastSaved: null,
+      isEditing: false
+    }
+  })),
+
+  on(BondsActions.clearDraft, (state) => ({
+    ...state,
+    draft: null
+  })),
+
+  on(BondsActions.autoSaveDraft, (state, { data }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      data: {
+        ...state.draft.data,
+        ...data
+      },
+      lastSaved: new Date().toISOString()
+    } : null
   }))
 );

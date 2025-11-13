@@ -25,6 +25,22 @@ export interface PageCache<T> {
 }
 
 /**
+ * Bond Draft - For multi-step wizard with auto-save
+ */
+export interface BondDraft {
+  /** Bond ID - null for new bond, number for editing */
+  bondId: number | null;
+  /** Draft data */
+  data: Partial<any>; // Will be Bond creation/update payload
+  /** Current wizard step (0-indexed) */
+  step: number;
+  /** Last saved timestamp */
+  lastSaved: string | null;
+  /** Whether draft is from editing existing bond or creating new */
+  isEditing: boolean;
+}
+
+/**
  * Bonds State Interface
  */
 export interface BondsState {
@@ -66,6 +82,9 @@ export interface BondsState {
   creating: boolean;
   updating: boolean;
   deleting: boolean;
+
+  // Draft Management
+  draft: BondDraft | null;
 }
 
 /**
@@ -97,7 +116,8 @@ export const initialState: BondsState = {
   error: null,
   creating: false,
   updating: false,
-  deleting: false
+  deleting: false,
+  draft: null
 };
 
 /**
@@ -391,4 +411,42 @@ export const selectHasFilters = createSelector(
 export const selectBondCount = createSelector(
   selectCurrentPageBonds,
   (bonds) => bonds.length
+);
+
+/**
+ * Draft Selectors
+ */
+export const selectDraft = createSelector(
+  selectBondsState,
+  (state) => state.draft
+);
+
+export const selectDraftData = createSelector(
+  selectDraft,
+  (draft) => draft?.data || null
+);
+
+export const selectDraftStep = createSelector(
+  selectDraft,
+  (draft) => draft?.step || 0
+);
+
+export const selectDraftBondId = createSelector(
+  selectDraft,
+  (draft) => draft?.bondId || null
+);
+
+export const selectDraftIsEditing = createSelector(
+  selectDraft,
+  (draft) => draft?.isEditing || false
+);
+
+export const selectDraftLastSaved = createSelector(
+  selectDraft,
+  (draft) => draft?.lastSaved || null
+);
+
+export const selectHasDraft = createSelector(
+  selectDraft,
+  (draft) => !!draft
 );

@@ -10,6 +10,7 @@ import {
   CustomerBondFilterParams,
   CustomerBondHolding
 } from '@core/models/bond.models';
+import { BondDraft } from './bonds.state';
 
 /**
  * Bonds Actions
@@ -101,6 +102,16 @@ export const BondsActions = createActionGroup({
     'Reset To First Page': emptyProps(),
     'Reset For Context View': emptyProps(), // Reset when entering partner/customer context
     'Check And Load Bonds': props<{ filters?: BondFilterParams }>(),
-    'Check And Load Bond': props<{ bondId: number; forceReload?: boolean }>()
+    'Check And Load Bond': props<{ bondId: number; forceReload?: boolean }>(),
+
+    // Draft Management
+    'Save Draft': props<{ draft: BondDraft }>(),
+    'Update Draft Data': props<{ data: Partial<any> }>(), // Will be CreateBondRequest | UpdateBondRequest
+    'Update Draft Step': props<{ step: number }>(),
+    'Initialize Draft From Entity': props<{ bondId: number; bond: Bond }>(),
+    'Initialize New Draft': emptyProps(),
+    'Clear Draft': emptyProps(),
+    'Load Draft From Storage': emptyProps(),
+    'Auto Save Draft': props<{ data: Partial<any> }>(), // Auto-save with debounce
   }
 });

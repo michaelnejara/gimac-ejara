@@ -324,5 +324,92 @@ export const partnersReducer = createReducer(
     ...state,
     updating: false,
     error
+  })),
+
+  // Draft Management
+  on(PartnersActions.saveDraft, (state, { draft }) => ({
+    ...state,
+    draft: {
+      ...draft,
+      lastSaved: new Date().toISOString()
+    }
+  })),
+
+  on(PartnersActions.updateDraftData, (state, { data }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      data: {
+        ...state.draft.data,
+        ...data
+      },
+      lastSaved: new Date().toISOString()
+    } : null
+  })),
+
+  on(PartnersActions.updateDraftStep, (state, { step }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      step
+    } : null
+  })),
+
+  on(PartnersActions.initializeDraftFromEntity, (state, { partnerId, partner }) => ({
+    ...state,
+    draft: {
+      partnerId,
+      data: {
+        name: partner.name,
+        description: 'description' in partner ? partner.description : undefined,
+        webhookUrl: partner.webhookUrl || undefined,
+        allowedIpAddresses: partner.allowedIpAddresses || undefined,
+        allowedBonds: 'allowedBonds' in partner
+          ? (partner as any).allowedBonds.map((b: any) => b.id)
+          : undefined,
+        commissionRate: partner.commissionRate,
+        settlementAccount: partner.settlementAccount || undefined,
+        minTransactionAmount: partner.minTransactionAmount,
+        maxTransactionAmount: partner.maxTransactionAmount || undefined,
+        dailyTransactionLimit: partner.dailyTransactionLimit || undefined,
+        monthlyTransactionLimit: partner.monthlyTransactionLimit || undefined,
+        address: 'address' in partner ? partner.address : undefined,
+        city: 'city' in partner ? partner.city : undefined,
+        state: 'state' in partner ? partner.state : undefined,
+        country: 'country' in partner ? partner.country : undefined,
+        postalCode: 'postalCode' in partner ? partner.postalCode : undefined
+      },
+      step: 0,
+      lastSaved: new Date().toISOString(),
+      isEditing: true
+    }
+  })),
+
+  on(PartnersActions.initializeNewDraft, (state) => ({
+    ...state,
+    draft: {
+      partnerId: null,
+      data: {},
+      step: 0,
+      lastSaved: null,
+      isEditing: false
+    }
+  })),
+
+  on(PartnersActions.clearDraft, (state) => ({
+    ...state,
+    draft: null
+  })),
+
+  on(PartnersActions.autoSaveDraft, (state, { data }) => ({
+    ...state,
+    draft: state.draft ? {
+      ...state.draft,
+      data: {
+        ...state.draft.data,
+        ...data
+      },
+      lastSaved: new Date().toISOString()
+    } : null
   }))
 );

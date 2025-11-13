@@ -16,7 +16,7 @@
       [disabled]="isDisabled"
       (input)="onInputChange($any($event.target).value)"
       (focus)="toggleCalendar()"
-      (blur)="onTouched()"
+      (blur)="markAsTouched()"
     />
     <button
       type="button"

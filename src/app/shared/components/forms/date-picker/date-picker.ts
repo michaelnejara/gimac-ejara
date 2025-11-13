@@ -133,6 +133,13 @@ export class DatePicker implements ControlValueAccessor, OnInit {
   }
 
   /**
+   * Mark as touched (public wrapper for template)
+   */
+  markAsTouched(): void {
+    this.onTouched();
+  }
+
+  /**
    * Handle input change
    */
   onInputChange(value: string): void {

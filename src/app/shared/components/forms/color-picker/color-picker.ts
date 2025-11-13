@@ -128,6 +128,13 @@ export class ColorPicker implements ControlValueAccessor {
   }
 
   /**
+   * Mark as touched (public wrapper for template)
+   */
+  markAsTouched(): void {
+    this.onTouched();
+  }
+
+  /**
    * Handle input change
    */
   onInputChange(value: string): void {

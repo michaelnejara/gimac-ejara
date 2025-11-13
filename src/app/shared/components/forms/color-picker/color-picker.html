@@ -20,7 +20,7 @@
       [value]="inputValue"
       [disabled]="isDisabled"
       (input)="onInputChange($any($event.target).value)"
-      (blur)="onTouched()"
+      (blur)="markAsTouched()"
       maxlength="7"
     />
     <button

@@ -296,45 +296,75 @@ export class BondWizard implements OnInit, OnDestroy {
 
   /**
    * Submit the wizard
-   * Filter form data to match SingleBondUpdateRequest interface
+   * Filter form data based on operation type
    */
   submitWizard(): void {
     if (this.wizardForm.valid || (this.isEditing && this.wizardForm.get('code')?.disabled)) {
       // Use getRawValue() to include disabled fields (like 'code' in edit mode)
       const rawFormData = this.wizardForm.getRawValue();
 
-      // Filter to only include fields in SingleBondUpdateRequest interface
-      const bondData = {
-        code: rawFormData.code,
-        name: rawFormData.name,
-        defaultFiatCurrency: rawFormData.defaultFiatCurrency,
-        status: rawFormData.status,
-        rank: rawFormData.rank,
-        descriptionEn: rawFormData.descriptionEn,
-        descriptionFr: rawFormData.descriptionFr,
-        issuerNameEn: rawFormData.issuerNameEn,
-        issuerNameFr: rawFormData.issuerNameFr,
-        amount: rawFormData.amount,
-        interestCalculationPeriod: rawFormData.interestCalculationPeriod,
-        startDate: rawFormData.startDate,
-        maturityDate: rawFormData.maturityDate,
-        colorCode: rawFormData.colorCode
-      };
-
       if (this.isEditing && this.bondId) {
+        // For UPDATE: Filter to only include fields in SingleBondUpdateRequest interface
+        const bondData = {
+          code: rawFormData.code,
+          name: rawFormData.name,
+          defaultFiatCurrency: rawFormData.defaultFiatCurrency,
+          status: rawFormData.status,
+          rank: rawFormData.rank,
+          descriptionEn: rawFormData.descriptionEn,
+          descriptionFr: rawFormData.descriptionFr,
+          issuerNameEn: rawFormData.issuerNameEn,
+          issuerNameFr: rawFormData.issuerNameFr,
+          amount: rawFormData.amount,
+          interestCalculationPeriod: rawFormData.interestCalculationPeriod,
+          startDate: rawFormData.startDate,
+          maturityDate: rawFormData.maturityDate,
+          colorCode: rawFormData.colorCode
+        };
+
         this.store.dispatch(BondsActions.updateBond({
           bondId: this.bondId,
           bondData
         }));
       } else {
+        // For CREATE: Include all required fields from CreateBondRequest
+        const bondData = {
+          name: rawFormData.name,
+          descriptionEn: rawFormData.descriptionEn,
+          descriptionFr: rawFormData.descriptionFr,
+          colorCode: rawFormData.colorCode,
+          amount: rawFormData.amount,
+          ejaraInterestRate: rawFormData.ejaraInterestRate || 0,
+          customerInterestRate: rawFormData.customerInterestRate || 0,
+          startDate: rawFormData.startDate,
+          maturityDate: rawFormData.maturityDate,
+          smartContractId: rawFormData.smartContractId || '',
+          defaultFiatCurrency: rawFormData.defaultFiatCurrency,
+          fiatTokenEquivalent: rawFormData.fiatTokenEquivalent || 1,
+          status: rawFormData.status,
+          isWithdrawalBlocked: rawFormData.isWithdrawalBlocked || false,
+          shouldBeDisplayedInApp: rawFormData.shouldBeDisplayedInApp !== undefined ? rawFormData.shouldBeDisplayedInApp : true,
+          momoMinimumDeposit: rawFormData.momoMinimumDeposit || 0,
+          bankMinimumDeposit: rawFormData.bankMinimumDeposit || 0,
+          interestCalculationPeriod: rawFormData.interestCalculationPeriod,
+          rank: rawFormData.rank || 0,
+          blockchain: rawFormData.blockchain || '',
+          issuerNameEn: rawFormData.issuerNameEn,
+          issuerNameFr: rawFormData.issuerNameFr,
+          issuerDescriptionEn: rawFormData.issuerDescriptionEn || '',
+          issuerDescriptionFr: rawFormData.issuerDescriptionFr || '',
+          issuerType: rawFormData.issuerType,
+          issuerIcon: rawFormData.issuerIcon || '',
+          withdrawalPeriod: 'maturity',
+          unlockingPenaltyRate: 0
+        };
+
         this.store.dispatch(BondsActions.createBond({
           bondData
         }));
       }
 
       // Don't navigate immediately - let the success handler do it
-      // this.store.dispatch(BondsActions.clearDraft());
-      // this.router.navigate(['/bonds']);
     }
   }
 

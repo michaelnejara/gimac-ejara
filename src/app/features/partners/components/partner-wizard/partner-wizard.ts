@@ -13,7 +13,8 @@ import {
   selectDraftIsEditing,
   selectDraftPartnerId,
   selectCreating,
-  selectUpdating
+  selectUpdating,
+  selectSingleEntity
 } from '@store/partners/partners.state';
 
 /**
@@ -85,8 +86,21 @@ export class PartnerWizard implements OnInit, OnDestroy {
         if (id) {
           this.partnerId = parseInt(id, 10);
           this.isEditing = true;
-          // Load partner and initialize draft
-          // This would be done via effects in a full implementation
+          // Load partner data
+          this.store.dispatch(PartnersActions.loadPartner({ partnerId: this.partnerId }));
+
+          // Subscribe to loaded partner and initialize draft
+          this.store.select(selectSingleEntity(this.partnerId))
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(entity => {
+              if (entity && entity.data && !entity.loading) {
+                // Initialize draft from loaded partner
+                this.store.dispatch(PartnersActions.initializeDraftFromEntity({
+                  partnerId: this.partnerId!,
+                  partner: entity.data
+                }));
+              }
+            });
         } else {
           this.isEditing = false;
           // Initialize new draft
@@ -185,17 +199,24 @@ export class PartnerWizard implements OnInit, OnDestroy {
    * Check if step is completed (has valid data)
    */
   isStepCompleted(step: number): boolean {
-    // Basic validation - can be enhanced
+    // A step is only completed if we've moved past it OR it's the current step with valid data
+    if (step > this.currentStep) {
+      return false; // Future steps are never completed
+    }
+
+    // For current and past steps, check if they have required data
     switch (step) {
       case 0: // Basic Info
-        return !!this.wizardForm.get('name')?.value;
+        const name = this.wizardForm.get('name')?.value;
+        return !!(name && name.trim());
       case 1: // Configuration
-        return true; // Optional fields
+        return step < this.currentStep; // Only show completed if we've moved past it
       case 2: // Financial
-        return !!this.wizardForm.get('commissionRate')?.value &&
-               !!this.wizardForm.get('minTransactionAmount')?.value;
+        const commissionRate = this.wizardForm.get('commissionRate')?.value;
+        const minAmount = this.wizardForm.get('minTransactionAmount')?.value;
+        return !!(commissionRate && minAmount);
       case 3: // Address
-        return true; // Optional fields
+        return step < this.currentStep; // Only show completed if we've moved past it
       default:
         return false;
     }

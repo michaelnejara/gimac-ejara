@@ -13,7 +13,8 @@ import {
   selectDraftIsEditing,
   selectDraftBondId,
   selectCreating,
-  selectUpdating
+  selectUpdating,
+  selectSingleEntity
 } from '@store/bonds/bonds.state';
 
 import { DatePicker } from '@shared/components/forms/date-picker/date-picker';
@@ -79,7 +80,6 @@ export class BondWizard implements OnInit, OnDestroy {
   statusOptions = ['ACTIVE', 'INACTIVE', 'PENDING', 'MATURED'];
   issuerTypeOptions = ['GOVERNMENT', 'CORPORATE', 'MUNICIPAL'];
   paymentFrequencyOptions = ['MONTHLY', 'QUARTERLY', 'SEMI_ANNUALLY', 'ANNUALLY'];
-  riskLevelOptions = ['LOW', 'MEDIUM', 'HIGH'];
 
   ngOnInit(): void {
     this.initializeForm();
@@ -92,7 +92,21 @@ export class BondWizard implements OnInit, OnDestroy {
         if (id) {
           this.bondId = parseInt(id, 10);
           this.isEditing = true;
-          // Load bond and initialize draft via effects
+          // Load bond data
+          this.store.dispatch(BondsActions.loadBond({ bondId: this.bondId }));
+
+          // Subscribe to loaded bond and initialize draft
+          this.store.select(selectSingleEntity(this.bondId))
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(entity => {
+              if (entity && entity.data && !entity.loading) {
+                // Initialize draft from loaded bond
+                this.store.dispatch(BondsActions.initializeDraftFromEntity({
+                  bondId: this.bondId!,
+                  bond: entity.data
+                }));
+              }
+            });
         } else {
           this.isEditing = false;
           this.store.dispatch(BondsActions.initializeNewDraft());
@@ -133,7 +147,6 @@ export class BondWizard implements OnInit, OnDestroy {
       // Step 1: Basic Info
       code: [''],
       name: [''],
-      tokenSymbol: [''],
       defaultFiatCurrency: [''],
       status: ['ACTIVE'],
 
@@ -151,14 +164,10 @@ export class BondWizard implements OnInit, OnDestroy {
       minimumInvestment: [''],
       maximumInvestment: [''],
       totalSupply: [''],
-      riskLevel: [''],
-      creditRating: [''],
 
       // Step 4: Dates & Settings
       issueDate: [''],
       maturityDate: [''],
-      earlyRedemption: [false],
-      earlyRedemptionTerms: [''],
       colorCode: ['#3b82f6']
     });
   }
@@ -197,21 +206,30 @@ export class BondWizard implements OnInit, OnDestroy {
    * Check if step is completed
    */
   isStepCompleted(step: number): boolean {
+    // A step is only completed if we've moved past it OR it's the current step with valid data
+    if (step > this.currentStep) {
+      return false; // Future steps are never completed
+    }
+
+    // For current and past steps, check if they have required data
     switch (step) {
       case 0: // Basic Info
-        return !!this.wizardForm.get('code')?.value &&
-               !!this.wizardForm.get('name')?.value &&
-               !!this.wizardForm.get('tokenSymbol')?.value;
+        const code = this.wizardForm.get('code')?.value;
+        const name = this.wizardForm.get('name')?.value;
+        return !!(code && code.trim() && name && name.trim());
       case 1: // Descriptions
-        return !!this.wizardForm.get('descriptionEn')?.value &&
-               !!this.wizardForm.get('issuerNameEn')?.value;
+        const descEn = this.wizardForm.get('descriptionEn')?.value;
+        const issuerEn = this.wizardForm.get('issuerNameEn')?.value;
+        return !!(descEn && descEn.trim() && issuerEn && issuerEn.trim());
       case 2: // Financial
-        return !!this.wizardForm.get('faceValue')?.value &&
-               !!this.wizardForm.get('couponRate')?.value &&
-               !!this.wizardForm.get('minimumInvestment')?.value;
+        const faceValue = this.wizardForm.get('faceValue')?.value;
+        const couponRate = this.wizardForm.get('couponRate')?.value;
+        const minInvestment = this.wizardForm.get('minimumInvestment')?.value;
+        return !!(faceValue && couponRate && minInvestment);
       case 3: // Dates & Settings
-        return !!this.wizardForm.get('issueDate')?.value &&
-               !!this.wizardForm.get('maturityDate')?.value;
+        const issueDate = this.wizardForm.get('issueDate')?.value;
+        const maturityDate = this.wizardForm.get('maturityDate')?.value;
+        return !!(issueDate && maturityDate);
       default:
         return false;
     }

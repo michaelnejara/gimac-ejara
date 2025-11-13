@@ -77,9 +77,23 @@ export class BondWizard implements OnInit, OnDestroy {
   ];
 
   // Dropdown options
-  statusOptions = ['ACTIVE', 'INACTIVE', 'PENDING', 'MATURED'];
-  issuerTypeOptions = ['GOVERNMENT', 'CORPORATE', 'MUNICIPAL'];
-  paymentFrequencyOptions = ['MONTHLY', 'QUARTERLY', 'SEMI_ANNUALLY', 'ANNUALLY'];
+  statusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'matured', label: 'Matured' },
+    { value: 'pre-allocation', label: 'Pre-Allocation' },
+    { value: 'sold-out', label: 'Sold Out' }
+  ];
+  issuerTypeOptions = [
+    { value: 'government', label: 'Government' },
+    { value: 'institution', label: 'Institution' },
+    { value: 'corporate', label: 'Corporate' }
+  ];
+  paymentFrequencyOptions = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'annually', label: 'Annually' }
+  ];
 
   ngOnInit(): void {
     this.initializeForm();
@@ -92,6 +106,10 @@ export class BondWizard implements OnInit, OnDestroy {
         if (id) {
           this.bondId = parseInt(id, 10);
           this.isEditing = true;
+
+          // Make 'code' field read-only in edit mode
+          this.wizardForm.get('code')?.disable();
+
           // Load bond data
           this.store.dispatch(BondsActions.loadBond({ bondId: this.bondId }));
 
@@ -145,30 +163,39 @@ export class BondWizard implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.wizardForm = this.fb.group({
       // Step 1: Basic Info
-      code: [''],
+      code: [''], // Read-only in edit mode
       name: [''],
       defaultFiatCurrency: [''],
-      status: ['ACTIVE'],
+      status: ['active'],
+      blockchain: [''],
+      rank: [0],
 
       // Step 2: Descriptions
       descriptionEn: [''],
       descriptionFr: [''],
       issuerNameEn: [''],
       issuerNameFr: [''],
+      issuerDescriptionEn: [''],
+      issuerDescriptionFr: [''],
       issuerType: [''],
+      issuerIcon: [''],
 
       // Step 3: Financial
-      faceValue: [''],
-      couponRate: [''],
-      paymentFrequency: [''],
-      minimumInvestment: [''],
-      maximumInvestment: [''],
-      totalSupply: [''],
+      amount: [''],
+      ejaraInterestRate: [''],
+      customerInterestRate: [''],
+      interestCalculationPeriod: [''],
+      momoMinimumDeposit: [''],
+      bankMinimumDeposit: [''],
+      fiatTokenEquivalent: [1],
+      smartContractId: [''],
 
       // Step 4: Dates & Settings
-      issueDate: [''],
+      startDate: [''],
       maturityDate: [''],
-      colorCode: ['#3b82f6']
+      colorCode: ['#3b82f6'],
+      isWithdrawalBlocked: [false],
+      shouldBeDisplayedInApp: [true]
     });
   }
 
@@ -222,14 +249,13 @@ export class BondWizard implements OnInit, OnDestroy {
         const issuerEn = this.wizardForm.get('issuerNameEn')?.value;
         return !!(descEn && descEn.trim() && issuerEn && issuerEn.trim());
       case 2: // Financial
-        const faceValue = this.wizardForm.get('faceValue')?.value;
-        const couponRate = this.wizardForm.get('couponRate')?.value;
-        const minInvestment = this.wizardForm.get('minimumInvestment')?.value;
-        return !!(faceValue && couponRate && minInvestment);
+        const amount = this.wizardForm.get('amount')?.value;
+        const customerInterestRate = this.wizardForm.get('customerInterestRate')?.value;
+        return !!(amount && customerInterestRate);
       case 3: // Dates & Settings
-        const issueDate = this.wizardForm.get('issueDate')?.value;
+        const startDate = this.wizardForm.get('startDate')?.value;
         const maturityDate = this.wizardForm.get('maturityDate')?.value;
-        return !!(issueDate && maturityDate);
+        return !!(startDate && maturityDate);
       default:
         return false;
     }
@@ -239,8 +265,9 @@ export class BondWizard implements OnInit, OnDestroy {
    * Submit the wizard
    */
   submitWizard(): void {
-    if (this.wizardForm.valid) {
-      const formData = this.wizardForm.value;
+    if (this.wizardForm.valid || (this.isEditing && this.wizardForm.get('code')?.disabled)) {
+      // Use getRawValue() to include disabled fields (like 'code' in edit mode)
+      const formData = this.wizardForm.getRawValue();
 
       if (this.isEditing && this.bondId) {
         this.store.dispatch(BondsActions.updateBond({

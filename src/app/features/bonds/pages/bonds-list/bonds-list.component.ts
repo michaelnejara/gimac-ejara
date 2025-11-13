@@ -120,7 +120,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   partner$!: Observable<any>; // Partner data for partner context
 
   // UI State
-  filtersExpanded = false;
+  filtersExpanded = true; // Filters expanded by default
   hasUnappliedFilters = false;
 
   // Filter Form
@@ -856,6 +856,22 @@ export class BondsListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Format date to YYYY-MM-DD
+   */
+  private formatDateToYYYYMMDD(date: Date | string | null): string | undefined {
+    if (!date) return undefined;
+
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return undefined;
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
    * Apply filters
    * Note: When filters change, we want fresh data (bypass cache)
    */
@@ -899,10 +915,10 @@ export class BondsListComponent implements OnInit, OnDestroy {
       const filters: BondFilterParams = {
         ...formValue,
         fiatCurrency: formValue.defaultFiatCurrency, // Map to correct filter parameter name
-        startDate: formValue.creationDateStart,
-        endDate: formValue.creationDateEnd,
-        startMaturityDate: formValue.maturityDateStart,
-        endMaturityDate: formValue.maturityDateEnd,
+        startDate: this.formatDateToYYYYMMDD(formValue.creationDateStart),
+        endDate: this.formatDateToYYYYMMDD(formValue.creationDateEnd),
+        startMaturityDate: this.formatDateToYYYYMMDD(formValue.maturityDateStart),
+        endMaturityDate: this.formatDateToYYYYMMDD(formValue.maturityDateEnd),
         limit: 20,
         offset: 0
       };

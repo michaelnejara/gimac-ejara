@@ -88,8 +88,8 @@
             Status
           </label>
           <select id="status" formControlName="status" class="form-select">
-            <option *ngFor="let status of statusOptions" [value]="status">
-              {{ status }}
+            <option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
             </option>
           </select>
         </div>
@@ -157,16 +157,57 @@
         </div>
       </div>
 
+      <div class="form-row">
+        <div class="form-group">
+          <label for="issuerType" class="form-label">
+            Issuer Type
+          </label>
+          <select id="issuerType" formControlName="issuerType" class="form-select">
+            <option value="">Select issuer type...</option>
+            <option *ngFor="let type of issuerTypeOptions" [value]="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="issuerIcon" class="form-label">
+            Issuer Icon
+          </label>
+          <input
+            id="issuerIcon"
+            type="text"
+            formControlName="issuerIcon"
+            class="form-input"
+            placeholder="Icon filename or URL"
+          />
+        </div>
+      </div>
+
       <div class="form-group">
-        <label for="issuerType" class="form-label">
-          Issuer Type
+        <label for="issuerDescriptionEn" class="form-label">
+          Issuer Description (English)
         </label>
-        <select id="issuerType" formControlName="issuerType" class="form-select">
-          <option value="">Select issuer type...</option>
-          <option *ngFor="let type of issuerTypeOptions" [value]="type">
-            {{ type }}
-          </option>
-        </select>
+        <textarea
+          id="issuerDescriptionEn"
+          formControlName="issuerDescriptionEn"
+          class="form-textarea"
+          rows="3"
+          placeholder="Enter issuer description in English"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="issuerDescriptionFr" class="form-label">
+          Issuer Description (French)
+        </label>
+        <textarea
+          id="issuerDescriptionFr"
+          formControlName="issuerDescriptionFr"
+          class="form-textarea"
+          rows="3"
+          placeholder="Enter issuer description in French"
+        ></textarea>
       </div>
     </div>
 
@@ -177,13 +218,13 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="faceValue" class="form-label">
-            Face Value <span class="required">*</span>
+          <label for="amount" class="form-label">
+            Total Amount <span class="required">*</span>
           </label>
           <input
-            id="faceValue"
+            id="amount"
             type="number"
-            formControlName="faceValue"
+            formControlName="amount"
             class="form-input"
             placeholder="0.00"
             step="0.01"
@@ -193,13 +234,30 @@
         </div>
 
         <div class="form-group">
-          <label for="couponRate" class="form-label">
-            Coupon Rate (%) <span class="required">*</span>
+          <label for="fiatTokenEquivalent" class="form-label">
+            Fiat Token Equivalent
           </label>
           <input
-            id="couponRate"
+            id="fiatTokenEquivalent"
             type="number"
-            formControlName="couponRate"
+            formControlName="fiatTokenEquivalent"
+            class="form-input"
+            placeholder="1.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="customerInterestRate" class="form-label">
+            Customer Interest Rate (%) <span class="required">*</span>
+          </label>
+          <input
+            id="customerInterestRate"
+            type="number"
+            formControlName="customerInterestRate"
             class="form-input"
             placeholder="0.00"
             step="0.01"
@@ -208,45 +266,60 @@
             required
           />
         </div>
+
+        <div class="form-group">
+          <label for="ejaraInterestRate" class="form-label">
+            Ejara Interest Rate (%)
+          </label>
+          <input
+            id="ejaraInterestRate"
+            type="number"
+            formControlName="ejaraInterestRate"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            max="100"
+          />
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="paymentFrequency" class="form-label">
-          Payment Frequency
+        <label for="interestCalculationPeriod" class="form-label">
+          Interest Calculation Period
         </label>
-        <select id="paymentFrequency" formControlName="paymentFrequency" class="form-select">
-          <option value="">Select frequency...</option>
-          <option *ngFor="let freq of paymentFrequencyOptions" [value]="freq">
-            {{ freq }}
+        <select id="interestCalculationPeriod" formControlName="interestCalculationPeriod" class="form-select">
+          <option value="">Select period...</option>
+          <option *ngFor="let freq of paymentFrequencyOptions" [value]="freq.value">
+            {{ freq.label }}
           </option>
         </select>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="minimumInvestment" class="form-label">
-            Minimum Investment <span class="required">*</span>
+          <label for="momoMinimumDeposit" class="form-label">
+            Mobile Money Minimum Deposit
           </label>
           <input
-            id="minimumInvestment"
+            id="momoMinimumDeposit"
             type="number"
-            formControlName="minimumInvestment"
+            formControlName="momoMinimumDeposit"
             class="form-input"
             placeholder="0.00"
             step="0.01"
             min="0"
-            required
           />
         </div>
 
         <div class="form-group">
-          <label for="maximumInvestment" class="form-label">
-            Maximum Investment
+          <label for="bankMinimumDeposit" class="form-label">
+            Bank Minimum Deposit
           </label>
           <input
-            id="maximumInvestment"
+            id="bankMinimumDeposit"
             type="number"
-            formControlName="maximumInvestment"
+            formControlName="bankMinimumDeposit"
             class="form-input"
             placeholder="0.00"
             step="0.01"
@@ -257,17 +330,15 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="totalSupply" class="form-label">
-            Total Supply
+          <label for="smartContractId" class="form-label">
+            Smart Contract ID
           </label>
           <input
-            id="totalSupply"
-            type="number"
-            formControlName="totalSupply"
+            id="smartContractId"
+            type="text"
+            formControlName="smartContractId"
             class="form-input"
-            placeholder="0.00"
-            step="0.01"
-            min="0"
+            placeholder="Enter smart contract ID"
           />
         </div>
       </div>
@@ -281,11 +352,11 @@
       <div class="form-row">
         <div class="form-group">
           <app-date-picker
-            formControlName="issueDate"
-            [label]="'Issue Date'"
-            [placeholder]="'Select issue date'"
+            formControlName="startDate"
+            [label]="'Start Date'"
+            [placeholder]="'Select start date'"
             [required]="true"
-            [helpText]="'The date when the bond was issued'">
+            [helpText]="'The date when the bond starts'">
           </app-date-picker>
         </div>
 
@@ -297,6 +368,59 @@
             [required]="true"
             [helpText]="'The date when the bond matures'">
           </app-date-picker>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="blockchain" class="form-label">
+            Blockchain
+          </label>
+          <input
+            id="blockchain"
+            type="text"
+            formControlName="blockchain"
+            class="form-input"
+            placeholder="e.g., ethereum, tezos"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="rank" class="form-label">
+            Rank
+          </label>
+          <input
+            id="rank"
+            type="number"
+            formControlName="rank"
+            class="form-input"
+            placeholder="Display order"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              formControlName="isWithdrawalBlocked"
+              class="form-checkbox"
+            />
+            <span>Block Withdrawals</span>
+          </label>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              formControlName="shouldBeDisplayedInApp"
+              class="form-checkbox"
+            />
+            <span>Display in App</span>
+          </label>
         </div>
       </div>
 

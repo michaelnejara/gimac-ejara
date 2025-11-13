@@ -397,23 +397,40 @@ export const bondsReducer = createReducer(
     draft: {
       bondId,
       data: {
+        // Step 1: Basic Info
         code: bond.code,
         name: bond.name,
         defaultFiatCurrency: bond.defaultFiatCurrency,
         status: bond.status,
-        maturityDate: bond.maturityDate,
-        issueDate: bond.startDate, // Map startDate to issueDate
-        faceValue: bond.amount, // Map amount to faceValue
-        couponRate: bond.customerInterestRate, // Map customerInterestRate to couponRate
-        paymentFrequency: bond.interestCalculationPeriod, // Map interestCalculationPeriod to paymentFrequency
-        minimumInvestment: bond.momoMinimumDeposit, // Map momoMinimumDeposit to minimumInvestment
-        totalSupply: bond.amount, // Map amount to totalSupply
-        issuerNameEn: bond.issuerNameEn,
-        issuerNameFr: bond.issuerNameFr,
-        issuerType: bond.issuerType,
+        blockchain: bond.blockchain,
+        rank: bond.rank,
+
+        // Step 2: Descriptions
         descriptionEn: bond.descriptionEn || '',
         descriptionFr: bond.descriptionFr || '',
-        colorCode: bond.colorCode || `#${bond.color}`
+        issuerNameEn: bond.issuerNameEn,
+        issuerNameFr: bond.issuerNameFr,
+        issuerDescriptionEn: bond.issuerDescriptionEn,
+        issuerDescriptionFr: bond.issuerDescriptionFr,
+        issuerType: bond.issuerType,
+        issuerIcon: bond.issuerIcon,
+
+        // Step 3: Financial
+        amount: bond.amount,
+        ejaraInterestRate: bond.ejaraInterestRate,
+        customerInterestRate: bond.customerInterestRate,
+        interestCalculationPeriod: bond.interestCalculationPeriod,
+        momoMinimumDeposit: bond.momoMinimumDeposit,
+        bankMinimumDeposit: bond.bankMinimumDeposit,
+        fiatTokenEquivalent: bond.fiatTokenEquivalent,
+        smartContractId: bond.smartContractId,
+
+        // Step 4: Dates & Settings
+        startDate: bond.startDate,
+        maturityDate: bond.maturityDate,
+        colorCode: bond.colorCode || `#${bond.color}`,
+        isWithdrawalBlocked: bond.isWithdrawalBlocked,
+        shouldBeDisplayedInApp: bond.shouldBeDisplayedInApp
       },
       step: 0,
       lastSaved: new Date().toISOString(),

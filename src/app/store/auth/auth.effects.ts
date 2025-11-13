@@ -599,7 +599,7 @@ export class AuthEffects {
         return this.mfaService.verifyMfaCode(payload, setupAuthToken).pipe(
           map(response => {
             // Check if verification was successful
-            if (Array.isArray(response) && response.length > 0 && response[0].status === 'verified') {
+            if (Array.isArray(response.data) && response.data.length > 0 && response.data.some(mfa => mfa.type === 'authenticator' && mfa.status === 'verified')) {
               // Verification successful - tokens already stored from login response
               return AuthActions.verifyMfaCodeSuccess({ response });
             } else {

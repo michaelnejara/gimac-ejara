@@ -364,7 +364,7 @@ export interface VerifyMfaCodePayload {
 /**
  * Verify MFA code response item
  */
-export interface VerifyMfaCodeResponseItem {
+interface VerifyMfaCodeResponseItemData {
   /** MFA type */
   type: 'authenticator';
   /** Verification reference ID */
@@ -374,6 +374,15 @@ export interface VerifyMfaCodeResponseItem {
 }
 
 /**
+ * Verify MFA code response item
+ */
+export interface VerifyMfaCodeResponseItem {
+  message:string;
+  data: VerifyMfaCodeResponseItemData[]
+}
+
+
+/**
  * Verify MFA code response (returns array directly)
  */
-export type VerifyMfaCodeResponse = VerifyMfaCodeResponseItem[];
+export type VerifyMfaCodeResponse = VerifyMfaCodeResponseItem;

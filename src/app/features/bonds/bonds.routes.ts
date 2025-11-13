@@ -16,12 +16,12 @@ export const bondsRoutes: Routes = [
   },
   {
     path: 'add-bond',
-    loadComponent: () => import('./pages/add-bond/add-bond').then(m => m.AddBond),
+    loadComponent: () => import('./components/bond-wizard/bond-wizard').then(m => m.BondWizard),
     title: 'New Bond - Ejara Admin Panel'
   },
   {
     path: 'update-bond/:id',
-    loadComponent: () => import('./pages/add-bond/add-bond').then(m => m.AddBond),
+    loadComponent: () => import('./components/bond-wizard/bond-wizard').then(m => m.BondWizard),
     title: 'Update Bond - Ejara Admin Panel'
   },
   {

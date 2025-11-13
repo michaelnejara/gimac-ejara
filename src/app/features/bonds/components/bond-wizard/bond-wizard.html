@@ -1,0 +1,420 @@
+<!-- src/app/features/bonds/components/bond-wizard/bond-wizard.html -->
+<div class="wizard-container">
+  <!-- Wizard Header -->
+  <div class="wizard-header">
+    <h1 class="wizard-title">
+      {{ isEditing ? 'Edit Bond' : 'Create New Bond' }}
+    </h1>
+    <p class="wizard-subtitle">
+      Step {{ currentStep + 1 }} of {{ totalSteps }}: {{ steps[currentStep].title }}
+    </p>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div
+        class="progress-fill"
+        [style.width.%]="getProgressPercentage()">
+      </div>
+    </div>
+    <div class="step-indicators">
+      <div
+        *ngFor="let step of steps; let i = index"
+        class="step-indicator"
+        [class.active]="i === currentStep"
+        [class.completed]="i < currentStep || isStepCompleted(i)"
+        (click)="goToStep(i)">
+        <div class="step-number">
+          <span *ngIf="i < currentStep && isStepCompleted(i)">✓</span>
+          <span *ngIf="!(i < currentStep && isStepCompleted(i))">{{ i + 1 }}</span>
+        </div>
+        <div class="step-label">{{ step.title }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Form -->
+  <form [formGroup]="wizardForm" class="wizard-form">
+    <!-- Step 1: Basic Info -->
+    <div class="wizard-step" *ngIf="currentStep === 0">
+      <h2 class="step-heading">Basic Information</h2>
+      <p class="step-description">Enter the basic details for the bond</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="code" class="form-label">
+            Bond Code <span class="required">*</span>
+          </label>
+          <input
+            id="code"
+            type="text"
+            formControlName="code"
+            class="form-input"
+            placeholder="Enter bond code"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="tokenSymbol" class="form-label">
+            Token Symbol <span class="required">*</span>
+          </label>
+          <input
+            id="tokenSymbol"
+            type="text"
+            formControlName="tokenSymbol"
+            class="form-input"
+            placeholder="Enter token symbol"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="name" class="form-label">
+          Bond Name <span class="required">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-input"
+          placeholder="Enter bond name"
+          required
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="defaultFiatCurrency" class="form-label">
+            Default Fiat Currency
+          </label>
+          <input
+            id="defaultFiatCurrency"
+            type="text"
+            formControlName="defaultFiatCurrency"
+            class="form-input"
+            placeholder="USD, EUR, etc."
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="status" class="form-label">
+            Status
+          </label>
+          <select id="status" formControlName="status" class="form-select">
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Descriptions -->
+    <div class="wizard-step" *ngIf="currentStep === 1">
+      <h2 class="step-heading">Descriptions & Issuer</h2>
+      <p class="step-description">Provide detailed descriptions in English and French</p>
+
+      <div class="form-group">
+        <label for="descriptionEn" class="form-label">
+          Description (English) <span class="required">*</span>
+        </label>
+        <textarea
+          id="descriptionEn"
+          formControlName="descriptionEn"
+          class="form-textarea"
+          rows="4"
+          placeholder="Enter bond description in English"
+          required
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="descriptionFr" class="form-label">
+          Description (French)
+        </label>
+        <textarea
+          id="descriptionFr"
+          formControlName="descriptionFr"
+          class="form-textarea"
+          rows="4"
+          placeholder="Enter bond description in French"
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="issuerNameEn" class="form-label">
+            Issuer Name (English) <span class="required">*</span>
+          </label>
+          <input
+            id="issuerNameEn"
+            type="text"
+            formControlName="issuerNameEn"
+            class="form-input"
+            placeholder="Enter issuer name in English"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="issuerNameFr" class="form-label">
+            Issuer Name (French)
+          </label>
+          <input
+            id="issuerNameFr"
+            type="text"
+            formControlName="issuerNameFr"
+            class="form-input"
+            placeholder="Enter issuer name in French"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="issuerType" class="form-label">
+          Issuer Type
+        </label>
+        <select id="issuerType" formControlName="issuerType" class="form-select">
+          <option value="">Select issuer type...</option>
+          <option *ngFor="let type of issuerTypeOptions" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Step 3: Financial -->
+    <div class="wizard-step" *ngIf="currentStep === 2">
+      <h2 class="step-heading">Financial Details</h2>
+      <p class="step-description">Configure bond financial parameters</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="faceValue" class="form-label">
+            Face Value <span class="required">*</span>
+          </label>
+          <input
+            id="faceValue"
+            type="number"
+            formControlName="faceValue"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="couponRate" class="form-label">
+            Coupon Rate (%) <span class="required">*</span>
+          </label>
+          <input
+            id="couponRate"
+            type="number"
+            formControlName="couponRate"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            max="100"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="paymentFrequency" class="form-label">
+          Payment Frequency
+        </label>
+        <select id="paymentFrequency" formControlName="paymentFrequency" class="form-select">
+          <option value="">Select frequency...</option>
+          <option *ngFor="let freq of paymentFrequencyOptions" [value]="freq">
+            {{ freq }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minimumInvestment" class="form-label">
+            Minimum Investment <span class="required">*</span>
+          </label>
+          <input
+            id="minimumInvestment"
+            type="number"
+            formControlName="minimumInvestment"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="maximumInvestment" class="form-label">
+            Maximum Investment
+          </label>
+          <input
+            id="maximumInvestment"
+            type="number"
+            formControlName="maximumInvestment"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="totalSupply" class="form-label">
+            Total Supply
+          </label>
+          <input
+            id="totalSupply"
+            type="number"
+            formControlName="totalSupply"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="riskLevel" class="form-label">
+            Risk Level
+          </label>
+          <select id="riskLevel" formControlName="riskLevel" class="form-select">
+            <option value="">Select risk level...</option>
+            <option *ngFor="let risk of riskLevelOptions" [value]="risk">
+              {{ risk }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="creditRating" class="form-label">
+          Credit Rating
+        </label>
+        <input
+          id="creditRating"
+          type="text"
+          formControlName="creditRating"
+          class="form-input"
+          placeholder="AAA, AA+, etc."
+        />
+      </div>
+    </div>
+
+    <!-- Step 4: Dates & Settings -->
+    <div class="wizard-step" *ngIf="currentStep === 3">
+      <h2 class="step-heading">Dates & Settings</h2>
+      <p class="step-description">Configure bond dates and visual settings</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <app-date-picker
+            formControlName="issueDate"
+            [label]="'Issue Date'"
+            [placeholder]="'Select issue date'"
+            [required]="true"
+            [helpText]="'The date when the bond was issued'">
+          </app-date-picker>
+        </div>
+
+        <div class="form-group">
+          <app-date-picker
+            formControlName="maturityDate"
+            [label]="'Maturity Date'"
+            [placeholder]="'Select maturity date'"
+            [required]="true"
+            [helpText]="'The date when the bond matures'">
+          </app-date-picker>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="earlyRedemption"
+            class="form-checkbox"
+          />
+          <span>Allow Early Redemption</span>
+        </label>
+      </div>
+
+      <div class="form-group" *ngIf="wizardForm.get('earlyRedemption')?.value">
+        <label for="earlyRedemptionTerms" class="form-label">
+          Early Redemption Terms
+        </label>
+        <textarea
+          id="earlyRedemptionTerms"
+          formControlName="earlyRedemptionTerms"
+          class="form-textarea"
+          rows="3"
+          placeholder="Enter early redemption terms and conditions"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <app-color-picker
+          formControlName="colorCode"
+          [label]="'Bond Color'"
+          [placeholder]="'#000000'"
+          [helpText]="'Color used for displaying the bond in charts and UI'">
+        </app-color-picker>
+      </div>
+    </div>
+  </form>
+
+  <!-- Wizard Actions -->
+  <div class="wizard-actions">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelWizard()">
+      Cancel
+    </button>
+
+    <div class="actions-right">
+      <button
+        *ngIf="currentStep > 0"
+        type="button"
+        class="btn btn-outline"
+        (click)="previousStep()">
+        Previous
+      </button>
+
+      <button
+        *ngIf="currentStep < totalSteps - 1"
+        type="button"
+        class="btn btn-primary"
+        (click)="nextStep()">
+        Next
+      </button>
+
+      <button
+        *ngIf="currentStep === totalSteps - 1"
+        type="submit"
+        class="btn btn-success"
+        [disabled]="(creating$ | async) || (updating$ | async)"
+        (click)="submitWizard()">
+        <span *ngIf="!(creating$ | async) && !(updating$ | async)">
+          {{ isEditing ? 'Update Bond' : 'Create Bond' }}
+        </span>
+        <span *ngIf="(creating$ | async) || (updating$ | async)">
+          {{ isEditing ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

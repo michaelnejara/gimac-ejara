@@ -1,0 +1,336 @@
+<!-- src/app/features/partners/components/partner-wizard/partner-wizard.html -->
+<div class="wizard-container">
+  <!-- Wizard Header -->
+  <div class="wizard-header">
+    <h1 class="wizard-title">
+      {{ isEditing ? 'Edit Partner' : 'Create New Partner' }}
+    </h1>
+    <p class="wizard-subtitle">
+      Step {{ currentStep + 1 }} of {{ totalSteps }}: {{ steps[currentStep].title }}
+    </p>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div
+        class="progress-fill"
+        [style.width.%]="getProgressPercentage()">
+      </div>
+    </div>
+    <div class="step-indicators">
+      <div
+        *ngFor="let step of steps; let i = index"
+        class="step-indicator"
+        [class.active]="i === currentStep"
+        [class.completed]="i < currentStep || isStepCompleted(i)"
+        (click)="goToStep(i)">
+        <div class="step-number">
+          <span *ngIf="i < currentStep && isStepCompleted(i)">✓</span>
+          <span *ngIf="!(i < currentStep && isStepCompleted(i))">{{ i + 1 }}</span>
+        </div>
+        <div class="step-label">{{ step.title }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Form -->
+  <form [formGroup]="wizardForm" class="wizard-form">
+    <!-- Step 1: Basic Info -->
+    <div class="wizard-step" *ngIf="currentStep === 0">
+      <h2 class="step-heading">Basic Information</h2>
+      <p class="step-description">Enter the basic details for the partner</p>
+
+      <div class="form-group">
+        <label for="name" class="form-label">
+          Partner Name <span class="required">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-input"
+          placeholder="Enter partner name"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">
+          Description
+        </label>
+        <textarea
+          id="description"
+          formControlName="description"
+          class="form-textarea"
+          rows="4"
+          placeholder="Enter partner description"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Step 2: Configuration -->
+    <div class="wizard-step" *ngIf="currentStep === 1">
+      <h2 class="step-heading">Configuration</h2>
+      <p class="step-description">Configure webhook and security settings</p>
+
+      <div class="form-group">
+        <label for="webhookUrl" class="form-label">
+          Webhook URL
+        </label>
+        <input
+          id="webhookUrl"
+          type="url"
+          formControlName="webhookUrl"
+          class="form-input"
+          placeholder="https://example.com/webhook"
+        />
+        <small class="form-help">URL to receive transaction notifications</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          Allowed IP Addresses
+        </label>
+        <textarea
+          formControlName="allowedIpAddresses"
+          class="form-textarea"
+          rows="3"
+          placeholder="Enter IP addresses (one per line)"
+        ></textarea>
+        <small class="form-help">Leave empty to allow all IP addresses</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          Allowed Bonds
+        </label>
+        <select formControlName="allowedBonds" class="form-select" multiple>
+          <option value="">Select bonds...</option>
+          <!-- Bond options would be populated from store -->
+        </select>
+        <small class="form-help">Select which bonds this partner can trade</small>
+      </div>
+    </div>
+
+    <!-- Step 3: Financial -->
+    <div class="wizard-step" *ngIf="currentStep === 2">
+      <h2 class="step-heading">Financial Settings</h2>
+      <p class="step-description">Configure commission rates and transaction limits</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="commissionRate" class="form-label">
+            Commission Rate (%) <span class="required">*</span>
+          </label>
+          <input
+            id="commissionRate"
+            type="number"
+            formControlName="commissionRate"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            max="100"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="settlementAccount" class="form-label">
+            Settlement Account
+          </label>
+          <input
+            id="settlementAccount"
+            type="text"
+            formControlName="settlementAccount"
+            class="form-input"
+            placeholder="Enter account number"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minTransactionAmount" class="form-label">
+            Min Transaction Amount <span class="required">*</span>
+          </label>
+          <input
+            id="minTransactionAmount"
+            type="number"
+            formControlName="minTransactionAmount"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="maxTransactionAmount" class="form-label">
+            Max Transaction Amount
+          </label>
+          <input
+            id="maxTransactionAmount"
+            type="number"
+            formControlName="maxTransactionAmount"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="dailyTransactionLimit" class="form-label">
+            Daily Transaction Limit
+          </label>
+          <input
+            id="dailyTransactionLimit"
+            type="number"
+            formControlName="dailyTransactionLimit"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="monthlyTransactionLimit" class="form-label">
+            Monthly Transaction Limit
+          </label>
+          <input
+            id="monthlyTransactionLimit"
+            type="number"
+            formControlName="monthlyTransactionLimit"
+            class="form-input"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Address -->
+    <div class="wizard-step" *ngIf="currentStep === 3">
+      <h2 class="step-heading">Address Information</h2>
+      <p class="step-description">Enter the partner's physical address</p>
+
+      <div class="form-group">
+        <label for="address" class="form-label">
+          Street Address
+        </label>
+        <input
+          id="address"
+          type="text"
+          formControlName="address"
+          class="form-input"
+          placeholder="Enter street address"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city" class="form-label">
+            City
+          </label>
+          <input
+            id="city"
+            type="text"
+            formControlName="city"
+            class="form-input"
+            placeholder="Enter city"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="state" class="form-label">
+            State/Province
+          </label>
+          <input
+            id="state"
+            type="text"
+            formControlName="state"
+            class="form-input"
+            placeholder="Enter state"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="country" class="form-label">
+            Country
+          </label>
+          <input
+            id="country"
+            type="text"
+            formControlName="country"
+            class="form-input"
+            placeholder="Enter country"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="postalCode" class="form-label">
+            Postal Code
+          </label>
+          <input
+            id="postalCode"
+            type="text"
+            formControlName="postalCode"
+            class="form-input"
+            placeholder="Enter postal code"
+          />
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Wizard Actions -->
+  <div class="wizard-actions">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelWizard()">
+      Cancel
+    </button>
+
+    <div class="actions-right">
+      <button
+        *ngIf="currentStep > 0"
+        type="button"
+        class="btn btn-outline"
+        (click)="previousStep()">
+        Previous
+      </button>
+
+      <button
+        *ngIf="currentStep < totalSteps - 1"
+        type="button"
+        class="btn btn-primary"
+        (click)="nextStep()">
+        Next
+      </button>
+
+      <button
+        *ngIf="currentStep === totalSteps - 1"
+        type="submit"
+        class="btn btn-success"
+        [disabled]="(creating$ | async) || (updating$ | async)"
+        (click)="submitWizard()">
+        <span *ngIf="!(creating$ | async) && !(updating$ | async)">
+          {{ isEditing ? 'Update Partner' : 'Create Partner' }}
+        </span>
+        <span *ngIf="(creating$ | async) || (updating$ | async)">
+          {{ isEditing ? 'Updating...' : 'Creating...' }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

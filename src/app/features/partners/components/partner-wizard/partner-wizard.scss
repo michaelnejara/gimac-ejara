@@ -1,0 +1,378 @@
+// src/app/features/partners/components/partner-wizard/partner-wizard.scss
+
+// Variables
+$color-primary: #3b82f6;
+$color-primary-dark: #2563eb;
+$color-success: #10b981;
+$color-success-dark: #059669;
+$color-gray-50: #f9fafb;
+$color-gray-100: #f3f4f6;
+$color-gray-200: #e5e7eb;
+$color-gray-300: #d1d5db;
+$color-gray-400: #9ca3af;
+$color-gray-500: #6b7280;
+$color-gray-600: #4b5563;
+$color-gray-700: #374151;
+$color-gray-800: #1f2937;
+$color-gray-900: #111827;
+$color-error: #ef4444;
+$color-white: #ffffff;
+
+$border-radius: 8px;
+$border-radius-sm: 6px;
+$transition: all 0.2s ease;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// Wizard Container
+.wizard-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+  background-color: $color-white;
+  border-radius: $border-radius;
+  box-shadow: $shadow-md;
+}
+
+// Header
+.wizard-header {
+  margin-bottom: $spacing-xl;
+  text-align: center;
+}
+
+.wizard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: $color-gray-900;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.wizard-subtitle {
+  font-size: 16px;
+  color: $color-gray-500;
+  margin: 0;
+}
+
+// Progress
+.progress-container {
+  margin-bottom: $spacing-xl;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: $color-gray-200;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: $spacing-lg;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: $color-primary;
+  transition: width 0.3s ease;
+}
+
+.step-indicators {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-md;
+}
+
+.step-indicator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  cursor: pointer;
+  transition: $transition;
+
+  &.active {
+    .step-number {
+      background-color: $color-primary;
+      color: $color-white;
+      border-color: $color-primary;
+    }
+
+    .step-label {
+      color: $color-primary;
+      font-weight: 600;
+    }
+  }
+
+  &.completed {
+    .step-number {
+      background-color: $color-success;
+      color: $color-white;
+      border-color: $color-success;
+    }
+
+    .step-label {
+      color: $color-gray-700;
+    }
+  }
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $color-gray-300;
+  border-radius: 50%;
+  background-color: $color-white;
+  color: $color-gray-500;
+  font-weight: 600;
+  font-size: 16px;
+  transition: $transition;
+}
+
+.step-label {
+  font-size: 14px;
+  color: $color-gray-500;
+  font-weight: 500;
+  text-align: center;
+  transition: $transition;
+}
+
+// Form
+.wizard-form {
+  margin-bottom: $spacing-xl;
+}
+
+.wizard-step {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: $color-gray-900;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.step-description {
+  font-size: 14px;
+  color: $color-gray-500;
+  margin: 0 0 $spacing-lg 0;
+}
+
+.form-group {
+  margin-bottom: $spacing-lg;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: $color-gray-700;
+  margin-bottom: $spacing-sm;
+
+  .required {
+    color: $color-error;
+    margin-left: 4px;
+  }
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: $color-gray-900;
+  background-color: $color-white;
+  border: 1px solid $color-gray-300;
+  border-radius: $border-radius-sm;
+  outline: none;
+  transition: $transition;
+  font-family: inherit;
+
+  &::placeholder {
+    color: $color-gray-400;
+  }
+
+  &:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+  }
+
+  &:disabled {
+    background-color: $color-gray-100;
+    color: $color-gray-400;
+    cursor: not-allowed;
+  }
+
+  &.error {
+    border-color: $color-error;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($color-error, 0.1);
+    }
+  }
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.form-help {
+  display: block;
+  margin-top: $spacing-xs;
+  font-size: 12px;
+  color: $color-gray-500;
+}
+
+// Actions
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-gray-200;
+}
+
+.actions-right {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: $border-radius-sm;
+  border: none;
+  cursor: pointer;
+  transition: $transition;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: $color-primary;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: $color-primary-dark;
+  }
+}
+
+.btn-success {
+  background-color: $color-success;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: $color-success-dark;
+  }
+}
+
+.btn-secondary {
+  background-color: $color-gray-200;
+  color: $color-gray-700;
+
+  &:hover:not(:disabled) {
+    background-color: $color-gray-300;
+  }
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: $color-gray-700;
+  border: 1px solid $color-gray-300;
+
+  &:hover:not(:disabled) {
+    background-color: $color-gray-50;
+    border-color: $color-gray-400;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .wizard-container {
+    padding: $spacing-md;
+  }
+
+  .wizard-title {
+    font-size: 24px;
+  }
+
+  .step-indicators {
+    gap: $spacing-sm;
+  }
+
+  .step-indicator {
+    gap: $spacing-xs;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .step-label {
+    font-size: 12px;
+  }
+
+  .wizard-actions {
+    flex-direction: column;
+    gap: $spacing-md;
+
+    .actions-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .btn {
+      flex: 1;
+    }
+  }
+}

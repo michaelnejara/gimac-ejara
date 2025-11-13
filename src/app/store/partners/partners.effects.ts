@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { PartnersService } from '@core/services/partners/partners.service';
+import { NotificationService } from '@core/services/notification/notification.service';
 import { PartnersActions } from './partners.actions';
 import {
   selectIsPageCached,
@@ -24,8 +25,8 @@ export class PartnersEffects {
   private actions$ = inject(Actions);
   private store = inject(Store);
   private partnersService = inject(PartnersService);
-
   private mockPartnersService = inject(PartnersMockService);
+  private notificationService = inject(NotificationService);
   private useMockData = environment.gimacTbB2B.useMockData;
 
   /**
@@ -305,5 +306,73 @@ export class PartnersEffects {
       ),
       map(({ partnerId }) => PartnersActions.loadPartner({ partnerId }))
     )
+  );
+
+  /**
+   * Show success notification on partner creation
+   */
+  createPartnerSuccessNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PartnersActions.createPartnerSuccess),
+        tap(() => {
+          this.notificationService.showSuccess(
+            'Partner Created',
+            'The partner has been created successfully'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show error notification on partner creation failure
+   */
+  createPartnerFailureNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PartnersActions.createPartnerFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Failed to Create Partner',
+            error || 'An error occurred while creating the partner'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show success notification on partner update
+   */
+  updatePartnerSuccessNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PartnersActions.updatePartnerSuccess),
+        tap(() => {
+          this.notificationService.showSuccess(
+            'Partner Updated',
+            'The partner has been updated successfully'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show error notification on partner update failure
+   */
+  updatePartnerFailureNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(PartnersActions.updatePartnerFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Failed to Update Partner',
+            error || 'An error occurred while updating the partner'
+          );
+        })
+      ),
+    { dispatch: false }
   );
 }

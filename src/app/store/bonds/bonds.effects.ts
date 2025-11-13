@@ -4,6 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { BondsService } from '@core/services/bonds/bonds.service';
 import { BondsMockService } from '@core/services/bonds/bonds-mock.service';
+import { NotificationService } from '@core/services/notification/notification.service';
 import { BondsActions } from './bonds.actions';
 import {
   selectFilters,
@@ -27,6 +28,7 @@ export class BondsEffects {
   private store = inject(Store);
   private bondsService = inject(BondsService);
   private bondsMockService = inject(BondsMockService);
+  private notificationService = inject(NotificationService);
 
   // Get the appropriate service based on environment flag
   private get service() {
@@ -389,6 +391,74 @@ export class BondsEffects {
   );
 
   /**
+   * Show success notification on bond creation
+   */
+  createBondSuccessNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(BondsActions.createBondSuccess),
+        tap(() => {
+          this.notificationService.showSuccess(
+            'Bond Created',
+            'The bond has been created successfully'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show error notification on bond creation failure
+   */
+  createBondFailureNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(BondsActions.createBondFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Failed to Create Bond',
+            error || 'An error occurred while creating the bond'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show success notification on bond update
+   */
+  updateBondSuccessNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(BondsActions.updateBondSuccess),
+        tap(() => {
+          this.notificationService.showSuccess(
+            'Bond Updated',
+            'The bond has been updated successfully'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Show error notification on bond update failure
+   */
+  updateBondFailureNotification$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(BondsActions.updateBondFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Failed to Update Bond',
+            error || 'An error occurred while updating the bond'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
    * Log Errors
    */
   logErrors$ = createEffect(
@@ -397,8 +467,6 @@ export class BondsEffects {
         ofType(
           BondsActions.loadBondsFailure,
           BondsActions.loadBondFailure,
-          BondsActions.createBondFailure,
-          BondsActions.updateBondFailure,
           BondsActions.deleteBondFailure,
           BondsActions.loadPartnerBondsFailure,
           BondsActions.loadCustomerBondsFailure

@@ -56,6 +56,8 @@ export class BondWizard implements OnInit, OnDestroy {
   totalSteps = 4;
   isEditing = false;
   bondId: number | null = null;
+  wasCreating = false;
+  wasUpdating = false;
 
   // Observable state
   draft$ = this.store.select(selectDraft);
@@ -149,6 +151,37 @@ export class BondWizard implements OnInit, OnDestroy {
       )
       .subscribe(value => {
         this.store.dispatch(BondsActions.autoSaveDraft({ data: value }));
+      });
+
+    // Listen for successful create/update and redirect
+    this.creating$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(creating => {
+        // If we were creating and now we're not (and not editing), redirect to list
+        if (this.wasCreating && !creating && !this.isEditing) {
+          this.wasCreating = false;
+          this.store.dispatch(BondsActions.clearDraft());
+          this.router.navigate(['/bonds']);
+        }
+        // Track when creating starts
+        if (creating) {
+          this.wasCreating = true;
+        }
+      });
+
+    this.updating$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(updating => {
+        // If we were updating and now we're not, redirect to detail
+        if (this.wasUpdating && !updating && this.isEditing && this.bondId) {
+          this.wasUpdating = false;
+          this.store.dispatch(BondsActions.clearDraft());
+          this.router.navigate(['/bonds/details', this.bondId]);
+        }
+        // Track when updating starts
+        if (updating) {
+          this.wasUpdating = true;
+        }
       });
   }
 
@@ -263,25 +296,45 @@ export class BondWizard implements OnInit, OnDestroy {
 
   /**
    * Submit the wizard
+   * Filter form data to match SingleBondUpdateRequest interface
    */
   submitWizard(): void {
     if (this.wizardForm.valid || (this.isEditing && this.wizardForm.get('code')?.disabled)) {
       // Use getRawValue() to include disabled fields (like 'code' in edit mode)
-      const formData = this.wizardForm.getRawValue();
+      const rawFormData = this.wizardForm.getRawValue();
+
+      // Filter to only include fields in SingleBondUpdateRequest interface
+      const bondData = {
+        code: rawFormData.code,
+        name: rawFormData.name,
+        defaultFiatCurrency: rawFormData.defaultFiatCurrency,
+        status: rawFormData.status,
+        rank: rawFormData.rank,
+        descriptionEn: rawFormData.descriptionEn,
+        descriptionFr: rawFormData.descriptionFr,
+        issuerNameEn: rawFormData.issuerNameEn,
+        issuerNameFr: rawFormData.issuerNameFr,
+        amount: rawFormData.amount,
+        interestCalculationPeriod: rawFormData.interestCalculationPeriod,
+        startDate: rawFormData.startDate,
+        maturityDate: rawFormData.maturityDate,
+        colorCode: rawFormData.colorCode
+      };
 
       if (this.isEditing && this.bondId) {
         this.store.dispatch(BondsActions.updateBond({
           bondId: this.bondId,
-          bondData: formData
+          bondData
         }));
       } else {
         this.store.dispatch(BondsActions.createBond({
-          bondData: formData
+          bondData
         }));
       }
 
-      this.store.dispatch(BondsActions.clearDraft());
-      this.router.navigate(['/bonds']);
+      // Don't navigate immediately - let the success handler do it
+      // this.store.dispatch(BondsActions.clearDraft());
+      // this.router.navigate(['/bonds']);
     }
   }
 

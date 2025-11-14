@@ -136,7 +136,6 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     { value: 'pending', label: 'Pending' },
     { value: 'processing', label: 'Processing' },
     { value: 'completed', label: 'Completed' },
-    { value: 'confirmed', label: 'Confirmed' },
     { value: 'failed', label: 'Failed' },
     { value: 'cancelled', label: 'Cancelled' }
   ];
@@ -148,8 +147,8 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     { value: 'withdrawal', label: 'Withdrawal' }
   ];
 
-  // Available statuses for status change
-  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'completed', 'confirmed', 'failed', 'cancelled'];
+  // Available statuses for status change (confirmed status is system-managed, not manually settable)
+  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
 
   // Table Configuration
   tableConfig!: TableConfig<BondTransaction>;

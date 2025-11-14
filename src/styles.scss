@@ -4,14 +4,17 @@
 // Updated with Ejara Brand Colors
 // ============================================
 
-// Import Custom Fonts
-@use './app/assets/scss/fonts/rebond-grotesque-font-face.scss';
-@use './app/assets/scss/fonts/aeonik-air.scss';
+// Import Custom Fonts (Optimized with external WOFF2 files)
+@use './app/assets/scss/fonts/rebond-grotesque';
+@use './app/assets/scss/fonts/aeonik-air';
 
+// Import SCSS Abstracts (Variables, Functions, Mixins)
+@use './app/assets/scss/abstracts' as *;
+
+@use '@angular/material' as mat;
 // Tailwind Directives
 @use "tailwindcss";
 
-@use '@angular/material' as mat;
 @include mat.core();
 
 html,
@@ -24,7 +27,7 @@ body {
 // THEME CONFIGURATION
 // ============================================
 
-@theme {
+:root {
   // --------------------------------------------
   // EJARA BRAND COLOR PALETTE
   // --------------------------------------------
@@ -132,9 +135,11 @@ body {
   --color-neutral-800: #262626;
   --color-neutral-900: #171717;
   --color-neutral-950: #0a0a0a;
+  --color-placholder: #B3BABC;
   
   // Semantic Colors
   --color-background: #ffffff;
+  --color-background-primary: #fafafb;
   --color-background-secondary: #f9fafb;
   --color-background-tertiary: #f3f4f6;
   --color-background-dark: #00171F;  // Brand: Rich Black
@@ -147,6 +152,7 @@ body {
   --color-border-light: #e5e7eb;
   --color-border: #d1d5db;
   --color-border-dark: #9ca3af;
+  --color-border-neutral: #E6E8E9;
   
   // --------------------------------------------
   // FONT FAMILIES

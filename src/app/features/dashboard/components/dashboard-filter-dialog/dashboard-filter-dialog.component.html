@@ -1,0 +1,96 @@
+<div class="filter-dialog">
+  <h2 mat-dialog-title class="dialog-title">
+    <mat-icon>filter_list</mat-icon>
+    Filter Dashboard
+  </h2>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="filterForm" class="filter-form">
+
+      <!-- Date Range Filter -->
+      <div class="filter-section">
+        <h3 class="section-title">Date Range</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Select Date Range</mat-label>
+          <mat-date-range-input [rangePicker]="rangePicker" [max]="maxDate" formGroupName="dateRange">
+            <input matStartDate formControlName="start" placeholder="Start date">
+            <input matEndDate formControlName="end" placeholder="End date">
+          </mat-date-range-input>
+          <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+          <mat-date-range-picker #rangePicker panelClass="custom-daterange-picker"></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+
+      <!-- Partner Filter -->
+      <div class="filter-section">
+        <h3 class="section-title">Partner</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Search Partner</mat-label>
+          <input
+            type="text"
+            matInput
+            formControlName="partnerSearch"
+            [matAutocomplete]="partnerAuto"
+            placeholder="Type to search partners">
+          @if (selectedPartner) {
+            <button
+              matSuffix
+              mat-icon-button
+              (click)="clearPartner()"
+              type="button">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+          <mat-icon matPrefix>business</mat-icon>
+          <mat-autocomplete
+            #partnerAuto="matAutocomplete"
+            [displayWith]="displayPartner"
+            (optionSelected)="onPartnerSelected($event.option.value)">
+            @for (partner of filteredPartners$ | async; track partner.id) {
+              <mat-option [value]="partner">
+                <div class="partner-option">
+                  <span class="partner-name">{{ partner.name }}</span>
+                  <span class="partner-code">{{ partner.code }}</span>
+                </div>
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Selected Partner Display -->
+        @if (selectedPartner) {
+          <div class="selected-partner">
+            <mat-icon>check_circle</mat-icon>
+            <span>Selected: <strong>{{ selectedPartner.name }}</strong></span>
+          </div>
+        }
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="cancel()" type="button">
+      Cancel
+    </button>
+    <button
+      mat-button
+      color="warn"
+      (click)="clearFilters()"
+      type="button"
+      [disabled]="!hasFilters()">
+      <mat-icon>clear_all</mat-icon>
+      Clear
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="applyFilters()"
+      type="button"
+      [disabled]="!hasFilters()">
+      <mat-icon>done</mat-icon>
+      Apply Filters
+    </button>
+  </mat-dialog-actions>
+</div>

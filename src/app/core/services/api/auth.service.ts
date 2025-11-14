@@ -39,7 +39,7 @@ export class AuthService {
    */
   login(payload: AuthModels.LoginPayload): Observable<AuthModels.LoginMfaResponse> {
     return this.http.post<AuthModels.LoginMfaResponse>(
-      `${environment.apiUrl}/authentication/login`,
+      `${environment.nellysCoin.apiUrl}/authentication/login`,
       payload
     );
   }
@@ -72,7 +72,7 @@ export class AuthService {
     };
 
     return this.http.post<AuthModels.LoginSuccessResponse>(
-      `${environment.apiUrl}/authentication/complete-login`,
+      `${environment.nellysCoin.apiUrl}/authentication/complete-login`,
       payload
     );
   }
@@ -99,7 +99,7 @@ export class AuthService {
   /**
    * Map CustomerData to simplified User interface
    * Converts API response to application user model
-   * 
+   *
    * @param {AuthModels.CustomerData} customerData - Raw customer data from API
    * @returns {AuthModels.User} Simplified user object
    */
@@ -129,5 +129,80 @@ export class AuthService {
       companyCode: customerData.companyCode,
       createdAt: customerData.createdAt,
     };
+  }
+
+  /**
+   * Forgot Password Flow Methods
+   */
+
+  /**
+   * Step 1: Initiate password reset
+   * Sends a 6-digit verification code to the user's email or phone
+   *
+   * @param {AuthModels.InitiatePasswordResetPayload} payload - Password reset initiation payload
+   * @returns {Observable<AuthModels.InitiatePasswordResetResponse>} Reset reference and MFA data
+   *
+   * @example
+   * const payload = {
+   *   deviceId: 'd4ae99a8-ebe9-4502-82a6-5cff200f1e68',
+   *   emailOrPhoneNumber: 'example@gmail.com',
+   *   resetOption: 'email'
+   * };
+   * this.authService.initiatePasswordReset(payload).subscribe();
+   */
+  initiatePasswordReset(
+    payload: AuthModels.InitiatePasswordResetPayload
+  ): Observable<AuthModels.InitiatePasswordResetResponse> {
+    return this.http.post<AuthModels.InitiatePasswordResetResponse>(
+      `${environment.nellysCoin.apiUrl}/authentication/initiate-password-reset`,
+      payload
+    );
+  }
+
+  /**
+   * Step 2: Validate password reset code
+   * Validates the 6-digit OTP code sent to user's email/phone
+   *
+   * @param {AuthModels.ValidatePasswordResetCodePayload} payload - OTP validation payload
+   * @returns {Observable<AuthModels.ValidatePasswordResetCodeResponse>} Validation success message
+   *
+   * @example
+   * const payload = {
+   *   mfaReference: '17e50d46-6ecd-419d-ab08-d36f06d9ae77',
+   *   otpCode: '123456'
+   * };
+   * this.authService.validatePasswordResetCode(payload).subscribe();
+   */
+  validatePasswordResetCode(
+    payload: AuthModels.ValidatePasswordResetCodePayload
+  ): Observable<AuthModels.ValidatePasswordResetCodeResponse> {
+    return this.http.post<AuthModels.ValidatePasswordResetCodeResponse>(
+      `${environment.nellysCoin.apiUrl}/authentication/validate-password-reset-code`,
+      payload
+    );
+  }
+
+  /**
+   * Step 3: Complete password reset
+   * Sets the new password after successful OTP validation
+   *
+   * @param {AuthModels.CompletePasswordResetPayload} payload - Password reset completion payload
+   * @returns {Observable<AuthModels.CompletePasswordResetResponse>} Success message
+   *
+   * @example
+   * const payload = {
+   *   mfaReference: '17e50d46-6ecd-419d-ab08-d36f06d9ae77',
+   *   resetReference: 'f5763cc4-98c1-4b19-a7f3-c315a0c68133',
+   *   newPassword: 'newSecurePassword123'
+   * };
+   * this.authService.completePasswordReset(payload).subscribe();
+   */
+  completePasswordReset(
+    payload: AuthModels.CompletePasswordResetPayload
+  ): Observable<AuthModels.CompletePasswordResetResponse> {
+    return this.http.post<AuthModels.CompletePasswordResetResponse>(
+      `${environment.nellysCoin.apiUrl}/authentication/complete-password-reset`,
+      payload
+    );
   }
 }

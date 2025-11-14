@@ -1,0 +1,105 @@
+.ejara-login-page {
+  /* Styles specific to the login page */
+  background-position: center;
+  background-repeat: no-repeat;
+  @apply h-[100vh] flex justify-center bg-[url(/assets/bg/icons-background.svg)] overflow-hidden overflow-y-auto;
+  .main-block {
+    @apply flex flex-col min-w-[487px] items-center mt-[82px] gap-[90px];
+    .logo-container {
+      @apply w-[266px] h-[91px];
+      .logo {
+        @apply object-contain;
+      }
+    }
+    .form-container {
+      @apply bg-[var(--color-background-primary)] border border-solid border-[var(--color-border-neutral)] w-full p-[32px_48px] rounded-[16px] flex flex-col items-center gap-[32px];
+      .form-title {
+        @apply flex flex-col items-center;
+        .main-title {
+          font-weight: 700;
+          @apply text-[#00171F] text-[36px] leading-[40px] tracking-[-0.72px];
+        }
+        .sub-title {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          @apply text-[14px] leading-[20px] !text-[#4D5D63];
+        }
+      }
+      .login-form {
+        @apply flex flex-col gap-[16px] w-full;
+        .form-group {
+          .form-label {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[12px] !text-[#4D5D63] mb-[8px];
+            .required {
+              @apply text-[var(--color-secondary-700)];
+            }
+          }
+          .input-wrapper {
+            @apply relative w-full;
+            input {
+              font-family: var(--font-family-sans);
+              font-weight: normal;
+              outline: none;
+              @apply w-full rounded-[12px] p-[16px] border border-solid border-[var(--color-border-neutral)] bg-[var(--color-background-primary)];
+              @apply text-[14px] leading-[16px] !text-[#4D5D63];
+              &::placeholder {
+                @apply text-[var(--color-placholder)];
+              }
+              &:active,
+              &:focus {
+                border-color: var(--color-primary-700);
+              }
+            }
+            .toggle-password {
+              position: absolute;
+              right: 15px;
+              height: 24px;
+              width: 24px;
+              top: 0;
+              bottom: 0;
+              margin: auto;
+              cursor: pointer;
+            }
+          }
+          .error-message {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[16px] !text-[var(--color-error-700)];
+          }
+        }
+        .submit-button {
+          @apply mt-[16px] p-[16px] rounded-[100px] outline-none bg-[var(--color-primary-500)] flex gap-[8px] items-center justify-center;
+          @apply text-[14px] leading-[16px] !text-[#fff] cursor-pointer;
+          font-family: var(--font-family-sans);
+          font-weight: 500;
+          .button-icon, .spinner {
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+    }
+
+    .form-footer {
+      @apply mt-[16px] text-center;
+
+      .footer-text {
+        font-family: var(--font-family-sans);
+        font-weight: normal;
+        margin: 0;
+        @apply text-[14px] leading-[20px] !text-[#4D5D63];
+
+        .footer-link {
+          font-weight: 500;
+          @apply text-[var(--color-primary-500)] underline cursor-pointer transition-colors duration-200;
+
+          &:hover {
+            @apply text-[var(--color-primary-700)];
+          }
+        }
+      }
+    }
+  }
+}

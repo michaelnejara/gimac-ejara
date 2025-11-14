@@ -15,11 +15,6 @@ export class App implements OnInit {
   // notification = inject(NotificationService);
   constructor (private notification: NotificationService) {}
   ngOnInit() {
-    console.log('App initialized');
     this.notification.showInfo('App initialized', 'Info');
-  }
-  showSampleToast() {
-    console.log('Showing sample toast');
-    this.notification.showSuccess('This is a sample success toast!', 'Success');
   }
 }

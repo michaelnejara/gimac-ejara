@@ -1,1 +1,530 @@
-<p>bond-details.component works!</p>
+<div class="bond-details-page">
+  <!-- Loading State -->
+  @if (loading$ | async) {
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading bond details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (error$ | async; as error) {
+    <mat-card class="error-card">
+      <div class="error-content">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <div class="error-text">
+          <h2>Error Loading Bond</h2>
+          <p>{{ error }}</p>
+        </div>
+        <div class="error-actions">
+          <button mat-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Go Back
+          </button>
+          <button mat-raised-button color="primary" (click)="retryLoad()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  }
+
+  <!-- Bond Details Content -->
+  @else if (bond) {
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs">
+        <a routerLink="/">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a [routerLink]="returnUrl">Bonds</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="current">{{ bond.name }}</span>
+      </div>
+
+      <!-- Title Section -->
+      <div class="header-content">
+        <div class="title-section">
+          <!-- Back Button -->
+          <button 
+            mat-icon-button 
+            class="back-btn"
+            (click)="goBack()"
+            matTooltip="Back to Bonds List">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+
+          <div class="title-wrapper">
+            <div class="bond-avatar">
+              <span>{{ getInitials(bond.name) }}</span>
+            </div>
+            
+            <div class="title-info">
+              <div class="title-row">
+                <h1 class="page-title">{{ bond.name }}</h1>
+                <span class="status-badge" [ngClass]="getStatusClass(bond.status)">
+                  {{ bond.status | titlecase }}
+                </span>
+              </div>
+              <div class="subtitle-row">
+                <span class="bond-code">{{ bond.code }}</span>
+                <span class="separator">•</span>
+                <span class="issuer">
+                  <mat-icon>business</mat-icon>
+                  {{ bond.issuerNameEn }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="header-actions">
+          <!-- <button 
+            mat-stroked-button 
+            class="action-btn delete-btn"
+            (click)="deleteBond()">
+            <mat-icon>delete</mat-icon>
+            Delete Bond
+          </button> -->
+
+          <button 
+            mat-raised-button 
+            color="primary"
+            class="action-btn edit-btn"
+            (click)="editBond()">
+            <mat-icon>edit</mat-icon>
+            Edit Bond
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bond Content -->
+    <div class="bond-content">
+      
+      <!-- Key Metrics Cards -->
+      <div class="metrics-grid">
+        <mat-card class="metric-card primary">
+          <div class="metric-icon">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="metric-content">
+            <label>Bond Amount</label>
+            <div class="metric-value">
+              {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="metric-card success">
+          <div class="metric-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="metric-content">
+            <label>Interest Rate</label>
+            <div class="metric-value">{{ formatPercentage(bond.interestValue) }}</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="metric-card info">
+          <div class="metric-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="metric-content">
+            <label>Lifetime</label>
+            <div class="metric-value">{{ formatLifetime(bond.lifetime) }}</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="metric-card warning">
+          <div class="metric-icon">
+            <mat-icon>event</mat-icon>
+          </div>
+          <div class="metric-content">
+            <label>Maturity Date</label>
+            <div class="metric-value">{{ formatDate(bond.maturityDate) }}</div>
+            <div class="metric-subtitle">{{ getMaturityStatus(bond.maturityDate) }}</div>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Details Sections -->
+      <div class="details-grid">
+        
+        <!-- Bond Information -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">info</mat-icon>
+              <h2 class="card-title">Bond Information</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Bond Code</label>
+                <div class="value code">{{ bond.code }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Bond Name</label>
+                <div class="value">{{ bond.name }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Issuer</label>
+                <div class="value">
+                  <mat-icon class="inline-icon">business</mat-icon>
+                  {{ bond.issuerNameEn }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Currency</label>
+                <div class="value">
+                  <span class="currency-badge">{{ bond.defaultFiatCurrency }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Withdrawal Period</label>
+                <div class="value">{{ bond.withdrawalPeriod | titlecase }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Status</label>
+                <div class="value">
+                  <span class="status-badge" [ngClass]="getStatusClass(bond.status)">
+                    {{ bond.status | titlecase }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Financial Details -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">attach_money</mat-icon>
+              <h2 class="card-title">Financial Details</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Bond Amount</label>
+                <div class="value amount">
+                  {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Interest Rate (p.a.)</label>
+                <div class="value rate">{{ formatPercentage(bond.interestValue) }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Amount Purchased</label>
+                <div class="value amount">{{ formatCurrency(bond.amountPurchased, bond.defaultFiatCurrency) }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Available Balance</label>
+                <div class="value amount success">{{ formatCurrency(bond.availableBalance, bond.defaultFiatCurrency) }}</div>
+              </div>
+
+              @if (bond.status === 'active') {
+                <div class="info-item highlight">
+                  <label>Accrued Interest (Est.)</label>
+                  <div class="value amount positive">
+                    {{ formatCurrency(calculateInterestEarned(bond), bond.defaultFiatCurrency) }}
+                  </div>
+                </div>
+
+                <div class="info-item highlight">
+                  <label>Current Value (Est.)</label>
+                  <div class="value amount primary">
+                    {{ formatCurrency(calculateCurrentValue(bond), bond.defaultFiatCurrency) }}
+                  </div>
+                </div>
+              }
+
+              <div class="info-item">
+                <label>Ejara Interest Rate</label>
+                <div class="value rate">{{ bond.ejaraInterestRate != null ? formatPercentage(bond.ejaraInterestRate) : '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Customer Interest Rate</label>
+                <div class="value rate">{{ bond.customerInterestRate != null ? formatPercentage(bond.customerInterestRate) : '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Daily Interest</label>
+                <div class="value rate">{{ bond.dailyInterest != null ? bond.dailyInterest + '%' : '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Maturity Percentage</label>
+                <div class="value rate">{{ bond.maturityPercentage != null ? formatPercentage(bond.maturityPercentage) : '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Fiat Token Equivalent</label>
+                <div class="value">{{ bond.fiatTokenEquivalent != null ? bond.fiatTokenEquivalent : '-' }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Timeline & Dates -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">event</mat-icon>
+              <h2 class="card-title">Timeline & Dates</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Start Date</label>
+                <div class="value">
+                  <mat-icon class="inline-icon">calendar_today</mat-icon>
+                  {{ formatDate(bond.startDate) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Maturity Date</label>
+                <div class="value">
+                  <mat-icon class="inline-icon">event</mat-icon>
+                  {{ formatDate(bond.maturityDate) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Lifetime</label>
+                <div class="value">
+                  <mat-icon class="inline-icon">schedule</mat-icon>
+                  {{ formatLifetime(bond.lifetime) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Days to Maturity</label>
+                <div class="value">
+                  @if (getDaysUntilMaturity(bond.maturityDate) >= 0) {
+                    <span class="days-count">{{ getDaysUntilMaturity(bond.maturityDate) }} days</span>
+                  } @else {
+                    <span class="days-count matured">Matured</span>
+                  }
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Created At</label>
+                <div class="value">{{ formatDateTime(bond.dateCreated) }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Interest Calculation</label>
+                <div class="value">{{ bond.interestCalculationPeriod | titlecase }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Issuer Information -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">business</mat-icon>
+              <h2 class="card-title">Issuer Information</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Issuer Name (EN)</label>
+                <div class="value">{{ bond.issuerNameEn }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Issuer Name (FR)</label>
+                <div class="value">{{ bond.issuerNameFr }}</div>
+              </div>
+
+              <!-- <div class="info-item">
+                <label>Issuer Type</label>
+                <div class="value">
+                  <span class="issuer-type-badge" [class]="'issuer-' + bond.issuerType">
+                    {{ bond.issuerType | titlecase }}
+                  </span>
+                </div>
+              </div> -->
+
+              <!-- <div class="info-item">
+                <label>Issuer Icon</label>
+                <div class="value">{{ bond.issuerIcon || '-' }}</div>
+              </div> -->
+
+              @if (bond.issuerDescriptionEn) {
+                <div class="info-item full-width">
+                  <label>Issuer Description (EN)</label>
+                  <div class="value description">{{ bond.issuerDescriptionEn }}</div>
+                </div>
+              }
+
+              @if (bond.issuerDescriptionFr) {
+                <div class="info-item full-width">
+                  <label>Issuer Description (FR)</label>
+                  <div class="value description">{{ bond.issuerDescriptionFr }}</div>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Technical & Blockchain -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">settings</mat-icon>
+              <h2 class="card-title">Technical Details</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <!-- <div class="info-item">
+                <label>Blockchain</label>
+                <div class="value">
+                  <span class="blockchain-badge" [class]="'blockchain-' + bond.blockchain">
+                    {{ bond.blockchain | titlecase }}
+                  </span>
+                </div>
+              </div> -->
+
+              <!-- <div class="info-item">
+                <label>Smart Contract ID</label>
+                <div class="value code">{{ bond.smartContractId || '-' }}</div>
+              </div> -->
+
+              <div class="info-item">
+                <label>Color Code</label>
+                <div class="value">
+                  @if (bond.colorCode || bond.color) {
+                    <div class="color-preview" [style.background-color]="formatColorCode(bond.colorCode, bond.color)" style="display: inline-block; width: 20px; height: 20px; border-radius: 3px; margin-right: 8px; vertical-align: middle;"></div>
+                    <span>{{ getColorDisplayText(bond.colorCode, bond.color) }}</span>
+                  } @else {
+                    <span>-</span>
+                  }
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Status Color Code</label>
+                <div class="value code">{{ bond.statusColorCode || '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Displayed in App</label>
+                <div class="value">
+                  <mat-icon [class.visible]="bond.shouldBeDisplayedInApp" [class.hidden]="!bond.shouldBeDisplayedInApp">
+                    {{ bond.shouldBeDisplayedInApp ? 'visibility' : 'visibility_off' }}
+                  </mat-icon>
+                  {{ bond.shouldBeDisplayedInApp ? 'Yes' : 'No' }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Withdrawal Blocked</label>
+                <div class="value">
+                  <mat-icon [class.blocked]="bond.isWithdrawalBlocked" [class.allowed]="!bond.isWithdrawalBlocked">
+                    {{ bond.isWithdrawalBlocked ? 'block' : 'check_circle' }}
+                  </mat-icon>
+                  {{ bond.isWithdrawalBlocked ? 'Yes' : 'No' }}
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Deposit Limits -->
+        <mat-card class="details-card">
+          <mat-card-header>
+            <div class="card-header">
+              <mat-icon class="card-icon">account_balance_wallet</mat-icon>
+              <h2 class="card-title">Deposit Limits</h2>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>MoMo Minimum Deposit</label>
+                <div class="value amount">
+                  {{ formatCurrency(bond.momoMinimumDeposit, bond.defaultFiatCurrency) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Bank Minimum Deposit</label>
+                <div class="value amount">
+                  {{ formatCurrency(bond.bankMinimumDeposit, bond.defaultFiatCurrency) }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Unlocking Penalty Rate</label>
+                <div class="value rate">{{ bond.unlockingPenaltyRate != null ? formatPercentage(bond.unlockingPenaltyRate) : '-' }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Rank</label>
+                <div class="value">
+                  <span class="rank-badge">{{ bond.rank != null ? bond.rank : '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Additional Information -->
+        @if (bond.descriptionEn || bond.descriptionFr) {
+          <mat-card class="details-card full-width">
+            <mat-card-header>
+              <div class="card-header">
+                <mat-icon class="card-icon">description</mat-icon>
+                <h2 class="card-title">Bond Description</h2>
+              </div>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="info-grid">
+                @if (bond.descriptionEn) {
+                  <div class="info-item full-width">
+                    <label>Description (EN)</label>
+                    <div class="value description">{{ bond.descriptionEn }}</div>
+                  </div>
+                }
+
+                @if (bond.descriptionFr) {
+                  <div class="info-item full-width">
+                    <label>Description (FR)</label>
+                    <div class="value description">{{ bond.descriptionFr }}</div>
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+
+      </div>
+    </div>
+  }
+
+</div>

@@ -15,6 +15,16 @@ export const bondsRoutes: Routes = [
     title: 'Bonds - Ejara Admin Panel'
   },
   {
+    path: 'add-bond',
+    loadComponent: () => import('./pages/add-bond/add-bond').then(m => m.AddBond),
+    title: 'New Bond - Ejara Admin Panel'
+  },
+  {
+    path: 'update-bond/:id',
+    loadComponent: () => import('./pages/add-bond/add-bond').then(m => m.AddBond),
+    title: 'Update Bond - Ejara Admin Panel'
+  },
+  {
     path: 'details/:id',
     loadComponent: () => import('./pages/bond-details/bond-details.component').then(m => m.BondDetailsComponent),
     title: 'Bond Details - Ejara Admin Panel'

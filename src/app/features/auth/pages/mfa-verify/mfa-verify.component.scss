@@ -1,0 +1,383 @@
+/**
+ * ===============================================
+ * MFA VERIFICATION COMPONENT STYLES
+ * Ejara Admin Panel Design System
+ * Matching Login Page Style
+ * ===============================================
+ */
+
+.ejara-mfa-page {
+  /* Full page layout matching login */
+  background-position: center;
+  background-repeat: no-repeat;
+  @apply h-[100vh] flex justify-center bg-[url(/assets/bg/icons-background.svg)] overflow-hidden overflow-y-auto;
+  
+  .main-block {
+    @apply flex flex-col min-w-[387px] items-center mt-[82px] gap-[90px];
+    
+    /* Logo Container */
+    .logo-container {
+      @apply w-[266px] h-[91px];
+      .logo {
+        @apply object-contain;
+      }
+    }
+    
+    /* Form Container */
+    .form-container {
+      @apply bg-[var(--color-background-primary)] border border-solid border-[var(--color-border-neutral)] 
+             w-[70%] p-[32px_48px] rounded-[16px] flex flex-col items-center gap-[24px];
+      
+      /* Title Section */
+      .form-title {
+        @apply flex flex-col items-center gap-[4px];
+        .main-title {
+          font-family: var(--font-family-display);
+          font-weight: 700;
+          @apply text-[#00171F] text-[36px] leading-[40px] tracking-[-0.72px];
+        }
+        .sub-title {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          @apply text-[14px] leading-[20px] !text-[#4D5D63] text-center;
+        }
+      }
+      
+      /* Error Banner */
+      .error-banner {
+        @apply w-full p-[16px] bg-[var(--color-error-100)] border border-solid border-[var(--color-error-200)] 
+               rounded-[12px] flex items-start gap-[12px];
+        animation: shake 0.5s ease-in-out;
+        
+        .error-icon {
+          @apply w-[20px] h-[20px] text-[var(--color-error-700)] flex-shrink-0 mt-[2px];
+        }
+        
+        .error-content {
+          @apply flex-1;
+          .error-text {
+            font-family: var(--font-family-sans);
+            font-weight: 500;
+            @apply text-[14px] leading-[20px] !text-[var(--color-error-800)];
+          }
+        }
+      }
+      
+      /* MFA Form */
+      .mfa-form {
+        @apply flex flex-col gap-[24px] w-full;
+        
+        .form-group {
+          @apply flex flex-col gap-[8px];
+          
+          .form-label {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[12px] !text-[#4D5D63];
+            
+            .required {
+              @apply text-[var(--color-secondary-700)];
+            }
+          }
+          
+          .input-wrapper {
+            @apply relative w-full;
+            
+            /* OTP Input Field */
+            input.otp-input {
+              font-family: var(--font-family-mono);
+              font-weight: 600;
+              letter-spacing: 0.75em; // Wide spacing for digits
+              text-align: center;
+              outline: none;
+              padding-left: 1em; // Compensate for letter-spacing
+              @apply w-full rounded-[12px] p-[20px] border-[2px] border-solid border-[var(--color-border-neutral)] 
+                     bg-[var(--color-background-primary)];
+              @apply text-[32px] leading-[40px] !text-[#00171F];
+              transition: all 200ms ease-in-out;
+              
+              // Remove number input spinners
+              &::-webkit-outer-spin-button,
+              &::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+              
+              &[type='number'] {
+                -moz-appearance: textfield;
+              }
+              
+              &::placeholder {
+                @apply text-[var(--color-placholder)];
+                letter-spacing: 0.75em;
+              }
+              
+              &:active,
+              &:focus {
+                border-color: var(--color-primary-500);
+                box-shadow: 0 0 0 3px var(--color-primary-100);
+              }
+              
+              // Error state
+              &.input-error {
+                border-color: var(--color-error-600);
+                background-color: var(--color-error-50);
+              }
+              
+              // Complete state (6 digits)
+              &.input-complete {
+                border-color: var(--color-success-600);
+                background-color: var(--color-success-50);
+                animation: inputSuccess 0.3s ease-in-out;
+              }
+              
+              &:disabled {
+                @apply bg-[var(--color-neutral-100)] cursor-not-allowed opacity-60;
+              }
+            }
+            
+            /* Character Counter */
+            .character-counter {
+              position: absolute;
+              right: 16px;
+              top: 50%;
+              transform: translateY(-50%);
+              font-family: var(--font-family-sans);
+              font-weight: 500;
+              @apply text-[12px] leading-[12px] text-[var(--color-text-tertiary)];
+              pointer-events: none;
+              
+              &.complete {
+                @apply text-[var(--color-success-700)];
+              }
+            }
+          }
+          
+          .error-message {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[16px] !text-[var(--color-error-700)] pl-[4px];
+          }
+        }
+        
+        /* Submit Button */
+        .submit-button {
+          @apply mt-[8px] p-[16px] rounded-[100px] outline-none flex gap-[8px] items-center justify-center;
+          @apply text-[14px] leading-[16px] !text-[#fff] cursor-pointer;
+          font-family: var(--font-family-sans);
+          font-weight: 500;
+          background-color: var(--color-primary-500);
+          transition: all 200ms ease-in-out;
+          
+          &:hover:not(:disabled) {
+            background-color: var(--color-primary-600);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(135, 88, 255, 0.3);
+          }
+          
+          &:active:not(:disabled) {
+            background-color: var(--color-primary-700);
+            transform: translateY(0);
+          }
+          
+          &:disabled {
+            @apply opacity-50 cursor-not-allowed;
+            background-color: var(--color-neutral-400);
+          }
+          
+          &.loading {
+            @apply cursor-wait;
+          }
+          
+          .button-icon, .spinner {
+            height: 24px;
+            width: 24px;
+          }
+          
+          .spinner {
+            animation: spin 1s linear infinite;
+          }
+        }
+        
+        /* Form ends here */
+      }
+      
+      /* Form Footer */
+      .form-footer {
+        @apply w-full text-center pt-[8px];
+        
+        .footer-text {
+          font-family: var(--font-family-sans);
+          font-weight: normal;
+          @apply text-[14px] leading-[20px] !text-[var(--color-text-secondary)];
+          
+          .footer-link {
+            font-weight: 500;
+            @apply text-[var(--color-primary-600)] cursor-pointer;
+            transition: all 200ms ease-in-out;
+            background: none;
+            border: none;
+            padding: 0;
+            
+            &:hover {
+              @apply text-[var(--color-primary-700)] underline;
+            }
+          }
+        }
+      }
+      
+      /* Help Section */
+      .help-section {
+        @apply w-full p-[16px] bg-[var(--color-background-secondary)] rounded-[12px] 
+               flex gap-[12px] items-start;
+        
+        .help-icon {
+          @apply w-[20px] h-[20px] text-[var(--color-text-tertiary)] flex-shrink-0 mt-[2px];
+        }
+        
+        .help-content {
+          @apply flex-1;
+          
+          .help-title {
+            font-family: var(--font-family-sans);
+            font-weight: 600;
+            @apply text-[12px] leading-[16px] !text-[var(--color-text-primary)] mb-[4px];
+          }
+          
+          .help-text {
+            font-family: var(--font-family-sans);
+            font-weight: normal;
+            @apply text-[12px] leading-[16px] !text-[var(--color-text-secondary)];
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes inputSuccess {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// SPINNER ANIMATION
+// ============================================
+
+.spinner {
+  animation: spin 1s linear infinite;
+  
+  .spinner-circle {
+    stroke-dasharray: 80;
+    stroke-dashoffset: 60;
+    animation: spinnerDash 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes spinnerDash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -15;
+  }
+  100% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -125;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+
+@media (max-width: 640px) {
+  .ejara-mfa-page {
+    .main-block {
+      @apply min-w-[0px] w-full px-[16px] mt-[40px] gap-[40px];
+      
+      .logo-container {
+        @apply w-[200px] h-[68px];
+      }
+      
+      .form-container {
+        @apply p-[24px_24px];
+        
+        .form-title {
+          .main-title {
+            @apply text-[28px] leading-[32px];
+          }
+          .sub-title {
+            @apply text-[12px];
+          }
+        }
+        
+        .mfa-form {
+          .form-group {
+            .input-wrapper {
+              input.otp-input {
+                @apply text-[24px] p-[16px];
+                letter-spacing: 0.5em;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// ACCESSIBILITY
+// ============================================
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-input,
+  .submit-button,
+  .spinner,
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .otp-input {
+    border-width: 3px;
+  }
+}

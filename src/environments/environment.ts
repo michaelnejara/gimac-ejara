@@ -16,7 +16,7 @@ export const environment = {
     },
 
     nellysCoin: {
-        apiUrl: 'https://prodbox-nellys-coin-v2.ejaraapis.xyz',
+        apiUrl: 'https://prodbox-nellys-coin-v2.ejaraapis.xyz/api/v1',
         clientKey: 'e59de08018',
         clientSecret: 'q7uaGP*2ENy0MWX!yjLeZ*q2x',
     },
@@ -24,5 +24,11 @@ export const environment = {
         apiUrl: 'https://prodbox-mfa.ejaraapis.xyz',
         clientKey: '0024053021',
         clientSecret: 'vJ[ZXKOnbPuZtKaoQblfbpX)%',
+    },
+    gimacTbB2B: {
+        apiUrl: 'https://prodbox-tokenized-bonds.ejaraapis.xyz/api',
+        clientKey: '',
+        clientSecret: '',
+        useMockData: false
     }
 };

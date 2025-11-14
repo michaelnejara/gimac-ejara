@@ -1,0 +1,346 @@
+<!-- src/app/features/partners/pages/partner-details/partner-details.component.html -->
+<div class="partner-details-page">
+  
+  <!-- Loading State -->
+  @if (loading$ | async) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading partner details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error$ | async; as error) {
+    <mat-card class="error-card">
+      <div class="error-content">
+        <mat-icon>error_outline</mat-icon>
+        <div class="error-text">
+          <h3>Error Loading Partner</h3>
+          <p>{{ error }}</p>
+        </div>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Go Back
+        </button>
+      </div>
+    </mat-card>
+  }
+
+  <!-- Partner Details -->
+  @if (partner$ | async; as partner) {
+    <div class="partner-details-content">
+      
+      <!-- Header -->
+      <div class="page-header">
+        <button mat-icon-button class="back-btn" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        
+        <div class="header-content">
+          <h1 class="partner-name">{{ partner.name }}</h1>
+          <div class="partner-meta">
+            <span class="partner-code">{{ partner.code }}</span>
+            <span class="status-badge" [ngClass]="getStatusClass(partner.status)">
+              {{ partner.status | titlecase }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content-grid">
+        
+        <!-- Left Column: Partner Profile -->
+        <div class="left-column">
+          
+          <!-- Profile Card -->
+          <mat-card class="profile-card">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                {{ getInitials(partner.name) }}
+              </div>
+              <div class="profile-info">
+                <h2>{{ partner.name }}</h2>
+                <p class="partner-type">B2B Partner</p>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="profile-details">
+              <div class="detail-row">
+                <mat-icon>tag</mat-icon>
+                <div class="detail-content">
+                  <label>Partner Code</label>
+                  <div class="detail-value-row">
+                    <span>{{ partner.code }}</span>
+                    <button 
+                      mat-icon-button 
+                      class="copy-btn"
+                      (click)="copyToClipboard(partner.code, 'Partner Code')"
+                      matTooltip="Copy Code">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              @if (partner.description) {
+                <div class="detail-row">
+                  <mat-icon>description</mat-icon>
+                  <div class="detail-content">
+                    <label>Description</label>
+                    <span class="detail-value">{{ partner.description }}</span>
+                  </div>
+                </div>
+              }
+
+              @if (partner.webhookUrl) {
+                <div class="detail-row">
+                  <mat-icon>webhook</mat-icon>
+                  <div class="detail-content">
+                    <label>Webhook URL</label>
+                    <div class="detail-value-row webhook-url">
+                      <span class="url-text">{{ partner.webhookUrl }}</span>
+                      <button 
+                        mat-icon-button 
+                        class="copy-btn"
+                        (click)="copyToClipboard(partner.webhookUrl!, 'Webhook URL')"
+                        matTooltip="Copy URL">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <div class="detail-row">
+                <mat-icon>event</mat-icon>
+                <div class="detail-content">
+                  <label>Date Created</label>
+                  <span class="detail-value">{{ formatDate(partner.dateCreated) }}</span>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <mat-icon>update</mat-icon>
+                <div class="detail-content">
+                  <label>Last Updated</label>
+                  <span class="detail-value">{{ formatDate(partner.dateUpdated) }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+
+          <!-- Address Card -->
+          @if (partner.address || partner.city || partner.country) {
+            <mat-card class="address-card">
+              <div class="card-header">
+                <mat-icon>location_on</mat-icon>
+                <h3>Address Information</h3>
+              </div>
+
+              <div class="address-content">
+                @if (partner.address) {
+                  <p class="address-line">{{ partner.address }}</p>
+                }
+                <p class="address-line">
+                  @if (partner.city) {
+                    <span>{{ partner.city }}</span>
+                  }
+                  @if (partner.state) {
+                    <span>{{ partner.state }}</span>
+                  }
+                  @if (partner.postalCode) {
+                    <span>{{ partner.postalCode }}</span>
+                  }
+                </p>
+                @if (partner.country) {
+                  <p class="address-line country">{{ partner.country }}</p>
+                }
+              </div>
+            </mat-card>
+          }
+
+        </div>
+
+        <!-- Right Column: Stats & Actions -->
+        <div class="right-column">
+          
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card commission">
+              <div class="stat-icon">
+                <mat-icon>percent</mat-icon>
+              </div>
+              <div class="stat-content">
+                <label>Commission Rate</label>
+                <div class="stat-value">{{ partner.commissionRate }}%</div>
+              </div>
+            </div>
+
+            <!-- Note: SinglePartner doesn't include allowedBonds, activeCustomers, or totalVolume -->
+            <!-- These would require separate API calls to statistics endpoints -->
+            <div class="stat-card info">
+              <div class="stat-icon">
+                <mat-icon>info</mat-icon>
+              </div>
+              <div class="stat-content">
+                <label>Status</label>
+                <div class="stat-value">
+                  <span class="status-badge" [ngClass]="getStatusClass(partner.status)">
+                    {{ partner.status | titlecase }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Settings Card -->
+          <mat-card class="financial-card">
+            <div class="card-header">
+              <mat-icon>payments</mat-icon>
+              <h3>Financial Settings</h3>
+            </div>
+
+            <div class="financial-grid">
+              @if (partner.settlementAccount) {
+                <div class="financial-item">
+                  <label>Settlement Account</label>
+                  <span class="value">{{ partner.settlementAccount }}</span>
+                </div>
+              }
+
+              <div class="financial-item">
+                <label>Min Transaction</label>
+                <span class="value">{{ formatCurrency(partner.minTransactionAmount) }}</span>
+              </div>
+
+              @if (partner.maxTransactionAmount) {
+                <div class="financial-item">
+                  <label>Max Transaction</label>
+                  <span class="value">{{ formatCurrency(partner.maxTransactionAmount) }}</span>
+                </div>
+              }
+
+              @if (partner.dailyTransactionLimit) {
+                <div class="financial-item">
+                  <label>Daily Limit</label>
+                  <span class="value">{{ formatCurrency(partner.dailyTransactionLimit) }}</span>
+                </div>
+              }
+
+              @if (partner.monthlyTransactionLimit) {
+                <div class="financial-item">
+                  <label>Monthly Limit</label>
+                  <span class="value">{{ formatCurrency(partner.monthlyTransactionLimit) }}</span>
+                </div>
+              }
+            </div>
+          </mat-card>
+
+          <!-- Security Card -->
+          @if (partner.allowedIpAddresses && partner.allowedIpAddresses.length > 0) {
+            <mat-card class="security-card">
+              <div class="card-header">
+                <mat-icon>security</mat-icon>
+                <h3>Security & Access</h3>
+              </div>
+
+              <div class="security-content">
+                <label>Allowed IP Addresses</label>
+                <div class="ip-list">
+                  @for (ip of partner.allowedIpAddresses; track ip) {
+                    <mat-chip class="ip-chip">
+                      <mat-icon>computer</mat-icon>
+                      {{ ip }}
+                    </mat-chip>
+                  }
+                </div>
+              </div>
+            </mat-card>
+          }
+
+          <!-- Actions Card -->
+          <mat-card class="actions-card">
+            <div class="card-header">
+              <mat-icon>touch_app</mat-icon>
+              <h3>Quick Actions</h3>
+            </div>
+
+            <div class="actions-grid">
+              <!-- Primary Actions Section -->
+              <div class="action-section primary-section">
+                <div class="section-label">Primary Actions</div>
+                
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  class="action-btn primary-action"
+                  (click)="editPartner()">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Partner</span>
+                </button>
+
+                <button 
+                  mat-raised-button 
+                  class="action-btn status-action"
+                  [ngClass]="getStatusClass(partner.status)"
+                  (click)="changeStatus(partner)">
+                  <mat-icon>toggle_on</mat-icon>
+                  <span>Change Status</span>
+                </button>
+              </div>
+
+              <!-- Management Actions Section -->
+              <div class="action-section management-section">
+                <div class="section-label">Management</div>
+                
+                <button 
+                  mat-raised-button 
+                  class="action-btn management-action"
+                  (click)="assignBonds(partner)">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>Assign Bonds</span>
+                </button>
+              </div>
+
+              <!-- View Actions Section -->
+              <div class="action-section view-section">
+                <div class="section-label">View Related Data</div>
+                
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewBonds(partner.id)">
+                  <mat-icon>account_balance</mat-icon>
+                  <span>View Partner Bonds</span>
+                </button>
+
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewCustomers(partner)">
+                  <mat-icon>people</mat-icon>
+                  <span>View Customers</span>
+                </button>
+
+                <button 
+                  mat-stroked-button 
+                  class="action-btn secondary-action"
+                  (click)="viewTransactions(partner.id)">
+                  <mat-icon>receipt_long</mat-icon>
+                  <span>View Bond Transactions</span>
+                </button>
+              </div>
+            </div>
+          </mat-card>
+
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+</div>

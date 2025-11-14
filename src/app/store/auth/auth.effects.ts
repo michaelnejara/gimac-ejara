@@ -1,15 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { of, forkJoin } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AuthService } from '@core/services/api/auth.service';
+import { MfaService } from '@core/services/api/mfa.service';
 import { GeolocationService } from '@core/services/api/geolocation.service';
 import { StorageService } from '@core/services/storage/storage.service';
 import { NotificationService } from '@core/services/notification/notification.service';
 import { UuidUtils } from '@core/utils/uuid.utils';
 import { AuthActions } from './auth.actions';
 import * as AuthModels from '@core/models/auth.models';
+import { selectSetupAuthToken } from './auth.state';
 
 /**
  * Authentication Effects
@@ -18,7 +21,9 @@ import * as AuthModels from '@core/models/auth.models';
 @Injectable()
 export class AuthEffects {
   private actions$ = inject(Actions);
+  private store = inject(Store);
   private authService = inject(AuthService);
+  private mfaService = inject(MfaService);
   private geolocationService = inject(GeolocationService);
   private storageService = inject(StorageService);
   private notificationService = inject(NotificationService);
@@ -26,14 +31,18 @@ export class AuthEffects {
 
   /**
    * Login Effect
-   * 
+   *
    * Flow:
    * 1. Get geolocation data
    * 2. Generate device ID
    * 3. Call login API
-   * 4. Handle response (MFA required or error)
-   * 
-   * @dispatches AuthActions.loginMfaRequired - On successful login requiring MFA
+   * 4. Handle response:
+   *    - If shouldCompleteMfa is true: MFA verification required
+   *    - If shouldCompleteMfa is false: MFA setup required
+   *    - Otherwise: error
+   *
+   * @dispatches AuthActions.loginMfaRequired - On successful login requiring MFA verification
+   * @dispatches AuthActions.loginMfaSetupRequired - On successful login requiring MFA setup
    * @dispatches AuthActions.loginFailure - On login failure
    */
   login$ = createEffect(() =>
@@ -63,7 +72,21 @@ export class AuthEffects {
 
             // Call login API
             return this.authService.login(payload).pipe(
-              map(response => AuthActions.loginMfaRequired({ response })),
+              map((response: any) => {
+                // Check if response has data.shouldCompleteMfa property
+                if ('data' in response && 'shouldCompleteMfa' in response.data) {
+                  if (response.data.shouldCompleteMfa === false) {
+                    // MFA setup required (shouldCompleteMfa: false)
+                    return AuthActions.loginMfaSetupRequired({ response: response as AuthModels.LoginSetupMfaResponse });
+                  } else {
+                    // MFA verification required (shouldCompleteMfa: true)
+                    return AuthActions.loginMfaRequired({ response: response as AuthModels.LoginMfaResponse });
+                  }
+                } else {
+                  // Unknown response format - default to MFA verification flow
+                  return AuthActions.loginMfaRequired({ response: response as AuthModels.LoginMfaResponse });
+                }
+              }),
               catchError(error => {
                 const errorResponse: AuthModels.LoginErrorResponse = {
                   errorCode: error.error?.errorCode || 'unknown_error',
@@ -326,9 +349,9 @@ export class AuthEffects {
 
   /**
    * Initialize From Storage Effect
-   * 
+   *
    * Restores auth state from storage on app startup
-   * 
+   *
    * @dispatches AuthActions.setUser - If valid session found
    * @dispatches AuthActions.setDeviceId - To restore device ID
    */
@@ -340,13 +363,13 @@ export class AuthEffects {
         const refreshToken = this.storageService.getLocal<string>('refresh_token');
         const userData = this.storageService.getSession<AuthModels.User>('user_data');
         const deviceId = this.storageService.getLocal<string>('device_id');
-        
+
         const actions = [];
-        
+
         if (authToken && refreshToken && userData) {
           // Valid session found, restore user
           actions.push(
-            AuthActions.completeLoginSuccess({ 
+            AuthActions.completeLoginSuccess({
               response: {
                 message: 'Session restored',
                 data: {
@@ -359,13 +382,287 @@ export class AuthEffects {
             AuthActions.setUser({ user: userData })
           );
         }
-        
+
         if (deviceId) {
           actions.push(AuthActions.setDeviceId({ deviceId }));
         }
-        
+
         return actions;
       })
     )
+  );
+
+  /**
+   * Login MFA Setup Required Effect
+   *
+   * Handles navigation when MFA setup is required
+   * Maps customer data to user and stores it
+   * Automatically initiates QR code setup
+   *
+   * @dispatches AuthActions.setUser - To store user data
+   * @dispatches AuthActions.setupMfaAuthenticatorStart - To get QR code
+   */
+  loginMfaSetupRequired$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.loginMfaSetupRequired),
+      tap(({ response }) => {
+        // Navigate to MFA setup page
+        this.router.navigate(['/auth/mfa-setup']);
+
+        // Show notification
+        this.notificationService.showInfo(
+          'MFA Setup Required',
+          'Please set up two-factor authentication to secure your account'
+        );
+      }),
+      switchMap(({ response }) => {
+        // Map customer data to user
+        const user = this.authService.mapCustomerDataToUser(response.data.customerData);
+
+        // Dispatch multiple actions: set user and start MFA setup
+        return [
+          AuthActions.setUser({ user }),
+          AuthActions.setupMfaAuthenticatorStart()
+        ];
+      })
+    )
+  );
+
+  /**
+   * Setup MFA Authenticator Effect
+   *
+   * Calls API to get QR code for authenticator setup
+   *
+   * Flow:
+   * 1. Get setupAuthToken from state
+   * 2. Call setup authenticator API
+   * 3. Dispatch success with QR code data
+   *
+   * @dispatches AuthActions.setupMfaAuthenticatorSuccess - On successful QR code retrieval
+   * @dispatches AuthActions.setupMfaAuthenticatorFailure - On API failure
+   */
+  setupMfaAuthenticator$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.setupMfaAuthenticatorStart),
+      withLatestFrom(this.store.select(selectSetupAuthToken)),
+      switchMap(([action, setupAuthToken]) => {
+        if (!setupAuthToken) {
+          return of(AuthActions.setupMfaAuthenticatorFailure({
+            error: { message: 'No auth token available for MFA setup' }
+          }));
+        }
+
+        return this.mfaService.setupAuthenticator(setupAuthToken).pipe(
+          map(response => AuthActions.setupMfaAuthenticatorSuccess({ response })),
+          catchError(error => {
+            const errorMessage = error.error?.message || 'Failed to setup authenticator';
+            return of(AuthActions.setupMfaAuthenticatorFailure({ error: { message: errorMessage } }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Setup MFA Authenticator Success Effect
+   *
+   * Shows success notification when QR code is retrieved
+   *
+   * @dispatches None - Side effect only (notification)
+   */
+  setupMfaAuthenticatorSuccess$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.setupMfaAuthenticatorSuccess),
+        tap(() => {
+          this.notificationService.showSuccess(
+            'QR Code Ready',
+            'Scan the QR code with your authenticator app'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Setup MFA Authenticator Failure Effect
+   *
+   * Shows error notification when QR code retrieval fails
+   *
+   * @dispatches None - Side effect only (notification)
+   */
+  setupMfaAuthenticatorFailure$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.setupMfaAuthenticatorFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Setup Failed',
+            error.message || 'Failed to generate QR code'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Validate MFA Authenticator Effect
+   *
+   * Validates the code entered by user from authenticator app
+   *
+   * Flow:
+   * 1. Get setupAuthToken from state
+   * 2. Call validate authenticator API
+   * 3. On success, automatically proceed to verify MFA code
+   *
+   * @dispatches AuthActions.validateMfaAuthenticatorSuccess - On successful validation
+   * @dispatches AuthActions.verifyMfaCodeStart - To complete login
+   * @dispatches AuthActions.validateMfaAuthenticatorFailure - On validation failure
+   */
+  validateMfaAuthenticator$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.validateMfaAuthenticatorStart),
+      withLatestFrom(this.store.select(selectSetupAuthToken)),
+      switchMap(([{ code }, setupAuthToken]) => {
+        if (!setupAuthToken) {
+          return of(AuthActions.validateMfaAuthenticatorFailure({
+            error: { message: 'No auth token available for validation' }
+          }));
+        }
+
+        const payload: AuthModels.ValidateAuthenticatorPayload = { code };
+
+        return this.mfaService.validateAuthenticator(payload, setupAuthToken).pipe(
+          switchMap(response => [
+            AuthActions.validateMfaAuthenticatorSuccess({ response }),
+            AuthActions.verifyMfaCodeStart({ code })
+          ]),
+          catchError(error => {
+            const errorMessage = error.error?.message || 'Invalid authentication code';
+            return of(AuthActions.validateMfaAuthenticatorFailure({ error: { message: errorMessage } }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Validate MFA Authenticator Failure Effect
+   *
+   * Shows error notification when code validation fails
+   *
+   * @dispatches None - Side effect only (notification)
+   */
+  validateMfaAuthenticatorFailure$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.validateMfaAuthenticatorFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Validation Failed',
+            error.message || 'Invalid authentication code. Please try again.'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Verify MFA Code Effect
+   *
+   * Final step: verifies MFA code and completes login
+   *
+   * Flow:
+   * 1. Get setupAuthToken from state
+   * 2. Call verify MFA code API
+   * 3. Check if verification succeeded (status === 'verified')
+   * 4. Dispatch success (tokens already stored from login)
+   *
+   * @dispatches AuthActions.verifyMfaCodeSuccess - On successful verification
+   * @dispatches AuthActions.verifyMfaCodeFailure - On verification failure
+   */
+  verifyMfaCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.verifyMfaCodeStart),
+      withLatestFrom(this.store.select(selectSetupAuthToken)),
+      switchMap(([{ code }, setupAuthToken]) => {
+        if (!setupAuthToken) {
+          return of(AuthActions.verifyMfaCodeFailure({
+            error: { message: 'No auth token available for verification' }
+          }));
+        }
+
+        const payload: AuthModels.VerifyMfaCodePayload = {
+          data: [{ code }]
+        };
+
+        return this.mfaService.verifyMfaCode(payload, setupAuthToken).pipe(
+          map(response => {
+            // Check if verification was successful
+            if (Array.isArray(response.data) && response.data.length > 0 && response.data.some(mfa => mfa.type === 'authenticator' && mfa.status === 'verified')) {
+              // Verification successful - tokens already stored from login response
+              return AuthActions.verifyMfaCodeSuccess({ response });
+            } else {
+              // Verification failed
+              return AuthActions.verifyMfaCodeFailure({
+                error: { message: 'MFA verification failed - invalid status' }
+              });
+            }
+          }),
+          catchError(error => {
+            const errorMessage = error.error?.message || 'MFA verification failed';
+            return of(AuthActions.verifyMfaCodeFailure({ error: { message: errorMessage } }));
+          })
+        );
+      })
+    )
+  );
+
+  /**
+   * Verify MFA Code Success Effect
+   *
+   * Handles navigation and notification after successful MFA setup and login
+   *
+   * @dispatches None - Side effect only (navigation + notification)
+   */
+  verifyMfaCodeSuccess$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.verifyMfaCodeSuccess),
+        withLatestFrom(this.store.select((state: any) => state.auth.user)),
+        tap(([action, user]) => {
+          // Navigate to dashboard
+          this.router.navigate(['/dashboard']);
+
+          // Show welcome notification
+          const firstName = user?.firstName || 'User';
+          this.notificationService.showSuccess(
+            `Welcome, ${firstName}!`,
+            'MFA has been successfully configured and you are now logged in'
+          );
+        })
+      ),
+    { dispatch: false }
+  );
+
+  /**
+   * Verify MFA Code Failure Effect
+   *
+   * Shows error notification when final verification fails
+   *
+   * @dispatches None - Side effect only (notification)
+   */
+  verifyMfaCodeFailure$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.verifyMfaCodeFailure),
+        tap(({ error }) => {
+          this.notificationService.showError(
+            'Verification Failed',
+            error.message || 'Failed to complete MFA setup. Please try again.'
+          );
+        })
+      ),
+    { dispatch: false }
   );
 }

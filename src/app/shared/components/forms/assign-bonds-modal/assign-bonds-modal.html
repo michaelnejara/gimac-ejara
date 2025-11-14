@@ -1,0 +1,175 @@
+<div class="assign-bonds-modal">
+  <!-- Modal Header -->
+  <div class="modal-header">
+    <div class="header-icon">
+      <mat-icon>add_circle</mat-icon>
+    </div>
+    <div class="header-text">
+      <h2>Assign Bonds to Partner</h2>
+      @if (data.partnerName) {
+      <p>{{ data.partnerName }}</p>
+      }
+    </div>
+    <button mat-icon-button class="close-btn" (click)="cancel()" [disabled]="submitting">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Search and Selection Info -->
+  <div class="modal-toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        [formControl]="searchControl"
+        placeholder="Search bonds by name, code, or issuer"
+      />
+    </mat-form-field>
+
+    <div class="selection-info">
+      @if (selectedCount > 0) {
+      <mat-chip class="selected-chip"> {{ selectedCount }} selected </mat-chip>
+      } @if (filteredBonds.length > 0) {
+      <button mat-button class="select-all-btn" (click)="toggleAllFiltered()">
+        @if (allFilteredSelected) {
+        <div style="display: flex">
+          <mat-icon>check_box</mat-icon>
+          <span>Deselect All</span>
+        </div>
+        } @else {
+        <div style="display: flex">
+          <mat-icon>check_box_outline_blank</mat-icon>
+          <span>Select All</span>
+        </div>
+        }
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Bonds List -->
+  <div class="modal-content">
+    @if (bondsLoading) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading bonds...</p>
+    </div>
+    } @else if (filteredBonds.length === 0) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      @if (searchControl.value) {
+      <h3>No bonds found</h3>
+      <p>Try adjusting your search criteria</p>
+      } @else {
+      <h3>No available bonds</h3>
+      <p>All bonds are already assigned to this partner</p>
+      }
+    </div>
+    } @else {
+    <div class="bonds-list">
+      @for (bond of filteredBonds; track bond.id) {
+      <div
+        class="bond-item"
+        [class.selected]="isBondSelected(bond.id)"
+        (click)="toggleBondSelection(bond.id)"
+      >
+        <mat-checkbox
+          [checked]="isBondSelected(bond.id)"
+          (click)="$event.stopPropagation()"
+          (change)="toggleBondSelection(bond.id)"
+        >
+        </mat-checkbox>
+
+        <div class="bond-details">
+          <div class="bond-header">
+            <div class="bond-name-section">
+              <h4 class="bond-name">{{ bond.name }}</h4>
+              <span class="bond-code">{{ bond.code }}</span>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusClass(bond.status)">
+              {{ bond.status | titlecase }}
+            </span>
+          </div>
+
+          <div class="bond-info-grid">
+            <div class="info-item">
+              <mat-icon class="info-icon">business</mat-icon>
+              <span class="info-label">Issuer:</span>
+              <span class="info-value">{{ bond.issuerNameEn }}</span>
+            </div>
+
+            <div class="info-item">
+              <mat-icon class="info-icon">attach_money</mat-icon>
+              <span class="info-label">Amount:</span>
+              <span class="info-value">
+                {{ formatCurrency(bond.amount, bond.defaultFiatCurrency) }}
+              </span>
+            </div>
+
+            <div class="info-item">
+              <mat-icon class="info-icon">percent</mat-icon>
+              <span class="info-label">Interest Rate:</span>
+              <span class="info-value">{{ bond.interestValue }}%</span>
+            </div>
+
+            <div class="info-item">
+              <mat-icon class="info-icon">schedule</mat-icon>
+              <span class="info-label">Lifetime:</span>
+              <span class="info-value">{{ formatLifetime(bond.lifetime) }}</span>
+            </div>
+
+            <div class="info-item">
+              <mat-icon class="info-icon">event</mat-icon>
+              <span class="info-label">Maturity:</span>
+              <span class="info-value">{{ bond.maturityDate | date : 'MMM d, y' }}</span>
+            </div>
+
+            <div class="info-item">
+              <mat-icon class="info-icon">local_atm</mat-icon>
+              <span class="info-label">Currency:</span>
+              <span class="info-value currency">{{ bond.defaultFiatCurrency }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- Modal Actions -->
+  <div class="modal-actions">
+    <div class="action-info">
+      @if (selectedCount > 0) {
+      <span class="selection-count">
+        <mat-icon>info</mat-icon>
+        {{ selectedCount }} bond{{ selectedCount > 1 ? 's' : '' }} will be assigned
+      </span>
+      }
+    </div>
+
+    <div class="action-buttons">
+      <button mat-stroked-button class="cancel-btn" (click)="cancel()" [disabled]="submitting">
+        Cancel
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="assign-btn"
+        (click)="assignBonds()"
+        [disabled]="selectedCount === 0 || submitting"
+      >
+        @if (submitting) {
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Assigning...</span>
+        } @else {
+        <div style="display: flex">
+          <mat-icon>check</mat-icon>
+          <span>Assign Bonds ({{ selectedCount }})</span>
+        </div>
+        }
+      </button>
+    </div>
+  </div>
+</div>

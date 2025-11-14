@@ -19,11 +19,23 @@ export class BondTransactionsMockService {
   private mockTransactions: BondTransaction[] = [
     {
       id: 1,
-      reference: 'TXN-2025-001',
-      type: 'purchase',
-      status: 'confirmed',
+      transactionReference: 'TXN-2025-001',
+      partnerTransactionReference: 'PARTNER-TXN-001',
+      transactionType: 'purchase',
       partnerId: 1,
       partnerName: 'First Capital Partners',
+      customerFirstName: 'John',
+      customerLastName: 'Doe',
+      partnerUserId: 'CUSTOMER_101',
+      amount: 1000000,
+      fee: 5000,
+      total: 1005000,
+      paymentStatus: 'completed',
+      blockchainStatus: 'confirmed',
+      dateCreated: '2025-01-15T10:30:00Z',
+      lastUpdated: '2025-01-15T11:00:00Z',
+      // Optional backward compatibility fields
+      status: 'confirmed',
       customerId: 101,
       customerName: 'John Doe',
       customerEmail: 'john.doe@example.com',
@@ -32,32 +44,38 @@ export class BondTransactionsMockService {
       bondCode: 'GTB-2030',
       units: 100,
       pricePerUnit: 10000,
-      amount: 1000000,
-      fee: 5000,
       totalAmount: 1005000,
       currency: 'XAF',
       commission: 25000,
       commissionRate: 2.5,
       fees: 5000,
       netAmount: 975000,
-      paymentStatus: 'completed',
       paymentMethod: 'Bank Transfer',
       paymentReference: 'PAY-001',
-      blockchainStatus: 'confirmed',
       blockchainTxHash: '0x1234...abcd',
       blockchainConfirmations: 12,
-      dateCreated: '2025-01-15T10:30:00Z',
       dateConfirmed: '2025-01-15T10:45:00Z',
-      dateCompleted: '2025-01-15T11:00:00Z',
-      lastUpdated: '2025-01-15T11:00:00Z'
+      dateCompleted: '2025-01-15T11:00:00Z'
     },
     {
       id: 2,
-      reference: 'TXN-2025-002',
-      type: 'purchase',
-      status: 'pending',
+      transactionReference: 'TXN-2025-002',
+      partnerTransactionReference: 'PARTNER-TXN-002',
+      transactionType: 'purchase',
       partnerId: 2,
       partnerName: 'Secure Investment Group',
+      customerFirstName: 'Jane',
+      customerLastName: 'Smith',
+      partnerUserId: 'CUSTOMER_102',
+      amount: 750000,
+      fee: 3750,
+      total: 753750,
+      paymentStatus: 'pending',
+      blockchainStatus: 'pending',
+      dateCreated: '2025-01-16T14:20:00Z',
+      lastUpdated: '2025-01-16T14:20:00Z',
+      // Optional backward compatibility fields
+      status: 'pending',
       customerId: 102,
       customerName: 'Jane Smith',
       customerEmail: 'jane.smith@example.com',
@@ -66,27 +84,33 @@ export class BondTransactionsMockService {
       bondCode: 'CBA-2025',
       units: 50,
       pricePerUnit: 15000,
-      amount: 750000,
-      fee: 3750,
       totalAmount: 753750,
       currency: 'XAF',
       commission: 18750,
       commissionRate: 2.5,
       fees: 3750,
       netAmount: 731250,
-      paymentStatus: 'pending',
-      paymentMethod: 'Mobile Money',
-      blockchainStatus: 'pending',
-      dateCreated: '2025-01-16T14:20:00Z',
-      lastUpdated: '2025-01-16T14:20:00Z'
+      paymentMethod: 'Mobile Money'
     },
     {
       id: 3,
-      reference: 'TXN-2025-003',
-      type: 'withdrawal',
-      status: 'confirmed',
+      transactionReference: 'TXN-2025-003',
+      partnerTransactionReference: 'PARTNER-TXN-003',
+      transactionType: 'withdrawal',
       partnerId: 1,
       partnerName: 'First Capital Partners',
+      customerFirstName: 'John',
+      customerLastName: 'Doe',
+      partnerUserId: 'CUSTOMER_101',
+      amount: 262500,
+      fee: 1312.50,
+      total: 261187.50,
+      paymentStatus: 'completed',
+      blockchainStatus: 'confirmed',
+      dateCreated: '2025-01-17T09:00:00Z',
+      lastUpdated: '2025-01-17T09:30:00Z',
+      // Optional backward compatibility fields
+      status: 'confirmed',
       customerId: 101,
       customerName: 'John Doe',
       customerEmail: 'john.doe@example.com',
@@ -95,28 +119,34 @@ export class BondTransactionsMockService {
       bondCode: 'GTB-2030',
       units: 25,
       pricePerUnit: 10500,
-      amount: 262500,
-      fee: 1312.50,
       totalAmount: 261187.50,
       currency: 'XAF',
-      paymentStatus: 'completed',
       paymentMethod: 'Bank Transfer',
       paymentReference: 'WTH-001',
-      blockchainStatus: 'confirmed',
       blockchainTxHash: '0x5678...efgh',
       blockchainConfirmations: 8,
-      dateCreated: '2025-01-17T09:00:00Z',
       dateConfirmed: '2025-01-17T09:15:00Z',
-      dateCompleted: '2025-01-17T09:30:00Z',
-      lastUpdated: '2025-01-17T09:30:00Z'
+      dateCompleted: '2025-01-17T09:30:00Z'
     },
     {
       id: 4,
-      reference: 'TXN-2025-004',
-      type: 'purchase',
-      status: 'processing',
+      transactionReference: 'TXN-2025-004',
+      partnerTransactionReference: 'PARTNER-TXN-004',
+      transactionType: 'purchase',
       partnerId: 3,
       partnerName: 'Global Finance Solutions',
+      customerFirstName: 'Michael',
+      customerLastName: 'Johnson',
+      partnerUserId: 'CUSTOMER_103',
+      amount: 1600000,
+      fee: 8000,
+      total: 1608000,
+      paymentStatus: 'pending',
+      blockchainStatus: 'pending',
+      dateCreated: '2025-01-18T11:45:00Z',
+      lastUpdated: '2025-01-18T11:50:00Z',
+      // Optional backward compatibility fields
+      status: 'processing',
       customerId: 103,
       customerName: 'Michael Johnson',
       customerEmail: 'michael.j@example.com',
@@ -125,27 +155,33 @@ export class BondTransactionsMockService {
       bondCode: 'IDB-2028',
       units: 200,
       pricePerUnit: 8000,
-      amount: 1600000,
-      fee: 8000,
       totalAmount: 1608000,
       currency: 'XAF',
       commission: 40000,
       commissionRate: 2.5,
       fees: 8000,
       netAmount: 1560000,
-      paymentStatus: 'pending',
-      paymentMethod: 'Credit Card',
-      blockchainStatus: 'pending',
-      dateCreated: '2025-01-18T11:45:00Z',
-      lastUpdated: '2025-01-18T11:50:00Z'
+      paymentMethod: 'Credit Card'
     },
     {
       id: 5,
-      reference: 'TXN-2025-005',
-      type: 'purchase',
-      status: 'failed',
+      transactionReference: 'TXN-2025-005',
+      partnerTransactionReference: 'PARTNER-TXN-005',
+      transactionType: 'deposit',
       partnerId: 2,
       partnerName: 'Secure Investment Group',
+      customerFirstName: 'Sarah',
+      customerLastName: 'Williams',
+      partnerUserId: 'CUSTOMER_104',
+      amount: 1125000,
+      fee: 5625,
+      total: 1130625,
+      paymentStatus: 'failed',
+      blockchainStatus: 'failed',
+      dateCreated: '2025-01-19T08:30:00Z',
+      lastUpdated: '2025-01-19T08:45:00Z',
+      // Optional backward compatibility fields
+      status: 'failed',
       customerId: 104,
       customerName: 'Sarah Williams',
       customerEmail: 'sarah.w@example.com',
@@ -154,15 +190,9 @@ export class BondTransactionsMockService {
       bondCode: 'CBA-2025',
       units: 75,
       pricePerUnit: 15000,
-      amount: 1125000,
-      fee: 5625,
       totalAmount: 1130625,
       currency: 'XAF',
-      paymentStatus: 'failed',
-      paymentMethod: 'Bank Transfer',
-      blockchainStatus: 'failed',
-      dateCreated: '2025-01-19T08:30:00Z',
-      lastUpdated: '2025-01-19T08:45:00Z'
+      paymentMethod: 'Bank Transfer'
     }
   ];
 
@@ -186,7 +216,7 @@ export class BondTransactionsMockService {
         filteredTransactions = filteredTransactions.filter(t => t.status === filters.status);
       }
       if (filters.type) {
-        filteredTransactions = filteredTransactions.filter(t => t.type === filters.type);
+        filteredTransactions = filteredTransactions.filter(t => t.transactionType === filters.type);
       }
       if (filters.dateFrom) {
         filteredTransactions = filteredTransactions.filter(
@@ -252,20 +282,20 @@ export class BondTransactionsMockService {
         transactions = transactions.filter(t => t.status === filters.status);
       }
       if (filters.type) {
-        transactions = transactions.filter(t => t.type === filters.type);
+        transactions = transactions.filter(t => t.transactionType === filters.type);
       }
     }
 
     const totalTransactions = transactions.length;
-    const totalPurchases = transactions.filter(t => t.type === 'purchase').length;
-    const totalWithdrawals = transactions.filter(t => t.type === 'withdrawal').length;
-    
+    const totalPurchases = transactions.filter(t => t.transactionType === 'purchase').length;
+    const totalWithdrawals = transactions.filter(t => t.transactionType === 'withdrawal').length;
+
     const totalVolume = transactions.reduce((sum, t) => sum + t.amount, 0);
     const purchaseVolume = transactions
-      .filter(t => t.type === 'purchase')
+      .filter(t => t.transactionType === 'purchase')
       .reduce((sum, t) => sum + t.amount, 0);
     const withdrawalVolume = transactions
-      .filter(t => t.type === 'withdrawal')
+      .filter(t => t.transactionType === 'withdrawal')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const stats: TransactionStats = {

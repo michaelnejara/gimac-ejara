@@ -73,7 +73,7 @@ export class ChangeTransactionStatusModal {
   }
 
   get transactionReference(): string {
-    return this.transaction.transactionReference || this.transaction.reference || 'N/A';
+    return this.transaction.transactionReference || 'N/A';
   }
 
   get availableStatusOptions() {

@@ -148,8 +148,8 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     { value: 'withdrawal', label: 'Withdrawal' }
   ];
 
-  // Available statuses for status change (only non-confirmed/non-completed transactions)
-  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
+  // Available statuses for status change
+  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'completed', 'confirmed', 'failed', 'cancelled'];
 
   // Table Configuration
   tableConfig!: TableConfig<BondTransaction>;
@@ -637,21 +637,11 @@ export class BondTransactionsList implements OnInit, OnDestroy {
 
   /**
    * Check if transaction can be status changed
-   * Cannot change status if blockchain confirmed or transaction is in final state
+   * Cannot change status if blockchain is confirmed
    */
   canChangeStatus(transaction: BondTransaction): boolean {
     // Cannot change if confirmed on blockchain
-    if (transaction.blockchainStatus === 'confirmed') {
-      return false;
-    }
-
-    // Cannot change if transaction has a final status
-    const finalStatuses: TransactionStatus[] = ['confirmed', 'completed'];
-    if (transaction.status && finalStatuses.includes(transaction.status)) {
-      return false;
-    }
-
-    return true;
+    return transaction.blockchainStatus !== 'confirmed';
   }
 
   /**

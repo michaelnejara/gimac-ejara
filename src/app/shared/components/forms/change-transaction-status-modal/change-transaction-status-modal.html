@@ -31,7 +31,10 @@
             <mat-option [value]="status.value">
               <div class="status-option">
                 <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
-                <span>{{ status.label }}</span>
+                <div class="status-text">
+                  <span class="status-label">{{ status.label }}</span>
+                  <span class="status-description">{{ status.description }}</span>
+                </div>
               </div>
             </mat-option>
           }

@@ -6,7 +6,7 @@ export type TransactionType = 'deposit' | 'withdrawal' | 'purchase';
 /**
  * Transaction Status Enum
  */
-export type TransactionStatus = 'pending' | 'confirmed' | 'failed' | 'processing';
+export type TransactionStatus = 'pending' | 'processing' | 'completed' | 'confirmed' | 'failed' | 'cancelled';
 
 /**
  * Payment Status

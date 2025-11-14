@@ -41,10 +41,12 @@ export class ChangeTransactionStatusModal {
   availableStatuses: TransactionStatus[];
 
   statusOptions = [
-    { value: 'pending', label: 'Pending', icon: 'schedule', color: '#ff9800' },
-    { value: 'processing', label: 'Processing', icon: 'sync', color: '#2196f3' },
-    { value: 'confirmed', label: 'Confirmed', icon: 'check_circle', color: '#4caf50' },
-    { value: 'failed', label: 'Failed', icon: 'error', color: '#f44336' }
+    { value: 'pending', label: 'Pending', description: 'Transaction initiated', icon: 'schedule', color: '#ff9800' },
+    { value: 'processing', label: 'Processing', description: 'Transaction in progress', icon: 'sync', color: '#2196f3' },
+    { value: 'completed', label: 'Completed', description: 'Transaction successful', icon: 'check_circle', color: '#4caf50' },
+    { value: 'confirmed', label: 'Confirmed', description: 'Transaction confirmed', icon: 'verified', color: '#4caf50' },
+    { value: 'failed', label: 'Failed', description: 'Transaction failed', icon: 'error', color: '#f44336' },
+    { value: 'cancelled', label: 'Cancelled', description: 'Transaction cancelled', icon: 'cancel', color: '#9e9e9e' }
   ];
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: ChangeTransactionStatusData) {

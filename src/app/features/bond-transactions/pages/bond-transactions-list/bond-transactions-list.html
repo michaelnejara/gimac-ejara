@@ -259,55 +259,40 @@
         (sortChange)="onSortChange($event)">
 
         <!-- Reference Template -->
-        <ng-template appTableColumn="reference" let-row>
+        <ng-template appTableColumn="transactionReference" let-row>
           <div class="reference-cell">
-            <div class="reference-code">{{ row.reference }}</div>
+            <div class="reference-code">{{ row.transactionReference }}</div>
             <div class="partner-name">{{ row.partnerName }}</div>
           </div>
         </ng-template>
 
         <!-- Customer Template -->
-        <ng-template appTableColumn="customerName" let-row>
+        <ng-template appTableColumn="customerFirstName" let-row>
           <div class="customer-cell">
             <div class="customer-avatar">
               <mat-icon>person</mat-icon>
             </div>
             <div class="customer-info">
-              <div class="name">{{ row.customerName }}</div>
-              <div class="email">{{ row.customerEmail }}</div>
-            </div>
-          </div>
-        </ng-template>
-
-        <!-- Bond Template -->
-        <ng-template appTableColumn="bondName" let-row>
-          <div class="bond-cell">
-            <div class="bond-icon">
-              <mat-icon>account_balance</mat-icon>
-            </div>
-            <div class="bond-info">
-              <div class="name">{{ row.bondName }}</div>
-              <div class="code">{{ row.bondCode }}</div>
+              <div class="name">{{ row.customerFirstName }} {{ row.customerLastName }}</div>
+              <div class="email">{{ row.partnerUserId }}</div>
             </div>
           </div>
         </ng-template>
 
         <!-- Amount Template -->
         <ng-template appTableColumn="amount" let-row>
-          <div class="amount-cell" [class.positive]="row.type === 'purchase'" [class.negative]="row.type === 'withdrawal'">
+          <div class="amount-cell" [class.positive]="row.transactionType === 'deposit' || row.transactionType === 'purchase'" [class.negative]="row.transactionType === 'withdrawal'">
             <div class="amount">
-              {{ row.type === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency) }}
+              {{ row.transactionType === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency || 'XOF') }}
             </div>
-            @if (row.units) {
-              <div class="units">{{ row.units }} units @ {{ formatCurrency(row.pricePerUnit || 0, row.currency) }}</div>
-            }
+            <div class="total">Total: {{ formatCurrency(row.total, row.currency || 'XOF') }}</div>
           </div>
         </ng-template>
 
         <!-- Fee Template -->
         <ng-template appTableColumn="fee" let-row>
           <div class="fee-cell">
-            <div class="fee">{{ formatCurrency(row.fee, row.currency) }}</div>
+            <div class="fee">{{ formatCurrency(row.fee, row.currency || 'XOF') }}</div>
           </div>
         </ng-template>
 

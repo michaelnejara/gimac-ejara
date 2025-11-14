@@ -1,7 +1,7 @@
 /**
  * Transaction Type Enum
  */
-export type TransactionType = 'purchase' | 'withdrawal';
+export type TransactionType = 'deposit' | 'withdrawal' | 'purchase';
 
 /**
  * Transaction Status Enum
@@ -23,52 +23,55 @@ export type BlockchainStatus = 'pending' | 'confirmed' | 'failed';
  */
 export interface BondTransaction {
   id: number;
-  reference: string;
-  type: TransactionType;
-  status: TransactionStatus;
-  
+  transactionReference: string;
+  partnerTransactionReference: string;
+  transactionType: TransactionType;
+
   // Partner & Customer Info
   partnerId: number;
   partnerName: string;
-  customerId: number;
-  customerName: string;
-  customerEmail: string;
-  
-  // Bond Info
-  bondId: number;
-  bondName: string;
-  bondCode: string;
-  
+  customerFirstName: string;
+  customerLastName: string;
+  partnerUserId: string;
+
   // Financial Details
-  units?: number;
-  pricePerUnit?: number;
   amount: number;
   fee: number;
-  totalAmount: number;
-  currency: string;
-  commission?:number;
-  commissionRate?:number;
-  fees?:number;
-  netAmount?:number;
-  
+  total: number;
+
   // Payment Details
   paymentStatus: PaymentStatus;
-  paymentMethod?: string;
-  paymentReference?: string;
-  
+
   // Blockchain Details
   blockchainStatus: BlockchainStatus;
-  blockchainTxHash?: string;
-  blockchainConfirmations?: number;
-  
-  // Metadata
-  metadata?: Record<string, any>;
-  
+
   // Timestamps
   dateCreated: string;
+  lastUpdated: string;
+
+  // Optional fields for backward compatibility
+  status?: TransactionStatus;
+  customerId?: number;
+  customerName?: string;
+  customerEmail?: string;
+  bondId?: number;
+  bondName?: string;
+  bondCode?: string;
+  units?: number;
+  pricePerUnit?: number;
+  totalAmount?: number;
+  currency?: string;
+  commission?: number;
+  commissionRate?: number;
+  fees?: number;
+  netAmount?: number;
+  paymentMethod?: string;
+  paymentReference?: string;
+  blockchainTxHash?: string;
+  blockchainConfirmations?: number;
+  metadata?: Record<string, any>;
   dateConfirmed?: string;
   dateCompleted?: string;
-  lastUpdated: string;
 }
 
 /**
@@ -87,14 +90,21 @@ export interface TransactionFilterParams {
 }
 
 /**
+ * Pagination Meta
+ */
+export interface PaginationMeta {
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/**
  * Transactions List Response
  */
 export interface TransactionsResponse {
   message: string;
   data: BondTransaction[];
-  total: number;
-  limit: number;
-  offset: number;
+  meta: PaginationMeta;
 }
 
 /**

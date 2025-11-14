@@ -16,7 +16,7 @@ export const bondTransactionsReducer = createReducer(
   })),
 
   on(BondTransactionsActions.loadTransactionsSuccess, (state, { response }) => {
-    const pageNumber = Math.floor(response.offset / response.limit) + 1;
+    const pageNumber = Math.floor(response.meta.offset / response.meta.limit) + 1;
     const newPageCache = { ...state.pageCache };
     newPageCache[pageNumber] = response.data;
 
@@ -24,10 +24,10 @@ export const bondTransactionsReducer = createReducer(
       ...state,
       pageCache: newPageCache,
       activePage: pageNumber,
-      total: response.total,
-      limit: response.limit,
-      offset: response.offset,
-      previousPageSize: response.limit,
+      total: response.meta.total,
+      limit: response.meta.limit,
+      offset: response.meta.offset,
+      previousPageSize: response.meta.limit,
       loading: false,
       error: null
     };

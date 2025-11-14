@@ -55,10 +55,25 @@ export class ChangeTransactionStatusModal {
   }
 
   private initializeForm(): void {
+    // Use status if available (backward compatibility), otherwise use blockchainStatus
+    const currentStatus = this.transaction.status ||
+                         (this.transaction.blockchainStatus === 'confirmed' ? 'confirmed' :
+                          this.transaction.blockchainStatus === 'failed' ? 'failed' : 'pending');
+
     this.statusForm = this.fb.group({
-      status: [this.transaction.status, Validators.required],
+      status: [currentStatus, Validators.required],
       reason: ['', Validators.required]
     });
+  }
+
+  get currentStatus(): TransactionStatus {
+    return this.transaction.status ||
+           (this.transaction.blockchainStatus === 'confirmed' ? 'confirmed' :
+            this.transaction.blockchainStatus === 'failed' ? 'failed' : 'pending') as TransactionStatus;
+  }
+
+  get transactionReference(): string {
+    return this.transaction.transactionReference || this.transaction.reference || 'N/A';
   }
 
   get availableStatusOptions() {

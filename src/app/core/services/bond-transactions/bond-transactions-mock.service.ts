@@ -208,9 +208,11 @@ export class BondTransactionsMockService {
     return of({
       message: 'Transactions retrieved successfully',
       data: paginatedTransactions,
-      total,
-      limit,
-      offset
+      meta: {
+        total,
+        limit,
+        offset
+      }
     }).pipe(delay(500));
   }
 

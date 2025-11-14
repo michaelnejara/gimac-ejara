@@ -4,7 +4,7 @@
       <mat-icon class="header-icon">swap_horiz</mat-icon>
       <div class="header-text">
         <h2>Change Transaction Status</h2>
-        <p>Update the status for transaction: <strong>{{ transaction.reference }}</strong></p>
+        <p>Update the status for transaction: <strong>{{ transactionReference }}</strong></p>
       </div>
     </div>
     <button mat-icon-button class="close-btn" (click)="onCancel()">
@@ -17,9 +17,9 @@
       <!-- Current Status Info -->
       <div class="current-status-box">
         <div class="status-label">Current Status</div>
-        <div class="status-badge" [style.backgroundColor]="getStatusOption(transaction.status)?.color">
-          <mat-icon>{{ getStatusOption(transaction.status)?.icon }}</mat-icon>
-          <span>{{ getStatusOption(transaction.status)?.label }}</span>
+        <div class="status-badge" [style.backgroundColor]="getStatusOption(currentStatus)?.color">
+          <mat-icon>{{ getStatusOption(currentStatus)?.icon }}</mat-icon>
+          <span>{{ getStatusOption(currentStatus)?.label }}</span>
         </div>
       </div>
 

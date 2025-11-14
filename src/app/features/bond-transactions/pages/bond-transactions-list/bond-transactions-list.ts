@@ -141,6 +141,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
 
   typeOptions: { value: TransactionType | string; label: string }[] = [
     { value: '', label: 'All Types' },
+    { value: 'deposit', label: 'Deposit' },
     { value: 'purchase', label: 'Purchase' },
     { value: 'withdrawal', label: 'Withdrawal' }
   ];
@@ -418,38 +419,32 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   private getTableColumns(): TableColumn<BondTransaction>[] {
     return [
       {
-        key: 'reference',
+        key: 'transactionReference',
         label: 'Reference',
         type: 'template',
         sortable: true,
         width: '180px'
       },
       {
-        key: 'type',
+        key: 'transactionType',
         label: 'Type',
         type: 'badge',
         sortable: true,
         width: '130px',
         badgeConfig: {
           colorMap: {
+            'deposit': 'primary',
             'purchase': 'success',
             'withdrawal': 'info'
           }
         }
       },
       {
-        key: 'customerName',
+        key: 'customerFirstName',
         label: 'Customer',
         type: 'template',
         sortable: true,
         width: '220px'
-      },
-      {
-        key: 'bondName',
-        label: 'Bond',
-        type: 'template',
-        sortable: true,
-        width: '250px'
       },
       {
         key: 'amount',
@@ -475,15 +470,28 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         width: '170px'
       },
       {
-        key: 'status',
-        label: 'Status',
+        key: 'paymentStatus',
+        label: 'Payment',
         type: 'badge',
         sortable: true,
-        width: '140px',
+        width: '120px',
         badgeConfig: {
           colorMap: {
             'pending': 'warning',
-            'processing': 'info',
+            'completed': 'success',
+            'failed': 'error'
+          }
+        }
+      },
+      {
+        key: 'blockchainStatus',
+        label: 'Blockchain',
+        type: 'badge',
+        sortable: true,
+        width: '130px',
+        badgeConfig: {
+          colorMap: {
+            'pending': 'warning',
             'confirmed': 'success',
             'failed': 'error'
           }
@@ -626,10 +634,10 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if transaction can be status changed (not confirmed)
+   * Check if transaction can be status changed (not confirmed on blockchain)
    */
   canChangeStatus(transaction: BondTransaction): boolean {
-    return transaction.status !== 'confirmed';
+    return transaction.blockchainStatus !== 'confirmed';
   }
 
   /**

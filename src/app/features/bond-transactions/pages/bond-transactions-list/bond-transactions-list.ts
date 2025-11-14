@@ -650,26 +650,23 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ChangeTransactionStatusModal, {
       width: '600px',
       maxWidth: '90vw',
+      disableClose: false, // Allow closing
       data: {
         transaction,
         availableStatuses: this.availableStatusesForChange
       }
     });
 
+    // Modal now handles everything internally:
+    // - Makes API call
+    // - Shows loading state
+    // - Dispatches to store on success
+    // - Shows success/error notifications
+    // - Reloads transaction list
+    // Parent component doesn't need to do anything except maybe log
     dialogRef.afterClosed().subscribe(result => {
-      if (result?.status && result?.reason) {
-        this.store.dispatch(BondTransactionsActions.changeTransactionStatus({
-          transactionId: transaction.id,
-          status: result.status,
-          reason: result.reason
-        }));
-
-        this.snackBar.open('Status updated successfully', 'Close', {
-          duration: 3000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['success-snackbar']
-        });
+      if (result?.success) {
+        console.log('Transaction status updated successfully');
       }
     });
   }

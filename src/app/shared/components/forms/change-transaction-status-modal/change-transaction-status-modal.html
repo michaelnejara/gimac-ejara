@@ -1,14 +1,20 @@
 <div class="status-modal">
+  <!-- Modal Header -->
   <div class="modal-header">
     <div class="header-content">
-      <mat-icon class="header-icon">swap_horiz</mat-icon>
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 14L12 9L7 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <div class="header-text">
         <h2>Change Transaction Status</h2>
         <p>Update the status for transaction: <strong>{{ transactionReference }}</strong></p>
       </div>
     </div>
-    <button mat-icon-button class="close-btn" (click)="onCancel()">
-      <mat-icon>close</mat-icon>
+    <button type="button" class="close-btn" (click)="onCancel()" [disabled]="isSubmitting">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
     </button>
   </div>
 
@@ -18,74 +24,108 @@
       <div class="current-status-box">
         <div class="status-label">Current Status</div>
         <div class="status-badge" [style.backgroundColor]="getStatusOption(currentStatus)?.color">
-          <mat-icon>{{ getStatusOption(currentStatus)?.icon }}</mat-icon>
+          <span class="status-icon">{{ getStatusIcon(currentStatus) }}</span>
           <span>{{ getStatusOption(currentStatus)?.label }}</span>
         </div>
       </div>
 
       <!-- New Status Selection -->
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>New Status</mat-label>
-        <mat-select formControlName="status" required>
-          @for (status of availableStatusOptions; track status.value) {
-            <mat-option [value]="status.value">
-              <div class="status-option">
-                <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
-                <div class="status-text">
-                  <span class="status-label">{{ status.label }}</span>
-                  <span class="status-description">{{ status.description }}</span>
-                </div>
-              </div>
-            </mat-option>
-          }
-        </mat-select>
-        <mat-icon matPrefix>toggle_on</mat-icon>
+      <div class="form-group">
+        <label for="status" class="form-label">
+          New Status
+          <span class="required">*</span>
+        </label>
+        <div class="select-wrapper">
+          <select
+            id="status"
+            formControlName="status"
+            class="form-select"
+            [class.has-error]="statusForm.get('status')?.invalid && statusForm.get('status')?.touched">
+            <option value="" disabled>Select a status</option>
+            @for (status of availableStatusOptions; track status.value) {
+              <option [value]="status.value">
+                {{ status.label }} - {{ status.description }}
+              </option>
+            }
+          </select>
+          <svg class="select-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         @if (statusForm.get('status')?.invalid && statusForm.get('status')?.touched) {
-          <mat-error>Please select a status</mat-error>
+          <div class="error-message">Please select a status</div>
         }
-      </mat-form-field>
+      </div>
 
       <!-- Reason Field -->
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Reason for Status Change</mat-label>
-        <textarea 
-          matInput 
+      <div class="form-group">
+        <label for="reason" class="form-label">
+          Reason for Status Change
+          <span class="required">*</span>
+        </label>
+        <textarea
+          id="reason"
           formControlName="reason"
           rows="4"
+          class="form-textarea"
           placeholder="Provide a detailed reason for this status change..."
-          required></textarea>
-        <mat-icon matPrefix>description</mat-icon>
+          [class.has-error]="statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched"></textarea>
         @if (statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched) {
-          <mat-error>Reason is required</mat-error>
+          <div class="error-message">Reason is required</div>
         }
-      </mat-form-field>
+      </div>
 
       <!-- Warning Message -->
       <div class="warning-box">
-        <mat-icon>warning</mat-icon>
+        <svg class="warning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div class="warning-text">
           <strong>Important:</strong> Changing the transaction status will be recorded in the system audit log. Make sure you have the proper authorization to perform this action.
         </div>
       </div>
+
+      <!-- Success Message -->
+      @if (successMessage) {
+        <div class="success-box">
+          <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="success-text">{{ successMessage }}</div>
+        </div>
+      }
+
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <div class="error-box">
+          <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="error-text">{{ errorMessage }}</div>
+        </div>
+      }
     </div>
 
     <div class="modal-footer">
-      <button 
-        mat-stroked-button 
+      <button
         type="button"
-        class="cancel-btn"
-        (click)="onCancel()">
-        <mat-icon>close</mat-icon>
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="isSubmitting">
         Cancel
       </button>
-      <button 
-        mat-raised-button 
-        color="primary"
+      <button
         type="submit"
-        class="submit-btn"
-        [disabled]="statusForm.invalid">
-        <mat-icon>check</mat-icon>
-        Update Status
+        class="btn btn-primary"
+        [disabled]="statusForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <svg class="spinner" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle class="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+          </svg>
+          <span>Updating...</span>
+        } @else {
+          <span>Update Status</span>
+        }
       </button>
     </div>
   </form>

@@ -46,6 +46,10 @@
 
       .title-section {
         flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
 
         .title-wrapper {
           .page-title {
@@ -75,6 +79,29 @@
               color: #8658ff;
               font-weight: 600;
             }
+          }
+        }
+
+        .show-all-btn {
+          height: 42px;
+          padding: 0 20px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          white-space: nowrap;
+          transition: all 0.3s ease;
+          background: linear-gradient(135deg, #8658ff 0%, #7549e6 100%);
+
+          mat-icon {
+            margin-right: 8px;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(134, 88, 255, 0.3);
           }
         }
       }

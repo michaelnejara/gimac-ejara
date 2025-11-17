@@ -25,6 +25,17 @@
               }
             </p>
           </div>
+          @if (fromPartnerPage) {
+            <button
+              mat-raised-button
+              color="primary"
+              class="show-all-btn"
+              (click)="showAllPartners()"
+              matTooltip="View transactions for all partners">
+              <mat-icon>grid_view</mat-icon>
+              Show All Partners
+            </button>
+          }
         </div>
       </div>
     </div>
@@ -122,37 +133,35 @@
             </mat-form-field>
           </div>
 
-          <!-- Partner Search (Autocomplete) - Disabled if from partner page -->
-          <div class="filter-field-wrapper">
-            <div class="filter-label">
-              <mat-icon>business</mat-icon>
-              <span>Partner</span>
-              @if (fromPartnerPage) {
-                <mat-icon class="lock-icon" matTooltip="Partner filter is locked when coming from partner page">lock</mat-icon>
-              }
+          <!-- Partner Search (Autocomplete) - Hidden if from partner page -->
+          @if (!fromPartnerPage) {
+            <div class="filter-field-wrapper">
+              <div class="filter-label">
+                <mat-icon>business</mat-icon>
+                <span>Partner</span>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <input
+                  matInput
+                  formControlName="partnerSearch"
+                  [matAutocomplete]="partnerAuto"
+                  placeholder="Search partner by name or code">
+                <mat-autocomplete
+                  #partnerAuto="matAutocomplete"
+                  [displayWith]="displayPartner"
+                  (optionSelected)="onPartnerSelected($event.option.value)">
+                  @for (partner of filteredPartners$ | async; track partner.id) {
+                    <mat-option [value]="partner">
+                      <div class="autocomplete-option">
+                        <span class="option-name">{{ partner.name }}</span>
+                        <span class="option-code">{{ partner.code }}</span>
+                      </div>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
             </div>
-            <mat-form-field appearance="outline" class="full-width">
-              <input
-                matInput
-                formControlName="partnerSearch"
-                [matAutocomplete]="partnerAuto"
-                placeholder="Search partner by name or code"
-                [readonly]="fromPartnerPage">
-              <mat-autocomplete
-                #partnerAuto="matAutocomplete"
-                [displayWith]="displayPartner"
-                (optionSelected)="onPartnerSelected($event.option.value)">
-                @for (partner of filteredPartners$ | async; track partner.id) {
-                  <mat-option [value]="partner">
-                    <div class="autocomplete-option">
-                      <span class="option-name">{{ partner.name }}</span>
-                      <span class="option-code">{{ partner.code }}</span>
-                    </div>
-                  </mat-option>
-                }
-              </mat-autocomplete>
-            </mat-form-field>
-          </div>
+          }
 
           <!-- Customer Search (Autocomplete) -->
           <div class="filter-field-wrapper">

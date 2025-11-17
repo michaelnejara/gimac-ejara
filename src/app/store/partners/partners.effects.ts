@@ -158,13 +158,27 @@ export class PartnersEffects {
           : this.partnersService.updatePartner(partnerId, partnerData);
 
         return source$.pipe(
-          map(response => PartnersActions.updatePartnerSuccess({ response })),
+          map(response => PartnersActions.updatePartnerSuccess({ response, partnerId })),
           catchError(error => {
             const errorMessage = error?.error?.message || 'Failed to update partner';
             return of(PartnersActions.updatePartnerFailure({ partnerId, error: errorMessage }));
           })
         );
       })
+    )
+  );
+
+  /**
+   * Reload After Partner Update Success
+   * After updating a partner, reload the partner entity and the partners list
+   */
+  reloadAfterUpdate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(PartnersActions.updatePartnerSuccess),
+      mergeMap(({ partnerId }) => [
+        PartnersActions.loadPartner({ partnerId }), // Reload the updated partner entity
+        PartnersActions.resetState() // Clear partners cache to force refresh on next load
+      ])
     )
   );
 

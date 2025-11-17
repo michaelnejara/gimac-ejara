@@ -10,7 +10,7 @@ import {
   selectIsPageCached,
   selectIsTransactionCached
 } from './bond-transactions.state';
-import { catchError, map, switchMap, withLatestFrom, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, withLatestFrom, tap, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '@environments/environment';
 import { BondTransactionsMockService } from '@core/services/bond-transactions/bond-transactions-mock.service';
@@ -167,6 +167,20 @@ export class BondTransactionsEffects {
           })
         );
       })
+    )
+  );
+
+  /**
+   * Reload After Transaction Status Change Success
+   * After changing a transaction status, reload the transaction entity and the transactions list
+   */
+  reloadAfterStatusChange$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondTransactionsActions.changeTransactionStatusSuccess),
+      mergeMap(({ transaction }) => [
+        BondTransactionsActions.loadTransaction({ transactionId: transaction.id }), // Reload the updated transaction entity
+        BondTransactionsActions.resetState() // Clear transactions cache to force refresh on next load
+      ])
     )
   );
 

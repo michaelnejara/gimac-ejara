@@ -1,7 +1,7 @@
 // src/app/features/bond-transactions/pages/bond-transactions-list/bond-transactions-list.component.ts
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, of } from 'rxjs';
@@ -96,6 +96,7 @@ import { ChangeTransactionStatusModal } from '@shared/components/forms/change-tr
 export class BondTransactionsList implements OnInit, OnDestroy {
   private store = inject(Store);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -123,6 +124,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   hasUnappliedFilters = false;
   fromPartnerPage = false;
   partnerIdFromQuery: number | null = null;
+  partnerInfo: { name: string; code: string } | null = null;
 
   // Filter Form
   filterForm!: FormGroup;
@@ -218,6 +220,12 @@ export class BondTransactionsList implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
+        // Store partner info for display
+        this.partnerInfo = {
+          name: response.data.name,
+          code: response.data.code
+        };
+
         this.filterForm.patchValue({
           partnerSearch: response.data.name
         });
@@ -602,6 +610,42 @@ export class BondTransactionsList implements OnInit, OnDestroy {
 
     this.loadTransactions();
     this.hasUnappliedFilters = false;
+  }
+
+  /**
+   * Show all partners - Reset page to default mode
+   */
+  showAllPartners(): void {
+    // Reset partner page flags
+    this.fromPartnerPage = false;
+    this.partnerIdFromQuery = null;
+    this.partnerInfo = null;
+
+    // Re-enable partner filter fields
+    this.filterForm.get('partnerId')?.enable();
+    this.filterForm.get('partnerSearch')?.enable();
+
+    // Reset form
+    this.filterForm.reset();
+
+    // Navigate to bond transactions without query params
+    this.router.navigate(['/bond-transactions']);
+
+    // Load all transactions
+    const filters: TransactionFilterParams = {
+      limit: 20,
+      offset: 0
+    };
+    this.store.dispatch(BondTransactionsActions.loadTransactions({ filters }));
+
+    this.hasUnappliedFilters = false;
+    this.filterPanelOpen = false;
+
+    // Show success message
+    this.snackBar.open('Now showing transactions for all partners', 'Close', {
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
   }
 
   /**

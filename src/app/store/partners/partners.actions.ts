@@ -44,7 +44,7 @@ export const PartnersActions = createActionGroup({
       partnerId: number;
       partnerData: UpdatePartnerRequest
     }>(),
-    'Update Partner Success': props<{ response: UpdatePartnerResponse }>(),
+    'Update Partner Success': props<{ partnerId: number; response: UpdatePartnerResponse }>(),
     'Update Partner Failure': props<{ partnerId: number; error: string }>(),
 
     // Update Partner Status

@@ -13,7 +13,7 @@ import {
   selectLimit,
   selectOffset
 } from './bonds.state';
-import { catchError, map, switchMap, withLatestFrom, tap, filter } from 'rxjs/operators';
+import { catchError, map, switchMap, withLatestFrom, tap, filter, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '@environments/environment';
 
@@ -154,6 +154,20 @@ export class BondsEffects {
           })
         );
       })
+    )
+  );
+
+  /**
+   * Reload After Bond Update Success
+   * After updating a bond, reload the bond entity and the bonds list
+   */
+  reloadAfterUpdate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BondsActions.updateBondSuccess),
+      mergeMap(({ bondId }) => [
+        BondsActions.loadBond({ bondId }), // Reload the updated bond entity
+        BondsActions.resetState() // Clear bonds cache to force refresh on next load
+      ])
     )
   );
 

@@ -239,28 +239,28 @@ export class PartnersList implements OnInit, OnDestroy {
         key: 'name',
         label: 'Partner Name',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '250px'
       },
       {
         key: 'code',
         label: 'Code',
         type: 'text',
-        sortable: true,
+        sortable: false,
         width: '120px'
       },
       {
         key: 'status',
         label: 'Status',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '120px'
       },
       {
         key: 'commissionRate',
         label: 'Commission',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '120px'
       },
       {
@@ -275,7 +275,7 @@ export class PartnersList implements OnInit, OnDestroy {
         key: 'createdAt',
         label: 'Created',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '140px'
       }
     ];

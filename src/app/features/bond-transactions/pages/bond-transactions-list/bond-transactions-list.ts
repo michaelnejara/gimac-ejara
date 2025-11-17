@@ -706,7 +706,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const year = dateObj.getFullYear();
 
-    return `${day}/${month}/${year}`;
+    return `${year}-${month}-${day}`;
   }
 
   /**

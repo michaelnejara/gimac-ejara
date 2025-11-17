@@ -1243,7 +1243,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
   /**
    * Format date for API - converts Date object to DD/MM/YYYY format
    */
-  formatDateForApi(date: Date | string | null): string | null {
+  private formatDateForApi(date: Date | string | null): string | null {
     if (!date) return null;
 
     const dateObj = date instanceof Date ? date : new Date(date);
@@ -1255,7 +1255,7 @@ export class BondsListComponent implements OnInit, OnDestroy {
     const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
     const year = dateObj.getFullYear();
 
-    return `${day}/${month}/${year}`;
+    return `${year}-${month}-${day}`;
   }
 
   formatPercentage(value: number): string {

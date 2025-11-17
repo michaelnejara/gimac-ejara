@@ -124,6 +124,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   hasUnappliedFilters = false;
   fromPartnerPage = false;
   partnerIdFromQuery: number | null = null;
+  partnerInfo: { name: string; code: string } | null = null;
 
   // Filter Form
   filterForm!: FormGroup;
@@ -219,6 +220,12 @@ export class BondTransactionsList implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
+        // Store partner info for display
+        this.partnerInfo = {
+          name: response.data.name,
+          code: response.data.code
+        };
+
         this.filterForm.patchValue({
           partnerSearch: response.data.name
         });
@@ -612,6 +619,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     // Reset partner page flags
     this.fromPartnerPage = false;
     this.partnerIdFromQuery = null;
+    this.partnerInfo = null;
 
     // Re-enable partner filter fields
     this.filterForm.get('partnerId')?.enable();

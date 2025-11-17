@@ -20,9 +20,6 @@
             </h1>
             <p class="page-description">
               Monitor and manage all bond purchase and withdrawal transactions
-              @if (fromPartnerPage) {
-                <span class="partner-badge"> - Filtered by Partner</span>
-              }
             </p>
           </div>
           @if (fromPartnerPage) {
@@ -38,6 +35,25 @@
           }
         </div>
       </div>
+
+      <!-- Partner Info Card -->
+      @if (fromPartnerPage && partnerInfo) {
+        <mat-card class="partner-info-card">
+          <div class="partner-info-content">
+            <div class="partner-icon">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="partner-details">
+              <div class="partner-label">Filtered by Partner</div>
+              <div class="partner-name">{{ partnerInfo.name }}</div>
+              <div class="partner-code">
+                <mat-icon>tag</mat-icon>
+                <span>{{ partnerInfo.code }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      }
     </div>
 
     <!-- Floating Filter Button -->

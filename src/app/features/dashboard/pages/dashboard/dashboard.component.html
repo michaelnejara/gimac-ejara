@@ -102,7 +102,7 @@
           </mat-card>
 
           <!-- Active Partners Card -->
-          <mat-card class="stat-card card-green" matRipple (click)="goToPartners()">
+          <mat-card class="stat-card card-green no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper green">
@@ -112,6 +112,21 @@
               </div>
               <div class="card-value" [matTooltip]="stats.totalActivePartners.toLocaleString()">
                 {{ formatNumber(stats.totalActivePartners) }}
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Other Partners status Card -->
+          <mat-card class="stat-card card-orange no-pointer" matRipple>
+            <mat-card-content>
+              <div class="card-header">
+                <div class="card-icon-wrapper orange">
+                  <mat-icon>hide_source</mat-icon>
+                </div>
+                <span class="card-label">Other Partners</span>
+              </div>
+              <div class="card-value" [matTooltip]="(stats.totalPartners - stats.totalActivePartners).toLocaleString()">
+                {{ formatNumber(stats.totalPartners - stats.totalActivePartners) }}
               </div>
             </mat-card-content>
           </mat-card>
@@ -126,7 +141,7 @@
         <div class="stats-grid">
 
           <!-- Total Deposits Card -->
-          <mat-card class="stat-card card-green" matRipple>
+          <mat-card class="stat-card card-green no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper green">
@@ -144,7 +159,7 @@
           </mat-card>
 
           <!-- Total Withdrawals Card -->
-          <mat-card class="stat-card card-orange" matRipple>
+          <mat-card class="stat-card card-orange no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper orange">
@@ -162,7 +177,7 @@
           </mat-card>
 
           <!-- Pending Transactions Card -->
-          <mat-card class="stat-card card-yellow" matRipple>
+          <mat-card class="stat-card card-yellow no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper yellow">
@@ -177,7 +192,7 @@
           </mat-card>
 
           <!-- Failed Transactions Card -->
-          <mat-card class="stat-card card-red" matRipple>
+          <mat-card class="stat-card card-red no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper red">
@@ -201,7 +216,7 @@
         <div class="stats-grid">
 
           <!-- Total Commission Earned Card -->
-          <mat-card class="stat-card card-purple" matRipple>
+          <mat-card class="stat-card card-purple no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper purple">
@@ -216,7 +231,7 @@
           </mat-card>
 
           <!-- Total Principal Invested Card -->
-          <mat-card class="stat-card card-indigo" matRipple>
+          <mat-card class="stat-card card-indigo no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper indigo">
@@ -231,7 +246,7 @@
           </mat-card>
 
           <!-- Total Interest Paid Card -->
-          <mat-card class="stat-card card-teal" matRipple>
+          <mat-card class="stat-card card-teal no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper teal">
@@ -246,7 +261,7 @@
           </mat-card>
 
           <!-- Net Transaction Amount Card -->
-          <mat-card class="stat-card card-cyan" matRipple>
+          <mat-card class="stat-card card-cyan no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper cyan">
@@ -266,7 +281,7 @@
           </mat-card>
 
           <!-- Deposit Amount Card -->
-          <mat-card class="stat-card card-light-green" matRipple>
+          <mat-card class="stat-card card-light-green no-pointer" matRipple>
             <mat-card-content>
               <div class="card-header">
                 <div class="card-icon-wrapper light-green">

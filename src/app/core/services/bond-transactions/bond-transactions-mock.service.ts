@@ -9,7 +9,8 @@ import {
   TransactionsResponse,
   TransactionFilterParams,
   TransactionStats,
-  TransactionStatus
+  TransactionStatus,
+  TransactionStatusResponse
 } from '@core/models/bond-transaction.models';
 
 @Injectable({
@@ -323,7 +324,7 @@ export class BondTransactionsMockService {
     transactionId: number,
     status: string,
     reason?: string
-  ): Observable<BondTransaction> {
+  ): Observable<TransactionStatusResponse> {
     const transactionIndex = this.mockTransactions.findIndex(t => t.id === transactionId);
     
     if (transactionIndex === -1) {
@@ -341,16 +342,16 @@ export class BondTransactionsMockService {
     }
 
     // Update transaction
-    const updatedTransaction = {
-      ...this.mockTransactions[transactionIndex],
-      status: status as TransactionStatus,
-      lastUpdated: new Date().toISOString(),
-      ...(status === 'confirmed' && { dateConfirmed: new Date().toISOString() }),
-      ...(status === 'confirmed' && { dateCompleted: new Date().toISOString() }),
-      ...(reason && { metadata: { ...this.mockTransactions[transactionIndex].metadata, statusChangeReason: reason } })
-    };
+    const updatedTransaction: TransactionStatusResponse = {
+      data: {
+        status,
+        transactionId,
+        updatedAt: new Date().toISOString()
+      },
+      message: 'Transaction status updated successfully',
+    }
 
-    this.mockTransactions[transactionIndex] = updatedTransaction;
+    // this.mockTransactions[transactionIndex] = updatedTransaction;
 
     return of(updatedTransaction).pipe(delay(500));
   }

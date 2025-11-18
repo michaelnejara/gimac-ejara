@@ -104,22 +104,22 @@ export class BondTransactionsEffects {
   /**
    * Check And Load Transaction (Cache-Aware)
    */
-  checkAndLoadTransaction$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.checkAndLoadTransaction),
-      switchMap(({ transactionId, forceReload }) => {
-        return this.store.select(selectIsTransactionCached(transactionId)).pipe(
-          map(isCached => {
-            if (!isCached || forceReload) {
-              return BondTransactionsActions.loadTransaction({ transactionId });
-            }
-            // Transaction already cached, no need to load
-            return { type: '[Bond Transactions] Transaction Already Cached' } as any;
-          })
-        );
-      })
-    )
-  );
+  // checkAndLoadTransaction$ = createEffect(() =>
+  //   this.actions$.pipe(
+  //     ofType(BondTransactionsActions.checkAndLoadTransaction),
+  //     switchMap(({ transactionId, forceReload }) => {
+  //       return this.store.select(selectIsTransactionCached(transactionId)).pipe(
+  //         map(isCached => {
+  //           if (!isCached || forceReload) {
+  //             return BondTransactionsActions.loadTransaction({ transactionId });
+  //           }
+  //           // Transaction already cached, no need to load
+  //           return { type: '[Bond Transactions] Transaction Already Cached' } as any;
+  //         })
+  //       );
+  //     })
+  //   )
+  // );
 
   /**
    * Load Statistics
@@ -174,15 +174,15 @@ export class BondTransactionsEffects {
    * Reload After Transaction Status Change Success
    * After changing a transaction status, reload the transaction entity and the transactions list
    */
-  reloadAfterStatusChange$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BondTransactionsActions.changeTransactionStatusSuccess),
-      mergeMap(({ transaction }) => [
-        BondTransactionsActions.loadTransaction({ transactionId: transaction.id }), // Reload the updated transaction entity
-        BondTransactionsActions.resetState() // Clear transactions cache to force refresh on next load
-      ])
-    )
-  );
+  // reloadAfterStatusChange$ = createEffect(() =>
+  //   this.actions$.pipe(
+  //     ofType(BondTransactionsActions.changeTransactionStatusSuccess),
+  //     mergeMap(({ transaction }) => [
+  //       BondTransactionsActions.loadTransaction({ transactionId: transaction.data.transactionId }), // Reload the updated transaction entity
+  //       BondTransactionsActions.resetState() // Clear transactions cache to force refresh on next load
+  //     ])
+  //   )
+  // );
 
   /**
    * Load Stats After Transactions Load

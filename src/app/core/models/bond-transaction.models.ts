@@ -18,6 +18,15 @@ export type PaymentStatus = 'pending' | 'completed' | 'failed';
  */
 export type BlockchainStatus = 'pending' | 'confirmed' | 'failed';
 
+export interface TransactionStatusResponse {
+  message: string;
+  data: {
+    transactionId: number;
+    status: string;      // or 'pending' | 'approved' | 'rejected' if you have fixed statuses
+    updatedAt: string;   // or Date if you plan to parse it
+  };
+}
+
 /**
  * Bond Transaction Entity
  */

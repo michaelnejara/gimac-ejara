@@ -3,7 +3,8 @@ import {
   BondTransaction,
   TransactionsResponse,
   TransactionFilterParams,
-  TransactionStats
+  TransactionStats,
+  TransactionStatusResponse
 } from '@core/models/bond-transaction.models';
 
 /**
@@ -48,7 +49,7 @@ export const BondTransactionsActions = createActionGroup({
       status: string;
       reason?: string;
     }>(),
-    'Change Transaction Status Success': props<{ transaction: BondTransaction }>(),
+    'Change Transaction Status Success': props<{ transaction: TransactionStatusResponse }>(),
     'Change Transaction Status Failure': props<{ 
       transactionId: number; 
       error: string 

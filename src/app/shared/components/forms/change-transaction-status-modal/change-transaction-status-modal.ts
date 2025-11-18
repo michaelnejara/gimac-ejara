@@ -44,8 +44,8 @@ export class ChangeTransactionStatusModal {
 
   statusOptions = [
     { value: 'pending', label: 'Pending', description: 'Transaction initiated', icon: '⏱️', color: '#ff9800' },
-    { value: 'processing', label: 'Processing', description: 'Transaction in progress', icon: '🔄', color: '#2196f3' },
-    { value: 'completed', label: 'Completed', description: 'Transaction successful', icon: '✅', color: '#4caf50' },
+    // { value: 'processing', label: 'Processing', description: 'Transaction in progress', icon: '🔄', color: '#8658ff' },
+    // { value: 'completed', label: 'Completed', description: 'Transaction successful', icon: '✅', color: '#4caf50' },
     { value: 'confirmed', label: 'Confirmed', description: 'Transaction confirmed', icon: '✓', color: '#4caf50' },
     { value: 'failed', label: 'Failed', description: 'Transaction failed', icon: '❌', color: '#f44336' },
     { value: 'cancelled', label: 'Cancelled', description: 'Transaction cancelled', icon: '🚫', color: '#9e9e9e' }
@@ -54,15 +54,14 @@ export class ChangeTransactionStatusModal {
   constructor(@Inject(MAT_DIALOG_DATA) public data: ChangeTransactionStatusData) {
     this.transaction = data.transaction;
     this.availableStatuses = data.availableStatuses;
+    console.log('Available Statuses: ', data)
 
     this.initializeForm();
   }
 
   private initializeForm(): void {
     // Use status if available (backward compatibility), otherwise use blockchainStatus
-    const currentStatus = this.transaction.status ||
-                         (this.transaction.blockchainStatus === 'confirmed' ? 'confirmed' :
-                          this.transaction.blockchainStatus === 'failed' ? 'failed' : 'pending');
+    const currentStatus = this.transaction.paymentStatus;
 
     this.statusForm = this.fb.group({
       status: [currentStatus, Validators.required],
@@ -71,7 +70,7 @@ export class ChangeTransactionStatusModal {
   }
 
   get currentStatus(): TransactionStatus {
-    return this.transaction.status ||
+    return this.transaction.paymentStatus ||
            (this.transaction.blockchainStatus === 'confirmed' ? 'confirmed' :
             this.transaction.blockchainStatus === 'failed' ? 'failed' : 'pending') as TransactionStatus;
   }
@@ -82,7 +81,7 @@ export class ChangeTransactionStatusModal {
 
   get availableStatusOptions() {
     return this.statusOptions.filter(opt =>
-      this.availableStatuses.includes(opt.value as TransactionStatus)
+      this.availableStatuses.includes(opt.value as TransactionStatus) && opt.value !== this.currentStatus
     );
   }
 

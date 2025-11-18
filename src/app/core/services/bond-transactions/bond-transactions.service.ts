@@ -8,7 +8,8 @@ import {
   BondTransaction,
   TransactionsResponse,
   TransactionFilterParams,
-  TransactionStats
+  TransactionStats,
+  TransactionStatusResponse
 } from '@core/models/bond-transaction.models';
 
 // Environment
@@ -72,8 +73,8 @@ export class BondTransactionsService {
     transactionId: number, 
     status: string, 
     reason?: string
-  ): Observable<BondTransaction> {
-    return this.http.patch<BondTransaction>(
+  ): Observable<TransactionStatusResponse> {
+    return this.http.put<TransactionStatusResponse>(
       addInterceptorMarker(`${this.apiUrl}/transactions/${transactionId}/status`, INTERCEPTOR_MARKERS.GIMAC),
       { status, reason }
     );

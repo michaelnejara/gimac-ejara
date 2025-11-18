@@ -160,33 +160,33 @@ export const bondTransactionsReducer = createReducer(
     };
   }),
 
-  on(BondTransactionsActions.changeTransactionStatusSuccess, (state, { transaction }) => {
-    // Update the transaction in the current page cache
-    const currentPageTransactions = state.pageCache[state.activePage]?.map((t: any) =>
-      t.id === transaction.id ? transaction : t
-    ) || [];
+  // on(BondTransactionsActions.changeTransactionStatusSuccess, (state, { transaction }) => {
+  //   // Update the transaction in the current page cache
+  //   const currentPageTransactions = state.pageCache[state.activePage]?.map((t: any) =>
+  //     t.id === transaction.id ? transaction : t
+  //   ) || [];
 
-    const newPageCache = { ...state.pageCache };
-    if (currentPageTransactions.length > 0) {
-      newPageCache[state.activePage] = currentPageTransactions;
-    }
+  //   const newPageCache = { ...state.pageCache };
+  //   if (currentPageTransactions.length > 0) {
+  //     newPageCache[state.activePage] = currentPageTransactions;
+  //   }
 
-    return {
-      ...state,
-      singleEntities: {
-        ...state.singleEntities,
-        [transaction.id]: {
-          data: transaction,
-          loading: false,
-          error: null,
-          loadedAt: Date.now()
-        }
-      },
-      pageCache: newPageCache,
-      loading: false,
-      error: null
-    };
-  }),
+  //   return {
+  //     ...state,
+  //     singleEntities: {
+  //       ...state.singleEntities,
+  //       [transaction.id]: {
+  //         data: transaction,
+  //         loading: false,
+  //         error: null,
+  //         loadedAt: Date.now()
+  //       }
+  //     },
+  //     pageCache: newPageCache,
+  //     loading: false,
+  //     error: null
+  //   };
+  // }),
 
   on(BondTransactionsActions.changeTransactionStatusFailure, (state, { transactionId, error }) => {
     const entity = state.singleEntities[transactionId];

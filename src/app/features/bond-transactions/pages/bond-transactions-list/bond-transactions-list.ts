@@ -150,7 +150,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
   ];
 
   // Available statuses for status change (confirmed status is system-managed, not manually settable)
-  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
+  availableStatusesForChange: TransactionStatus[] = ['pending', 'processing', 'confirmed', 'failed', 'cancelled'];
 
   // Table Configuration
   tableConfig!: TableConfig<BondTransaction>;

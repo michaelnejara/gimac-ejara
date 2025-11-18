@@ -328,11 +328,19 @@
           </div>
         </ng-template>
 
-        <!-- Date Template -->
+        <!-- Date Created Template -->
         <ng-template appTableColumn="dateCreated" let-row>
           <div class="date-cell">
             <mat-icon class="date-icon">schedule</mat-icon>
             <span>{{ formatDate(row.dateCreated) }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Last Updated Date Template -->
+        <ng-template appTableColumn="lastUpdated" let-row>
+          <div class="date-cell">
+            <mat-icon class="date-icon">schedule</mat-icon>
+            <span>{{ formatDate(row.lastUpdated) }}</span>
           </div>
         </ng-template>
 

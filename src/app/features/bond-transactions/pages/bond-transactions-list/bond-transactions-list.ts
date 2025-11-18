@@ -431,18 +431,18 @@ export class BondTransactionsList implements OnInit, OnDestroy {
     return [
       {
         key: 'transactionReference',
-        label: 'Reference',
+        label: 'Trans. Reference',
         type: 'template',
         sortable: false,
         width: '180px'
       },
-      // {
-      //   key: 'transactionReference',
-      //   label: 'Reference',
-      //   type: 'template',
-      //   sortable: false,
-      //   width: '180px'
-      // },
+      {
+        key: 'partnerTransactionReference',
+        label: 'Partner Trans. Ref.',
+        type: 'text',
+        sortable: false,
+        width: '180px'
+      },
       {
         key: 'transactionType',
         label: 'Type',
@@ -482,7 +482,14 @@ export class BondTransactionsList implements OnInit, OnDestroy {
       },
       {
         key: 'dateCreated',
-        label: 'Date',
+        label: 'Date Created',
+        type: 'template',
+        sortable: false,
+        width: '170px'
+      },
+      {
+        key: 'lastUpdated',
+        label: 'Last Updated',
         type: 'template',
         sortable: false,
         width: '170px'

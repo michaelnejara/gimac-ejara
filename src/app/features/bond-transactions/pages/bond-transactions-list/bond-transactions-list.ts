@@ -63,6 +63,7 @@ import { BondsService } from '@core/services/bonds/bonds.service';
 
 // Modal
 import { ChangeTransactionStatusModal } from '@shared/components/forms/change-transaction-status-modal/change-transaction-status-modal';
+import { CapitalizePipe } from '@core/utils/pipes/capitalize.pipe';
 
 @Component({
   selector: 'app-bond-transactions-list',
@@ -88,7 +89,8 @@ import { ChangeTransactionStatusModal } from '@shared/components/forms/change-tr
     MatAutocompleteModule,
     DataTable,
     TableColumnDirective,
-    TableActionsDirective
+    TableActionsDirective,
+    CapitalizePipe
   ],
   templateUrl: './bond-transactions-list.html',
   styleUrl: './bond-transactions-list.scss'
@@ -431,14 +433,21 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         key: 'transactionReference',
         label: 'Reference',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '180px'
       },
+      // {
+      //   key: 'transactionReference',
+      //   label: 'Reference',
+      //   type: 'template',
+      //   sortable: false,
+      //   width: '180px'
+      // },
       {
         key: 'transactionType',
         label: 'Type',
         type: 'badge',
-        sortable: true,
+        sortable: false,
         width: '130px',
         badgeConfig: {
           colorMap: {
@@ -452,7 +461,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         key: 'customerFirstName',
         label: 'Customer',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '220px'
       },
       {
@@ -460,7 +469,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         label: 'Amount',
         type: 'template',
         align: 'right',
-        sortable: true,
+        sortable: false,
         width: '160px'
       },
       {
@@ -468,21 +477,21 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         label: 'Fee',
         type: 'template',
         align: 'right',
-        sortable: true,
+        sortable: false,
         width: '130px'
       },
       {
         key: 'dateCreated',
         label: 'Date',
         type: 'template',
-        sortable: true,
+        sortable: false,
         width: '170px'
       },
       {
         key: 'paymentStatus',
         label: 'Payment',
         type: 'badge',
-        sortable: true,
+        sortable: false,
         width: '120px',
         badgeConfig: {
           colorMap: {
@@ -496,7 +505,7 @@ export class BondTransactionsList implements OnInit, OnDestroy {
         key: 'blockchainStatus',
         label: 'Blockchain',
         type: 'badge',
-        sortable: true,
+        sortable: false,
         width: '130px',
         badgeConfig: {
           colorMap: {

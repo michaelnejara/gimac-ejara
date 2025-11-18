@@ -308,16 +308,23 @@
         <ng-template appTableColumn="amount" let-row>
           <div class="amount-cell" [class.positive]="row.transactionType === 'deposit' || row.transactionType === 'purchase'" [class.negative]="row.transactionType === 'withdrawal'">
             <div class="amount">
-              {{ row.transactionType === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency || 'XOF') }}
+              {{ row.transactionType === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency) }}
             </div>
-            <div class="total">Total: {{ formatCurrency(row.total, row.currency || 'XOF') }}</div>
+            <div class="total">Total: {{ formatCurrency(row.total, row.currency) }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Transaction Type Template -->
+        <ng-template appTableColumn="transactionType" let-row>
+          <div class="data-cell">
+            <span>{{ row.transactionType | capitalize }}</span>
           </div>
         </ng-template>
 
         <!-- Fee Template -->
         <ng-template appTableColumn="fee" let-row>
           <div class="fee-cell">
-            <div class="fee">{{ formatCurrency(row.fee, row.currency || 'XOF') }}</div>
+            <div class="fee">{{ formatCurrency(row.fee, row.currency) }}</div>
           </div>
         </ng-template>
 

@@ -129,8 +129,71 @@
                   <span class="detail-value">{{ formatDate(partner.dateUpdated) }}</span>
                 </div>
               </div>
+
+              @if (partner.preferredLanguage) {
+                <div class="detail-row">
+                  <mat-icon>language</mat-icon>
+                  <div class="detail-content">
+                    <label>Preferred Language</label>
+                    <span class="detail-value">{{ partner.preferredLanguage | uppercase }}</span>
+                  </div>
+                </div>
+              }
             </div>
           </mat-card>
+
+          <!-- API Credentials Card -->
+          @if (partner.apiKey || partner.apiSecret) {
+            <mat-card class="credentials-card">
+              <div class="card-header">
+                <mat-icon>vpn_key</mat-icon>
+                <h3>API Credentials</h3>
+              </div>
+
+              <div class="credentials-content">
+                @if (partner.apiKey) {
+                  <div class="credential-row">
+                    <label>API Key</label>
+                    <div class="credential-value-row">
+                      <span class="credential-text">{{ partner.apiKey }}</span>
+                      <button
+                        mat-icon-button
+                        class="copy-btn"
+                        (click)="copyToClipboard(partner.apiKey!, 'API Key')"
+                        matTooltip="Copy API Key">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @if (partner.apiSecret) {
+                  <div class="credential-row">
+                    <label>API Secret</label>
+                    <div class="credential-value-row">
+                      <span class="credential-text secret">
+                        {{ showApiSecret ? partner.apiSecret : maskSecret(partner.apiSecret!) }}
+                      </span>
+                      <button
+                        mat-icon-button
+                        class="toggle-btn"
+                        (click)="toggleApiSecret()"
+                        [matTooltip]="showApiSecret ? 'Hide Secret' : 'Show Secret'">
+                        <mat-icon>{{ showApiSecret ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        class="copy-btn"
+                        (click)="copyToClipboard(partner.apiSecret!, 'API Secret')"
+                        matTooltip="Copy API Secret">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </mat-card>
+          }
 
           <!-- Address Card -->
           @if (partner.address || partner.city || partner.country) {
@@ -239,6 +302,137 @@
             </div>
           </mat-card>
 
+          <!-- Customers Card -->
+          <mat-card class="customers-card">
+            <div class="card-header">
+              <div class="header-left">
+                <mat-icon>people</mat-icon>
+                <h3>Customers</h3>
+                @if (customersPagination$ | async; as pagination) {
+                  <span class="customer-count">{{ pagination.total || 0 }}</span>
+                }
+              </div>
+              <div class="header-actions">
+                <button
+                  mat-icon-button
+                  (click)="toggleFilters()"
+                  [matTooltip]="filtersExpanded ? 'Hide Filters' : 'Show Filters'"
+                  [class.active]="countActiveFilters() > 0">
+                  <mat-icon>filter_list</mat-icon>
+                  @if (countActiveFilters() > 0) {
+                    <span class="filter-badge">{{ countActiveFilters() }}</span>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters Section -->
+            @if (filtersExpanded) {
+              <div class="customers-filters" [formGroup]="customerFilterForm">
+                <div class="filter-row">
+                  <div class="filter-field">
+                    <label for="keyword">Search</label>
+                    <div class="input-wrapper">
+                      <input
+                        type="text"
+                        id="keyword"
+                        formControlName="keyword"
+                        placeholder="Name or ID">
+                      <mat-icon class="input-icon">search</mat-icon>
+                    </div>
+                  </div>
+
+                  <div class="filter-field">
+                    <label for="email">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      formControlName="email"
+                      placeholder="Email address">
+                  </div>
+
+                  <div class="filter-field">
+                    <label for="phone">Phone</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      formControlName="phone"
+                      placeholder="Phone number">
+                  </div>
+
+                  <div class="filter-field">
+                    <label for="countryCode">Country</label>
+                    <select id="countryCode" formControlName="countryCode">
+                      @for (country of countryCodes; track country.code) {
+                        <option [value]="country.code">{{ country.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="filter-actions">
+                  <button type="button" class="reset-btn" (click)="resetCustomerFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Reset
+                  </button>
+                </div>
+              </div>
+            }
+
+            <div class="customers-content">
+              @if (customersLoading$ | async) {
+                <div class="customers-loading">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Loading customers...</span>
+                </div>
+              } @else if ((customers$ | async)?.length === 0) {
+                <div class="customers-empty">
+                  <mat-icon>people_outline</mat-icon>
+                  <p>No customers found for this partner</p>
+                </div>
+              } @else {
+                <div class="customers-list">
+                  @for (customer of customers$ | async; track customer.id) {
+                    <div class="customer-item">
+                      <div class="customer-avatar">
+                        {{ getCustomerInitials(customer) }}
+                      </div>
+                      <div class="customer-info">
+                        <p class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</p>
+                        <div class="customer-meta">
+                          @if (customer.email) {
+                            <span>{{ customer.email }}</span>
+                          }
+                          @if (customer.email && customer.phone) {
+                            <span class="separator">•</span>
+                          }
+                          @if (customer.phone) {
+                            <span>{{ customer.phone }}</span>
+                          }
+                        </div>
+                      </div>
+                      @if (customer.countryCode) {
+                        <span class="customer-country">{{ customer.countryCode }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Pagination -->
+                @if (customersPagination$ | async; as pagination) {
+                  <mat-paginator
+                    [length]="pagination.total"
+                    [pageSize]="pageSize"
+                    [pageIndex]="pageIndex"
+                    [pageSizeOptions]="[5, 10, 20, 50]"
+                    (page)="onCustomerPageChange($event)"
+                    showFirstLastButtons>
+                  </mat-paginator>
+                }
+              }
+            </div>
+          </mat-card>
+
           <!-- Security Card -->
           @if (partner.allowedIpAddresses && partner.allowedIpAddresses.length > 0) {
             <mat-card class="security-card">
@@ -261,83 +455,72 @@
             </mat-card>
           }
 
-          <!-- Actions Card -->
-          <mat-card class="actions-card">
-            <div class="card-header">
-              <mat-icon>touch_app</mat-icon>
-              <h3>Quick Actions</h3>
-            </div>
-
-            <div class="actions-grid">
-              <!-- Primary Actions Section -->
-              <div class="action-section primary-section">
-                <div class="section-label">Primary Actions</div>
-                
-                <button 
-                  mat-raised-button 
-                  color="primary" 
-                  class="action-btn primary-action"
-                  (click)="editPartner()">
-                  <mat-icon>edit</mat-icon>
-                  <span>Edit Partner</span>
-                </button>
-
-                <button 
-                  mat-raised-button 
-                  class="action-btn status-action"
-                  [ngClass]="getStatusClass(partner.status)"
-                  (click)="changeStatus(partner)">
-                  <mat-icon>toggle_on</mat-icon>
-                  <span>Change Status</span>
-                </button>
-              </div>
-
-              <!-- Management Actions Section -->
-              <div class="action-section management-section">
-                <div class="section-label">Management</div>
-                
-                <button 
-                  mat-raised-button 
-                  class="action-btn management-action"
-                  (click)="assignBonds(partner)">
-                  <mat-icon>add_circle</mat-icon>
-                  <span>Assign Bonds</span>
-                </button>
-              </div>
-
-              <!-- View Actions Section -->
-              <div class="action-section view-section">
-                <div class="section-label">View Related Data</div>
-                
-                <button 
-                  mat-stroked-button 
-                  class="action-btn secondary-action"
-                  (click)="viewBonds(partner.id)">
-                  <mat-icon>account_balance</mat-icon>
-                  <span>View Partner Bonds</span>
-                </button>
-
-                <button 
-                  mat-stroked-button 
-                  class="action-btn secondary-action"
-                  (click)="viewCustomers(partner)">
-                  <mat-icon>people</mat-icon>
-                  <span>View Customers</span>
-                </button>
-
-                <button 
-                  mat-stroked-button 
-                  class="action-btn secondary-action"
-                  (click)="viewTransactions(partner.id)">
-                  <mat-icon>receipt_long</mat-icon>
-                  <span>View Bond Transactions</span>
-                </button>
-              </div>
-            </div>
-          </mat-card>
-
         </div>
 
+      </div>
+
+      <!-- Floating Action Button Menu -->
+      <div class="fab-container" [class.open]="fabMenuOpen">
+        <!-- Backdrop -->
+        @if (fabMenuOpen) {
+          <div class="fab-backdrop" (click)="closeFabMenu()"></div>
+        }
+
+        <!-- FAB Menu Items -->
+        <div class="fab-menu" [class.open]="fabMenuOpen">
+          <button
+            mat-button
+            class="fab-item"
+            (click)="viewTransactions(partner.id); closeFabMenu()">
+            <mat-icon>receipt_long</mat-icon>
+            <span>View Transactions</span>
+          </button>
+
+          <button
+            mat-button
+            class="fab-item"
+            (click)="viewBonds(partner.id); closeFabMenu()">
+            <mat-icon>account_balance</mat-icon>
+            <span>View Bonds</span>
+          </button>
+
+          <button
+            mat-button
+            class="fab-item accent"
+            (click)="assignBonds(partner); closeFabMenu()">
+            <mat-icon>add_circle</mat-icon>
+            <span>Assign Bonds</span>
+          </button>
+
+          <button
+            mat-button
+            class="fab-item"
+            [ngClass]="'fab-status-' + partner.status"
+            (click)="changeStatus(partner); closeFabMenu()">
+            <mat-icon>toggle_on</mat-icon>
+            <span>Change Status</span>
+          </button>
+
+          <button
+            mat-button
+            class="fab-item primary"
+            (click)="editPartner(); closeFabMenu()">
+            <mat-icon>edit</mat-icon>
+            <span>Edit Partner</span>
+          </button>
+        </div>
+
+        <!-- Main FAB Button -->
+        <button
+          mat-fab
+          color="primary"
+          class="fab-main"
+          [class.open]="fabMenuOpen"
+          (click)="toggleFabMenu()"
+          matTooltip="Actions"
+          [matTooltipDisabled]="fabMenuOpen">
+          <mat-icon>{{ fabMenuOpen ? 'close' : 'more_vert' }}</mat-icon>
+        </button>
       </div>
 
     </div>

@@ -2,9 +2,10 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil, map } from 'rxjs/operators';
+import { takeUntil, map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 // Material
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 // Store
 import { PartnersActions } from '@store/partners/partners.actions';
@@ -23,9 +25,16 @@ import {
   selectPartnerLoading,
   selectPartnerError
 } from '@store/partners/partners.state';
+import { CustomersActions } from '@store/customers/customers.actions';
+import {
+  selectCurrentPageCustomers,
+  selectLoading as selectCustomersLoading,
+  selectPagination as selectCustomersPagination
+} from '@store/customers/customers.state';
 
 // Models
 import { SinglePartner, PartnerStatus } from '@core/models/partner.models';
+import { Customer, CustomerFilterParams } from '@core/models/customer.models';
 
 // Components
 import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/change-status-modal';
@@ -35,6 +44,7 @@ import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -42,7 +52,8 @@ import { ChangeStatusModal } from '@shared/components/forms/change-status-modal/
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   templateUrl: './partner-details.html',
   styleUrl: './partner-details.scss'
@@ -53,6 +64,7 @@ export class PartnerDetails implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private dialog = inject(MatDialog);
+  private fb = inject(FormBuilder);
   private destroy$ = new Subject<void>();
 
   partnerId: number | null = null;
@@ -61,7 +73,72 @@ export class PartnerDetails implements OnInit, OnDestroy {
   loading$!: Observable<boolean>;
   error$!: Observable<string | null>;
 
+  // Customers
+  customers$!: Observable<Customer[]>;
+  customersLoading$!: Observable<boolean>;
+  customersPagination$!: Observable<any>;
+
+  // Customer filters
+  customerFilterForm!: FormGroup;
+  filtersExpanded = false;
+  pageSize = 10;
+  pageIndex = 0;
+
+  // Country codes
+  countryCodes = [
+    { code: '', name: 'All Countries' },
+    { code: 'CM', name: 'Cameroon' },
+    { code: 'NG', name: 'Nigeria' },
+    { code: 'GH', name: 'Ghana' },
+    { code: 'KE', name: 'Kenya' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'CI', name: "Côte d'Ivoire" },
+    { code: 'SN', name: 'Senegal' }
+  ];
+
+  // UI state
+  showApiSecret = false;
+  fabMenuOpen = false;
+
+  /**
+   * Toggle API secret visibility
+   */
+  toggleApiSecret(): void {
+    this.showApiSecret = !this.showApiSecret;
+  }
+
+  /**
+   * Toggle FAB menu
+   */
+  toggleFabMenu(): void {
+    this.fabMenuOpen = !this.fabMenuOpen;
+  }
+
+  /**
+   * Close FAB menu
+   */
+  closeFabMenu(): void {
+    this.fabMenuOpen = false;
+  }
+
+  /**
+   * Mask secret string
+   */
+  maskSecret(secret: string): string {
+    if (!secret) return '••••••••';
+    if (secret.length <= 8) return '••••••••';
+    return secret.substring(0, 4) + '••••••••' + secret.substring(secret.length - 4);
+  }
+
   ngOnInit(): void {
+    // Initialize customer filter form
+    this.customerFilterForm = this.fb.group({
+      keyword: [''],
+      email: [''],
+      phone: [''],
+      countryCode: ['']
+    });
+
     // Get partner ID from route
     this.route.params.pipe(
       takeUntil(this.destroy$)
@@ -70,6 +147,16 @@ export class PartnerDetails implements OnInit, OnDestroy {
         this.partnerId = +params['id'];
         this.loadPartner();
       }
+    });
+
+    // Setup filter form subscription
+    this.customerFilterForm.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.applyCustomerFilters();
     });
   }
 
@@ -96,6 +183,98 @@ export class PartnerDetails implements OnInit, OnDestroy {
     this.store.dispatch(PartnersActions.checkAndLoadPartner({
       partnerId: this.partnerId
     }));
+
+    // Load customers for this partner
+    this.loadCustomers();
+  }
+
+  /**
+   * Load partner customers
+   */
+  private loadCustomers(): void {
+    if (!this.partnerId) return;
+
+    // Setup customers observables
+    this.customers$ = this.store.select(selectCurrentPageCustomers);
+    this.customersLoading$ = this.store.select(selectCustomersLoading);
+    this.customersPagination$ = this.store.select(selectCustomersPagination);
+
+    // Load customers with partner filter
+    this.applyCustomerFilters();
+  }
+
+  /**
+   * Apply customer filters
+   */
+  applyCustomerFilters(): void {
+    if (!this.partnerId) return;
+
+    const formValue = this.customerFilterForm?.value || {};
+
+    const filters: CustomerFilterParams = {
+      partnerId: this.partnerId,
+      keyword: formValue.keyword || undefined,
+      email: formValue.email || undefined,
+      phone: formValue.phone || undefined,
+      countryCode: formValue.countryCode || undefined,
+      limit: this.pageSize,
+      offset: this.pageIndex * this.pageSize
+    };
+
+    this.store.dispatch(CustomersActions.loadCustomers({ filters }));
+  }
+
+  /**
+   * Handle customer page change
+   */
+  onCustomerPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.applyCustomerFilters();
+  }
+
+  /**
+   * Toggle filters expanded
+   */
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+  }
+
+  /**
+   * Reset customer filters
+   */
+  resetCustomerFilters(): void {
+    this.customerFilterForm.reset({
+      keyword: '',
+      email: '',
+      phone: '',
+      countryCode: ''
+    });
+    this.pageIndex = 0;
+    this.applyCustomerFilters();
+  }
+
+  /**
+   * Count active filters
+   */
+  countActiveFilters(): number {
+    if (!this.customerFilterForm) return 0;
+    const formValue = this.customerFilterForm.value;
+    let count = 0;
+    if (formValue.keyword) count++;
+    if (formValue.email) count++;
+    if (formValue.phone) count++;
+    if (formValue.countryCode) count++;
+    return count;
+  }
+
+  /**
+   * Get customer initials
+   */
+  getCustomerInitials(customer: Customer): string {
+    const firstInitial = customer.firstName?.[0] || '';
+    const lastInitial = customer.lastName?.[0] || '';
+    return (firstInitial + lastInitial).toUpperCase() || 'CU';
   }
 
   /**
@@ -178,28 +357,6 @@ export class PartnerDetails implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * View partner customers
-   */
-  viewCustomers(partner: SinglePartner): void {
-    // this.router.navigate(['/customers/list'], {
-    //   queryParams: { partnerId }
-    // });
-    import('@shared/components/ui/partner-customers-modal/partner-customers-modal').then(m => {
-      this.dialog.open(m.PartnerCustomersModal, {
-        width: '90vw',
-        maxWidth: '1400px',
-        height: '90vh',
-        maxHeight: '90vh',
-        disableClose: true,
-        panelClass: 'partner-customers-modal-panel',
-        data: {
-          partnerId: partner.id,
-          partnerName: partner.name
-        }
-      });
-    });
-  }
 
   /**
    * View bond transactions

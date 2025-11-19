@@ -94,41 +94,37 @@ export const bondsReducer = createReducer(
   // Create Bond
   on(BondsActions.createBond, (state) => ({
     ...state,
-    creating: true,
-    error: null
+    creating: true
   })),
 
   on(BondsActions.createBondSuccess, (state) => ({
     ...state,
     pageCache: {}, // Clear page cache to force reload
-    creating: false,
-    error: null
+    creating: false
   })),
 
-  on(BondsActions.createBondFailure, (state, { error }) => ({
+  on(BondsActions.createBondFailure, (state) => ({
     ...state,
-    creating: false,
-    error
+    creating: false
+    // ❌ Do NOT store error in state - handled by effects notification
   })),
 
   // Update Bond
   on(BondsActions.updateBond, (state) => ({
     ...state,
-    updating: true,
-    error: null
+    updating: true
   })),
 
   on(BondsActions.updateBondSuccess, (state) => ({
     ...state,
     pageCache: {}, // Clear page cache to force reload
-    updating: false,
-    error: null
+    updating: false
   })),
 
-  on(BondsActions.updateBondFailure, (state, { error }) => ({
+  on(BondsActions.updateBondFailure, (state) => ({
     ...state,
-    updating: false,
-    error
+    updating: false
+    // ❌ Do NOT store error in state - handled by effects notification
   })),
 
   // Delete Bond

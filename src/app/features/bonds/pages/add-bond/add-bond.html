@@ -4,8 +4,7 @@
     <p class="subtitle">{{ isEditMode ? 'Edit bond details below' : 'Fill in the form to create a new bond' }}</p>
   </div>
 
-  @if (bondForm) {
-    <form [formGroup]="bondForm" (ngSubmit)="onSubmit()" class="bond-form">
+  <form [formGroup]="bondForm" (ngSubmit)="onSubmit()" class="bond-form">
 
       <!-- Basic Information Section -->
       <div class="form-section">
@@ -547,12 +546,4 @@
         </button>
       </div>
     </form>
-  }
-
-  <!-- Loading State -->
-  @if (!bondForm) {
-    <div class="loading-state">
-      <p>Loading bond details...</p>
-    </div>
-  }
 </div>

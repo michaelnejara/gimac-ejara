@@ -29,7 +29,7 @@ export class AddBond implements OnInit, OnDestroy {
   private store = inject(Store);
   private destroy$ = new Subject<void>();
 
-  bondForm!: FormGroup;
+  bondForm: FormGroup;
   isEditMode = false;
   bondId: number | null = null;
 
@@ -45,6 +45,11 @@ export class AddBond implements OnInit, OnDestroy {
   blockchainOptions: string[] = ['tezos', 'ethereum'];
   withdrawalPeriodOptions: string[] = ['maturity', 'anytime', 'after_period'];
 
+  constructor () {
+    // Initialize form immediately to prevent undefined access
+    this.bondForm = this.createEmptyForm();
+  }
+
   ngOnInit(): void {
     // Check if we have a bond ID in the route params
     this.route.params
@@ -56,7 +61,8 @@ export class AddBond implements OnInit, OnDestroy {
           this.bondId = +id;
           this.loadBond(this.bondId);
         } else {
-          this.initializeForm();
+          // Already initialized in constructor, just reset to empty form
+          this.bondForm = this.createEmptyForm();
         }
       });
   }
@@ -94,6 +100,39 @@ export class AddBond implements OnInit, OnDestroy {
       });
   }
 
+  private createEmptyForm(): FormGroup {
+    return this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      descriptionEn: [''],
+      descriptionFr: [''],
+      colorCode: ['#3B82F6', [Validators.required, Validators.pattern(/^#[0-9A-F]{6}$/i)]],
+      amount: [null, [Validators.required, Validators.min(1)]],
+      ejaraInterestRate: [null, [Validators.required, Validators.min(0)]],
+      customerInterestRate: [null, [Validators.required, Validators.min(0)]],
+      startDate: ['', Validators.required],
+      maturityDate: ['', Validators.required],
+      smartContractId: ['', Validators.required],
+      defaultFiatCurrency: ['XAF', Validators.required],
+      fiatTokenEquivalent: [null, [Validators.required, Validators.min(0)]],
+      status: ['active', Validators.required],
+      isWithdrawalBlocked: [false],
+      shouldBeDisplayedInApp: [true],
+      momoMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
+      bankMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
+      interestCalculationPeriod: ['daily', Validators.required],
+      rank: [0, [Validators.required, Validators.min(0)]],
+      blockchain: ['', Validators.required],
+      issuerNameEn: ['', [Validators.required, Validators.minLength(3)]],
+      issuerNameFr: ['', [Validators.required, Validators.minLength(3)]],
+      issuerDescriptionEn: [''],
+      issuerDescriptionFr: [''],
+      issuerType: ['', Validators.required],
+      issuerIcon: ['', Validators.required],
+      withdrawalPeriod: ['maturity', Validators.required],
+      unlockingPenaltyRate: [0, [Validators.min(0), Validators.max(100)]]
+    });
+  }
+
   private initializeForm(bond?: Bond): void {
     if (bond) {
       // Edit mode - populate with bond data
@@ -128,37 +167,8 @@ export class AddBond implements OnInit, OnDestroy {
         unlockingPenaltyRate: [bond.unlockingPenaltyRate || 0, [Validators.min(0), Validators.max(100)]]
       });
     } else {
-      // Create mode - empty form
-      this.bondForm = this.fb.group({
-        name: ['', [Validators.required, Validators.minLength(3)]],
-        descriptionEn: [''],
-        descriptionFr: [''],
-        colorCode: ['#3B82F6', [Validators.required, Validators.pattern(/^#[0-9A-F]{6}$/i)]],
-        amount: [null, [Validators.required, Validators.min(1)]],
-        ejaraInterestRate: [null, [Validators.required, Validators.min(0)]],
-        customerInterestRate: [null, [Validators.required, Validators.min(0)]],
-        startDate: ['', Validators.required],
-        maturityDate: ['', Validators.required],
-        smartContractId: ['', Validators.required],
-        defaultFiatCurrency: ['XAF', Validators.required],
-        fiatTokenEquivalent: [null, [Validators.required, Validators.min(0)]],
-        status: ['active', Validators.required],
-        isWithdrawalBlocked: [false],
-        shouldBeDisplayedInApp: [true],
-        momoMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
-        bankMinimumDeposit: [null, [Validators.required, Validators.min(0)]],
-        interestCalculationPeriod: ['daily', Validators.required],
-        rank: [0, [Validators.required, Validators.min(0)]],
-        blockchain: ['', Validators.required],
-        issuerNameEn: ['', [Validators.required, Validators.minLength(3)]],
-        issuerNameFr: ['', [Validators.required, Validators.minLength(3)]],
-        issuerDescriptionEn: [''],
-        issuerDescriptionFr: [''],
-        issuerType: ['', Validators.required],
-        issuerIcon: ['', Validators.required],
-        withdrawalPeriod: ['maturity', Validators.required],
-        unlockingPenaltyRate: [0, [Validators.min(0), Validators.max(100)]]
-      });
+      // Create mode - use empty form
+      this.bondForm = this.createEmptyForm();
     }
   }
 
@@ -228,17 +238,20 @@ export class AddBond implements OnInit, OnDestroy {
 
   // Helper methods for validation display
   isFieldInvalid(fieldName: string): boolean {
+    if (!this.bondForm) return false;
     const field = this.bondForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
   getFieldError(fieldName: string): string {
+    if (!this.bondForm) return '';
     const field = this.bondForm.get(fieldName);
     if (!field || !field.errors) return '';
 
     if (field.errors['required']) return 'This field is required';
     if (field.errors['minlength']) return `Minimum length is ${field.errors['minlength'].requiredLength}`;
     if (field.errors['min']) return `Minimum value is ${field.errors['min'].min}`;
+    if (field.errors['max']) return `Maximum value is ${field.errors['max'].max}`;
     if (field.errors['pattern']) return 'Invalid format';
 
     return 'Invalid value';

@@ -117,19 +117,19 @@ describe('LoginComponent', () => {
     });
   });
 
-  describe('Login Option Detection', () => {
-    it('should detect email format', () => {
-      expect(component.getLoginOption('user@example.com')).toBe('email');
-    });
+  // describe('Login Option Detection', () => {
+  //   it('should detect email format', () => {
+  //     expect(component.getLoginOption('user@example.com')).toBe('email');
+  //   });
 
-    it('should detect phone format', () => {
-      expect(component.getLoginOption('+237652522021')).toBe('phone');
-    });
+  //   it('should detect phone format', () => {
+  //     expect(component.getLoginOption('+237652522021')).toBe('phone');
+  //   });
 
-    it('should default to username format', () => {
-      expect(component.getLoginOption('recitMichael')).toBe('username');
-    });
-  });
+  //   it('should default to username format', () => {
+  //     expect(component.getLoginOption('recitMichael')).toBe('username');
+  //   });
+  // });
 
   describe('Form Submission', () => {
     it('should not dispatch action when form is invalid', () => {

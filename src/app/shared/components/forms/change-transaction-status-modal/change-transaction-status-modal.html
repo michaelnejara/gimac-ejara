@@ -1,0 +1,132 @@
+<div class="status-modal">
+  <!-- Modal Header -->
+  <div class="modal-header">
+    <div class="header-content">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 14L12 9L7 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="header-text">
+        <h2>Change Transaction Status</h2>
+        <p>Update the status for transaction: <strong>{{ transactionReference }}</strong></p>
+      </div>
+    </div>
+    <button type="button" class="close-btn" (click)="onCancel()" [disabled]="isSubmitting">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <form [formGroup]="statusForm" (ngSubmit)="onSubmit()">
+    <div class="modal-body">
+      <!-- Current Status Info -->
+      <div class="current-status-box">
+        <div class="status-label">Current Status</div>
+        <div class="status-badge" [style.backgroundColor]="getStatusOption(currentStatus)?.color">
+          <span class="status-icon">{{ getStatusIcon(currentStatus) }}</span>
+          <span>{{ getStatusOption(currentStatus)?.label }}</span>
+        </div>
+      </div>
+
+      <!-- New Status Selection -->
+      <div class="form-group">
+        <label for="status" class="form-label">
+          New Status
+          <span class="required">*</span>
+        </label>
+        <div class="select-wrapper">
+          <select
+            id="status"
+            formControlName="status"
+            class="form-select"
+            [class.has-error]="statusForm.get('status')?.invalid && statusForm.get('status')?.touched">
+            <option value="" disabled>Select a status</option>
+            @for (status of availableStatusOptions; track status.value) {
+              <option [value]="status.value">
+                {{ status.label }} - {{ status.description }}
+              </option>
+            }
+          </select>
+          <svg class="select-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        @if (statusForm.get('status')?.invalid && statusForm.get('status')?.touched) {
+          <div class="error-message">Please select a status</div>
+        }
+      </div>
+
+      <!-- Reason Field -->
+      <div class="form-group">
+        <label for="reason" class="form-label">
+          Reason for Status Change
+          <span class="required">*</span>
+        </label>
+        <textarea
+          id="reason"
+          formControlName="reason"
+          rows="4"
+          class="form-textarea"
+          placeholder="Provide a detailed reason for this status change..."
+          [class.has-error]="statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched"></textarea>
+        @if (statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched) {
+          <div class="error-message">Reason is required</div>
+        }
+      </div>
+
+      <!-- Warning Message -->
+      <div class="warning-box">
+        <svg class="warning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="warning-text">
+          <strong>Important:</strong> Changing the transaction status will be recorded in the system audit log. Make sure you have the proper authorization to perform this action.
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      @if (successMessage) {
+        <div class="success-box">
+          <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="success-text">{{ successMessage }}</div>
+        </div>
+      }
+
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <div class="error-box">
+          <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="error-text">{{ errorMessage }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="isSubmitting">
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="statusForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <svg class="spinner" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <circle class="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+          </svg>
+          <span>Updating...</span>
+        } @else {
+          <span>Update Status</span>
+        }
+      </button>
+    </div>
+  </form>
+</div>

@@ -22,13 +22,13 @@ export class StorageService {
   }
 
   /**
-   * Get item from localStorage
+   * Get item from sessionStorage
    * @param {string} key - Storage key
    * @returns {T | null} Parsed value or null
    */
   getLocal<T>(key: string): T | null {
     try {
-      const item = localStorage.getItem(key);
+      const item = sessionStorage.getItem(key) || localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error) {
       console.error('Failed to get localStorage item:', error);
@@ -42,7 +42,8 @@ export class StorageService {
    */
   removeLocal(key: string): void {
     try {
-      localStorage.removeItem(key);
+       localStorage.removeItem(key);
+       sessionStorage.removeItem(key)
     } catch (error) {
       console.error('Failed to remove localStorage item:', error);
     }
@@ -94,6 +95,7 @@ export class StorageService {
   clearLocal(): void {
     try {
       localStorage.clear();
+      sessionStorage.clear()
     } catch (error) {
       console.error('Failed to clear localStorage:', error);
     }

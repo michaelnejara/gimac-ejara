@@ -1,1 +1,125 @@
-<p>mfa-setup.component works!</p>
+<div class="mfa-setup-page">
+  <div class="main-block">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="/assets/ejara-logo.svg" alt="Ejara Logo" class="logo">
+    </div>
+
+    <!-- Setup Form Container -->
+    <div class="form-container">
+      <!-- Title -->
+      <div class="form-title">
+        <h1 class="main-title">Set Up Two-Factor Authentication</h1>
+        <p class="sub-title">Secure your account with an authenticator app</p>
+      </div>
+
+      <!-- Loading State -->
+      @if (loading$ | async) {
+        <div class="loading-container">
+          <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="spinner-circle" cx="25" cy="25" r="20" fill="none" stroke-width="3"></circle>
+          </svg>
+          <p>Loading QR code...</p>
+        </div>
+      }
+
+      <!-- QR Code Display -->
+      @if ((qrCodeUri$ | async) && !(loading$ | async)) {
+        <div class="qr-code-section">
+          <div class="qr-code-container">
+            <img [src]="qrCodeUri$ | async" alt="MFA QR Code" class="qr-code-image">
+          </div>
+
+          <div class="instructions">
+            <p class="instruction-text">
+              <strong>Step 1:</strong> Download an authenticator app (Google Authenticator, Authy, etc.)
+            </p>
+            <p class="instruction-text">
+              <strong>Step 2:</strong> Scan the QR code above with your authenticator app
+            </p>
+            <p class="instruction-text">
+              <strong>Step 3:</strong> Enter the 6-digit code from your app below
+            </p>
+          </div>
+
+          <!-- Manual Setup Key -->
+          <div class="manual-setup">
+            <button type="button" class="toggle-key-btn" (click)="toggleManualKey()">
+              @if (!showManualKey) {
+                <span>Can't scan? Enter key manually</span>
+              } @else {
+                <span>Hide manual key</span>
+              }
+            </button>
+
+            @if (showManualKey && (setupKey$ | async); as setupKey) {
+              <div class="setup-key-container">
+                <p class="setup-key-label">Manual Setup Key:</p>
+                <div class="setup-key-box">
+                  <code class="setup-key">{{ setupKey }}</code>
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    (click)="copySetupKey(setupKey)"
+                    title="Copy to clipboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Code Entry Form -->
+        <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="setup-form">
+          <div class="form-group">
+            <label for="code" class="form-label">
+              Enter 6-Digit Code <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                id="code"
+                type="text"
+                formControlName="code"
+                placeholder="000000"
+                maxlength="6"
+                pattern="\d*"
+                inputmode="numeric"
+                [class.input-error]="hasCodeError"
+                class="form-input"
+              />
+            </div>
+            @if (hasCodeError) {
+              <p class="error-message">{{ getCodeErrorMessage() }}</p>
+            }
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            [disabled]="!setupForm.valid || (loading$ | async)"
+            class="submit-button">
+            @if (loading$ | async) {
+              <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="spinner-circle" cx="25" cy="25" r="20" fill="none" stroke-width="3"></circle>
+              </svg>
+              <span>Verifying...</span>
+            } @else {
+              <span>Verify & Complete Setup</span>
+            }
+          </button>
+        </form>
+      }
+
+      <!-- Error Display -->
+      @if (error$ | async) {
+        <div class="error-container">
+          <p class="error-text">{{ (error$ | async)?.message }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

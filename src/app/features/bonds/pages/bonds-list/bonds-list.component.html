@@ -1,1 +1,743 @@
-<p>bonds-list.component works!</p>
+<!-- src/app/features/bonds/pages/bonds-list/bonds-list.component.html -->
+<div class="bonds-list-page">
+  
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="breadcrumbs">
+      <a routerLink="/">Home</a>
+      <mat-icon>chevron_right</mat-icon>
+      @if (context === 'partner') {
+        <a routerLink="/partners">Partners</a>
+        <mat-icon>chevron_right</mat-icon>
+        @if (partner$ | async; as partner) {
+          <a [routerLink]="['/partners/details', partnerId]">{{ partner.name }}</a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="current">Bonds</span>
+        } @else {
+          <span class="current">Partner Bonds</span>
+        }
+      } @else if (context === 'customer') {
+        <a routerLink="/partners">Partners</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a [routerLink]="['/partners/details', partnerId]">Partner Details</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="current">Customer Bonds</span>
+      } @else {
+        <a routerLink="/bonds">Bonds</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="current">All Bonds</span>
+      }
+    </div>
+
+    <div class="header-content">
+      <div class="title-section">
+        <!-- Back Button for Partner/Customer Context -->
+        @if (context === 'partner' || context === 'customer') {
+          <button 
+            mat-icon-button 
+            class="back-btn"
+            (click)="goBack()"
+            matTooltip="Back to Partner Profile">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        }
+
+        <div class="title-wrapper">
+          <h1 class="page-title">
+            <mat-icon class="title-icon">account_balance</mat-icon>
+            @if (context === 'partner') {
+              @if (partner$ | async; as partner) {
+                <span>{{ partner.name }} - Bonds</span>
+              } @else {
+                <span>Partner Bonds</span>
+              }
+            } @else if (context === 'customer') {
+              <span>Customer Bond Holdings</span>
+            } @else {
+              <span>Bonds Management</span>
+            }
+          </h1>
+          <p class="page-description">
+            @if (context === 'partner') {
+              @if (partner$ | async; as partner) {
+                <span>View and manage bonds assigned to <strong>{{ partner.name }}</strong></span>
+              } @else {
+                <span>View and manage bonds assigned to this partner</span>
+              }
+            } @else if (context === 'customer') {
+              View customer's bond holdings and investment performance
+            } @else {
+              Create, manage, and monitor all bonds in the system
+            }
+          </p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        @if (context === 'partner' || context === 'customer') {
+          <button
+            mat-stroked-button
+            class="all-bonds-btn"
+            (click)="viewAllBonds()">
+            <mat-icon>view_list</mat-icon>
+            All Bonds
+          </button>
+        }
+
+        @if (context === 'partner') {
+          <button
+            mat-raised-button
+            color="primary"
+            class="assign-bonds-btn"
+            (click)="openAssignBondsModal()">
+            <mat-icon>add_circle</mat-icon>
+            Assign Bonds
+          </button>
+        } @else if (context === 'default') {
+          <button
+            mat-raised-button
+            color="primary"
+            class="add-bond-btn"
+            (click)="addBond()">
+            <mat-icon>add</mat-icon>
+            Add New Bond
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    @if (pagination$ | async; as pagination) {
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-icon total">
+            <mat-icon>account_balance</mat-icon>
+          </div>
+          <div class="stat-content">
+            <label>Total Bonds</label>
+            <div class="stat-value">{{ pagination.total }}</div>
+          </div>
+        </div>
+
+        @if (context === 'customer') {
+          <div class="stat-card">
+            <div class="stat-icon active">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Active Holdings</label>
+              <div class="stat-value">{{ activeHoldingsCount }}</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon matured">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-content">
+              <label>Matured</label>
+              <div class="stat-value">{{ maturedHoldingsCount }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Floating Filter Button -->
+  <button
+    class="floating-filter-btn"
+    mat-fab
+    (click)="toggleFilterPanel()"
+    [matTooltip]="'Filter Bonds'"
+    matTooltipPosition="left"
+  >
+    <mat-icon>filter_list</mat-icon>
+    @if (getActiveFiltersCount() > 0) {
+      <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
+    }
+  </button>
+
+  <!-- Filter Offcanvas Panel -->
+  <div class="filter-offcanvas-overlay" [class.show]="filterPanelOpen" (click)="closeFilterPanel()"></div>
+
+  <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+    <div class="offcanvas-header">
+      <div class="header-left">
+        <mat-icon>filter_list</mat-icon>
+        <h2>Filter Bonds</h2>
+      </div>
+      <button mat-icon-button (click)="closeFilterPanel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="offcanvas-body">
+      <form [formGroup]="filterForm" class="filter-form">
+        <!-- Customer Context Filters -->
+        @if (context === 'customer') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Search bond name">
+            </mat-form-field>
+            <p class="filter-hint">Search bonds by name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search bonds, partners">
+            </mat-form-field>
+            <p class="filter-hint">Search across all fields</p>
+          </div>
+        }
+
+        <!-- Partner Context Filters -->
+        @if (context === 'partner') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Search bond name">
+            </mat-form-field>
+            <p class="filter-hint">Search bonds by name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>tag</mat-icon>
+              Bond Code
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Code</mat-label>
+              <input matInput formControlName="bondCode" placeholder="Enter bond code">
+            </mat-form-field>
+            <p class="filter-hint">Exact bond code</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search bond names">
+            </mat-form-field>
+            <p class="filter-hint">Search across bond fields</p>
+          </div>
+        }
+
+        <!-- Default Context Filters -->
+        @if (context === 'default') {
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              Bond Name
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Name</mat-label>
+              <input matInput formControlName="bondName" placeholder="Exact bond name">
+            </mat-form-field>
+            <p class="filter-hint">Exact name match</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>tag</mat-icon>
+              Bond Code
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bond Code</mat-label>
+              <input matInput formControlName="bondCode" placeholder="Exact bond code">
+            </mat-form-field>
+            <p class="filter-hint">Exact code match</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              Status
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status" panelClass="bond-status-dropdown">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter bonds by status</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>attach_money</mat-icon>
+              Currency
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Currency</mat-label>
+              <mat-select formControlName="defaultFiatCurrency" panelClass="bond-currency-dropdown">
+                <mat-option value="">All Currencies</mat-option>
+                @for (option of currencyOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <p class="filter-hint">Filter by currency type</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>business</mat-icon>
+              Issuer
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Issuer</mat-label>
+              <input matInput formControlName="issuerNameEn" placeholder="Bond issuer">
+            </mat-form-field>
+            <p class="filter-hint">Filter by issuer name</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>search</mat-icon>
+              Search Keywords
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search</mat-label>
+              <input matInput formControlName="keyword" placeholder="Search name, code, issuer">
+              @if (filterForm.get('keyword')?.value) {
+                <button
+                  matSuffix
+                  mat-icon-button
+                  (click)="filterForm.patchValue({ keyword: '' })"
+                  type="button"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Search across name, code, and issuer</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>date_range</mat-icon>
+              Creation Date Range
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Creation Date Range</mat-label>
+              <mat-date-range-input [rangePicker]="creationPicker" [max]="maxDate">
+                <input
+                  matStartDate
+                  formControlName="creationDateStart"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="creationDateEnd"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="creationPicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #creationPicker></mat-date-range-picker>
+
+              @if (filterForm.get('creationDateStart')?.hasError('futureDate')) {
+                <mat-error>Start date cannot be in the future</mat-error>
+              }
+              @if (filterForm.get('creationDateEnd')?.hasError('futureDate')) {
+                <mat-error>End date cannot be in the future</mat-error>
+              }
+              @if (filterForm.get('creationDateEnd')?.hasError('dateRangeInvalid')) {
+                <mat-error>End date must be after start date</mat-error>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Filter by bond creation date</p>
+          </div>
+
+          <div class="filter-field-wrapper">
+            <label class="filter-label">
+              <mat-icon>event</mat-icon>
+              Maturity Date Range
+            </label>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Maturity Date Range</mat-label>
+              <mat-date-range-input [rangePicker]="maturityPicker">
+                <input
+                  matStartDate
+                  formControlName="maturityDateStart"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="maturityDateEnd"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="maturityPicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #maturityPicker></mat-date-range-picker>
+
+              @if (filterForm.get('maturityDateEnd')?.hasError('dateRangeInvalid')) {
+                <mat-error>End date must be after start date</mat-error>
+              }
+            </mat-form-field>
+            <p class="filter-hint">Filter by maturity date</p>
+          </div>
+        }
+      </form>
+    </div>
+
+    <!-- Filter Actions -->
+    <div class="offcanvas-footer">
+      <button
+        mat-stroked-button
+        type="button"
+        class="reset-btn"
+        (click)="resetFilters()"
+        [disabled]="getActiveFiltersCount() === 0"
+      >
+        <mat-icon>refresh</mat-icon>
+        Reset
+      </button>
+
+      <button
+        mat-raised-button
+        type="button"
+        class="search-btn"
+        (click)="applyFiltersAndClose()"
+      >
+        <mat-icon>search</mat-icon>
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error$ | async; as error) {
+    <mat-card class="error-alert">
+      <div class="alert-content">
+        <mat-icon>error_outline</mat-icon>
+        <div class="alert-text">
+          <h4>Error Loading Bonds</h4>
+          <p>{{ error }}</p>
+        </div>
+        <button mat-button (click)="loadBonds()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      </div>
+    </mat-card>
+  }
+
+  <!-- Data Table -->
+  <div class="table-section">
+    <app-data-table
+      [data]="(bonds$ | async) || []"
+      [config]="tableConfig"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)">
+      
+      <!-- Bond Name Template -->
+      <ng-template appTableColumn="bondName" let-row>
+        <div class="bond-name-cell">
+          <div class="bond-icon">
+            <span>{{ getInitials(row.bondName || row.name) }}</span>
+          </div>
+          <div class="bond-info">
+            <div class="name">{{ row.bondName || row.name }}</div>
+            <div class="code">{{ row.bondCode || row.code }}</div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Bond Name (for default/partner context) -->
+      <ng-template appTableColumn="name" let-row>
+        <div class="bond-name-cell">
+          <div class="bond-icon">
+            <span>{{ getInitials(row.name) }}</span>
+          </div>
+          <div class="bond-info">
+            <div class="name">{{ row.name }}</div>
+            <div class="code">{{ row.code }}</div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Bond Code Template -->
+      <ng-template appTableColumn="bondCode" let-row>
+        <span class="bond-code">{{ row.bondCode }}</span>
+      </ng-template>
+
+      <ng-template appTableColumn="code" let-row>
+        <span class="bond-code">{{ row.code }}</span>
+      </ng-template>
+
+      <!-- Partner Name Template (Customer context) -->
+      <ng-template appTableColumn="partnerName" let-row>
+        <div class="partner-cell">
+          <mat-icon class="partner-icon">business</mat-icon>
+          <span>{{ row.partnerName }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Issuer Template -->
+      <ng-template appTableColumn="issuerNameEn" let-row>
+        <div class="issuer-cell">
+          <mat-icon class="issuer-icon">business</mat-icon>
+          <span>{{ row.issuerNameEn }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Investment Amount Template (Customer context) -->
+      <ng-template appTableColumn="investmentAmount" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ formatCurrency(row.investmentAmount, row.currency) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Current Value Template (Customer context) -->
+      <ng-template appTableColumn="currentValue" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ formatCurrency(row.currentValue) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Interest Earned Template (Customer context) -->
+      <ng-template appTableColumn="interestEarned" let-row>
+        <div class="amount-cell positive">
+          <mat-icon class="trend-icon">trending_up</mat-icon>
+          <div class="amount">{{ formatCurrency(row.interestEarned) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Total Amount Template -->
+      <ng-template appTableColumn="amount" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ formatCurrency(row.amount, row.defaultFiatCurrency) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Interest Value Template (Annual Interest %) -->
+      <ng-template appTableColumn="interestValue" let-row>
+        <div class="rate-cell">
+          <span class="rate">{{ formatPercentage(row.interestValue) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Maturity Percentage Template -->
+      <ng-template appTableColumn="maturityPercentage" let-row>
+        <div class="rate-cell">
+          <span class="rate">{{ formatPercentage(row.maturityPercentage) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Lifetime Template (in days) -->
+      <ng-template appTableColumn="lifetime" let-row>
+        <div class="tenor-cell">
+          <mat-icon class="tenor-icon">schedule</mat-icon>
+          <span>{{ formatLifetime(row.lifetime) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Currency Template (Default context) -->
+      <ng-template appTableColumn="defaultFiatCurrency" let-row>
+        <span class="currency-badge">{{ row.defaultFiatCurrency }}</span>
+      </ng-template>
+
+      <!-- Currency Template (Partner context) -->
+      <ng-template appTableColumn="currency" let-row>
+        <span class="currency-badge">{{ row.currency }}</span>
+      </ng-template>
+
+      <!-- Purchase Date Template (Customer context) -->
+      <ng-template appTableColumn="purchaseDate" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">calendar_today</mat-icon>
+          <span>{{ formatDate(row.purchaseDate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Creation Date Template -->
+      <ng-template appTableColumn="dateCreated" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">event</mat-icon>
+          <span>{{ formatDate(row.dateCreated) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Start Date Template -->
+      <ng-template appTableColumn="startDate" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">event</mat-icon>
+          <span>{{ formatDate(row.startDate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Maturity Date Template -->
+      <ng-template appTableColumn="maturityDate" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">event</mat-icon>
+          <span>{{ formatDate(row.maturityDate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Date Assigned Template (Partner context) -->
+      <ng-template appTableColumn="dateAssigned" let-row>
+        <div class="date-cell">
+          <mat-icon class="date-icon">assignment</mat-icon>
+          <span>{{ formatDate(row.dateAssigned) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Amount Purchased Template -->
+      <ng-template appTableColumn="amountPurchased" let-row>
+        <div class="amount-cell">
+          <div class="amount">{{ formatCurrency(row.amountPurchased, row.defaultFiatCurrency) }}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="(row.amountPurchased / row.amount) * 100"></div>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Available Balance Template -->
+      <ng-template appTableColumn="availableBalance" let-row>
+        <div class="amount-cell" [class.low-balance]="row.availableBalance < (row.amount * 0.1)">
+          <div class="amount">{{ formatCurrency(row.availableBalance, row.defaultFiatCurrency) }}</div>
+        </div>
+      </ng-template>
+
+      <!-- Ejara Interest Rate Template -->
+      <ng-template appTableColumn="ejaraInterestRate" let-row>
+        <div class="rate-cell">
+          <span class="rate ejara-rate">{{ formatPercentage(row.ejaraInterestRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Customer Interest Rate Template -->
+      <ng-template appTableColumn="customerInterestRate" let-row>
+        <div class="rate-cell">
+          <span class="rate customer-rate">{{ formatPercentage(row.customerInterestRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Daily Customer Earning Rate Template -->
+      <ng-template appTableColumn="dailyCustomerEarningRate" let-row>
+        <div class="rate-cell">
+          <span class="rate daily-rate">{{ formatPercentage(row.dailyCustomerEarningRate) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Issuer Type Template -->
+      <ng-template appTableColumn="issuerType" let-row>
+        <span class="issuer-type-badge" [class]="'issuer-' + row.issuerType">
+          {{ row.issuerType | titlecase }}
+        </span>
+      </ng-template>
+
+      <!-- Rank Template -->
+      <ng-template appTableColumn="rank" let-row>
+        <div class="rank-cell">
+          <span class="rank-badge">{{ row.rank }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Should Be Displayed In App Template -->
+      <ng-template appTableColumn="shouldBeDisplayedInApp" let-row>
+        <div class="app-display-cell">
+          <mat-icon [class.visible]="row.shouldBeDisplayedInApp" [class.hidden]="!row.shouldBeDisplayedInApp">
+            {{ row.shouldBeDisplayedInApp ? 'visibility' : 'visibility_off' }}
+          </mat-icon>
+        </div>
+      </ng-template>
+
+      <!-- Blockchain Template -->
+      <ng-template appTableColumn="blockchain" let-row>
+        <span class="blockchain-badge" [class]="'blockchain-' + row.blockchain">
+          {{ row.blockchain | titlecase }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Actions Template -->
+      <ng-template appTableActions let-row>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="actionsMenu"
+          (click)="$event.stopPropagation()"
+          matTooltip="Actions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <mat-menu #actionsMenu="matMenu">
+          <!-- View Bond -->
+          <button mat-menu-item (click)="viewBond(row)">
+            <mat-icon class="menu-icon">visibility</mat-icon>
+            <span>View Bond</span>
+          </button>
+
+          @if (context === 'partner') {
+            <mat-divider></mat-divider>
+            
+            <!-- Unassign Bond (Partner context) -->
+            <button mat-menu-item class="warning-action" (click)="unassignBond(row)">
+              <mat-icon class="menu-icon">remove_circle</mat-icon>
+              <span>Unassign Bond</span>
+            </button>
+          }
+
+          <!-- @if (context === 'default') { -->
+            <!-- <mat-divider></mat-divider> -->
+            
+            <!-- Delete Bond (Default context) -->
+            <!-- <button mat-menu-item class="delete-action" (click)="deleteBond(row)">
+              <mat-icon class="menu-icon">delete</mat-icon>
+              <span>Delete Bond</span>
+            </button> -->
+          <!-- } -->
+        </mat-menu>
+      </ng-template>
+
+    </app-data-table>
+  </div>
+
+</div>

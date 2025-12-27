@@ -1,0 +1,123 @@
+<div class="status-modal">
+  <div class="modal-header">
+    <div class="header-icon">
+      <mat-icon>toggle_on</mat-icon>
+    </div>
+    <div class="header-text">
+      <h2>Change Partner Status</h2>
+      <p>{{ data.partnerName }}</p>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="cancel()" [disabled]="submitting">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="statusForm" (ngSubmit)="applyChange()">
+    <div class="modal-content">
+      <!-- Current Status -->
+      <div class="status-section">
+        <label>Current Status</label>
+        <div class="status-badge" [ngClass]="getStatusClass(data.currentStatus)">
+          <mat-icon>circle</mat-icon>
+          <span>{{ data.currentStatus | titlecase }}</span>
+        </div>
+      </div>
+
+      <mat-icon class="arrow-icon">arrow_downward</mat-icon>
+
+      <!-- New Status Selection -->
+      <div class="status-section">
+        <label>New Status</label>
+        <mat-form-field appearance="outline" class="status-field">
+          <mat-select formControlName="status">
+            @for (option of statusOptions; track option.value) {
+            <mat-option [value]="option.value">
+              <div class="status-option">
+                <div class="option-header">
+                  <span class="status-badge-sm" [ngClass]="getStatusClass(option.value)">
+                    {{ option.label }}
+                  </span>
+                </div>
+                <span class="option-description">{{ option.description }}</span>
+              </div>
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Reason Field -->
+      @if (hasChanged) {
+      <div class="reason-section">
+        <mat-form-field appearance="outline" class="reason-field">
+          <mat-label>Reason for Status Change</mat-label>
+          <textarea
+            matInput
+            formControlName="reason"
+            rows="4"
+            placeholder="Provide a detailed reason for this status change (minimum 10 characters)"
+            maxlength="500"
+          ></textarea>
+          <mat-hint align="end">{{ statusForm.get('reason')?.value?.length || 0 }}/500</mat-hint>
+          @if (statusForm.get('reason')?.invalid && statusForm.get('reason')?.touched) {
+          <mat-error>{{ reasonErrorMessage }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Warning Message -->
+      <div
+        class="warning-message"
+        [class.danger]="currentStatusValue === 'inactive' || currentStatusValue === 'suspended'"
+      >
+        <mat-icon>
+          @if (currentStatusValue === 'inactive' || currentStatusValue === 'suspended') { warning }
+          @else { info }
+        </mat-icon>
+        <div class="warning-text">
+          @if (currentStatusValue === 'inactive') {
+          <strong>Warning:</strong> Setting status to Inactive will
+          <strong>permanently block</strong>
+          this partner's access to all services and APIs. } @else if (currentStatusValue ===
+          'suspended') {
+          <strong>Notice:</strong> Setting status to Suspended will
+          <strong>temporarily block</strong>
+          this partner's access to all services and APIs. } @else {
+          <strong>Confirmation:</strong> Setting status to Active will <strong>restore</strong>
+          this partner's full access to all services and APIs. }
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        class="cancel-btn"
+        (click)="cancel()"
+        [disabled]="submitting"
+      >
+        Cancel
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="apply-btn"
+        [disabled]="!hasChanged || statusForm.invalid || submitting"
+      >
+        @if (submitting) {
+        <mat-spinner diameter="20"></mat-spinner>
+        <span>Applying...</span>
+        } @else {
+        <ng-container>
+          <mat-icon>check</mat-icon>
+          <span>Apply Changes</span>
+        </ng-container>
+        }
+      </button>
+    </div>
+  </form>
+</div>

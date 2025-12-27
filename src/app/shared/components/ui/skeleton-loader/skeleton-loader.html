@@ -1,0 +1,29 @@
+<div class="skeleton-wrapper">
+  <ng-container *ngIf="type === 'dashboard-card'">
+    <div class="skeleton-dashboard-card" *ngFor="let item of getArray(repeat)">
+      <div class="skeleton skeleton-header"></div>
+      <div class="skeleton skeleton-value"></div>
+      <div class="skeleton skeleton-action"></div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="type === 'card'">
+    <div class="skeleton skeleton-card" *ngFor="let item of getArray(repeat)"></div>
+  </ng-container>
+
+  <ng-container *ngIf="type === 'text'">
+    <div
+      class="skeleton skeleton-text"
+      *ngFor="let item of getArray(repeat)"
+      [style.width]="width"
+    ></div>
+  </ng-container>
+
+  <ng-container *ngIf="type === 'circle'">
+    <div class="skeleton skeleton-circle" [style.width.px]="size" [style.height.px]="size"></div>
+  </ng-container>
+
+  <ng-container *ngIf="type === 'rectangle'">
+    <div class="skeleton skeleton-rectangle" [style.width]="width" [style.height]="height"></div>
+  </ng-container>
+</div>

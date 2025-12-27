@@ -1,0 +1,378 @@
+<div class="bond-transactions-page">
+  <div class="page-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="breadcrumbs">
+        <a routerLink="/">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a routerLink="/bond-transactions">Bond Transactions</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="current">All Transactions</span>
+      </div>
+
+      <div class="header-content">
+        <div class="title-section">
+          <div class="title-wrapper">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">swap_horiz</mat-icon>
+              <span>Bond Transactions</span>
+            </h1>
+            <p class="page-description">
+              Monitor and manage all bond purchase and withdrawal transactions
+            </p>
+          </div>
+          @if (fromPartnerPage) {
+            <button
+              mat-raised-button
+              color="primary"
+              class="show-all-btn"
+              (click)="showAllPartners()"
+              matTooltip="View transactions for all partners">
+              <mat-icon>grid_view</mat-icon>
+              Show All Partners
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Partner Info Card -->
+      @if (fromPartnerPage && partnerInfo) {
+        <mat-card class="partner-info-card">
+          <div class="partner-info-content">
+            <div class="partner-icon">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="partner-details">
+              <div class="partner-label">Filtered by Partner</div>
+              <div class="partner-name">{{ partnerInfo.name }}</div>
+              <div class="partner-code">
+                <mat-icon>tag</mat-icon>
+                <span>{{ partnerInfo.code }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Floating Filter Button -->
+    <button
+      class="floating-filter-btn"
+      mat-fab
+      (click)="toggleFilterPanel()"
+      [matTooltip]="'Filter Transactions'"
+      matTooltipPosition="left">
+      <mat-icon>filter_list</mat-icon>
+      @if (getActiveFiltersCount() > 0) {
+        <span class="filter-badge">{{ getActiveFiltersCount() }}</span>
+      }
+    </button>
+
+    <!-- Filter Offcanvas Overlay -->
+    <div
+      class="filter-offcanvas-overlay"
+      [class.show]="filterPanelOpen"
+      (click)="toggleFilterPanel()">
+    </div>
+
+    <!-- Filter Offcanvas Panel -->
+    <div class="filter-offcanvas" [class.show]="filterPanelOpen">
+      <div class="offcanvas-header">
+        <div class="header-left">
+          <mat-icon>filter_list</mat-icon>
+          <h2>Filter Transactions</h2>
+        </div>
+        <button mat-icon-button (click)="toggleFilterPanel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="offcanvas-body">
+        <form [formGroup]="filterForm" class="filter-form">
+
+          <!-- Status Filter -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>toggle_on</mat-icon>
+              <span>Status</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select formControlName="status">
+                @for (option of statusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>category</mat-icon>
+              <span>Transaction Type</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select formControlName="type">
+                @for (option of typeOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Bond Search (Autocomplete) -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>account_balance</mat-icon>
+              <span>Bond</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <input
+                matInput
+                formControlName="bondSearch"
+                [matAutocomplete]="bondAuto"
+                placeholder="Search bond by name or code">
+              <mat-autocomplete
+                #bondAuto="matAutocomplete"
+                [displayWith]="displayBond"
+                (optionSelected)="onBondSelected($event.option.value)">
+                @for (bond of filteredBonds$ | async; track bond.id) {
+                  <mat-option [value]="bond">
+                    <div class="autocomplete-option">
+                      <span class="option-name">{{ bond.name }}</span>
+                      <span class="option-code">{{ bond.code }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Partner Search (Autocomplete) - Hidden if from partner page -->
+          @if (!fromPartnerPage) {
+            <div class="filter-field-wrapper">
+              <div class="filter-label">
+                <mat-icon>business</mat-icon>
+                <span>Partner</span>
+              </div>
+              <mat-form-field appearance="outline" class="full-width">
+                <input
+                  matInput
+                  formControlName="partnerSearch"
+                  [matAutocomplete]="partnerAuto"
+                  placeholder="Search partner by name or code">
+                <mat-autocomplete
+                  #partnerAuto="matAutocomplete"
+                  [displayWith]="displayPartner"
+                  (optionSelected)="onPartnerSelected($event.option.value)">
+                  @for (partner of filteredPartners$ | async; track partner.id) {
+                    <mat-option [value]="partner">
+                      <div class="autocomplete-option">
+                        <span class="option-name">{{ partner.name }}</span>
+                        <span class="option-code">{{ partner.code }}</span>
+                      </div>
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+          }
+
+          <!-- Customer Search (Autocomplete) -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>person</mat-icon>
+              <span>Customer</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <input
+                matInput
+                formControlName="customerSearch"
+                [matAutocomplete]="customerAuto"
+                placeholder="Search customer by name or email">
+              <mat-autocomplete
+                #customerAuto="matAutocomplete"
+                [displayWith]="displayCustomer"
+                (optionSelected)="onCustomerSelected($event.option.value)">
+                @for (customer of filteredCustomers$ | async; track customer.id) {
+                  <mat-option [value]="customer">
+                    <div class="autocomplete-option">
+                      <span class="option-name">{{ customer.firstName }} {{ customer.lastName }}</span>
+                      <span class="option-code">{{ customer.email }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Date Range Picker -->
+          <div class="filter-field-wrapper">
+            <div class="filter-label">
+              <mat-icon>date_range</mat-icon>
+              <span>Date Range</span>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-date-range-input
+                [rangePicker]="dateRangePicker"
+                [max]="maxDate"
+                formGroupName="dateRange">
+                <input
+                  matStartDate
+                  formControlName="start"
+                  placeholder="Start date">
+                <input
+                  matEndDate
+                  formControlName="end"
+                  placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="dateRangePicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #dateRangePicker></mat-date-range-picker>
+            </mat-form-field>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Offcanvas Footer -->
+      <div class="offcanvas-footer">
+        <button
+          mat-stroked-button
+          type="button"
+          class="reset-btn"
+          (click)="resetFilters()"
+          [disabled]="getActiveFiltersCount() === 0">
+          <mat-icon>clear_all</mat-icon>
+          Reset All
+        </button>
+
+        <button
+          mat-raised-button
+          type="button"
+          class="search-btn"
+          (click)="applyFilters()">
+          <mat-icon>search</mat-icon>
+          Apply Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    @if (error$ | async; as error) {
+      <mat-card class="error-alert">
+        <div class="alert-content">
+          <mat-icon>error_outline</mat-icon>
+          <div class="alert-text">
+            <h4>Error Loading Transactions</h4>
+            <p>{{ error }}</p>
+          </div>
+          <button mat-button (click)="loadTransactions()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      </mat-card>
+    }
+
+    <!-- Data Table -->
+    <div class="table-section">
+      <app-data-table
+        [data]="(transactions$ | async) || []"
+        [config]="tableConfig"
+        (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)">
+
+        <!-- Reference Template -->
+        <ng-template appTableColumn="transactionReference" let-row>
+          <div class="reference-cell">
+            <div class="reference-code">{{ row.transactionReference }}</div>
+            <div class="partner-name">{{ row.partnerName }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Customer Template -->
+        <ng-template appTableColumn="customerFirstName" let-row>
+          <div class="customer-cell">
+            <div class="customer-avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="customer-info">
+              <div class="name">{{ row.customerFirstName }} {{ row.customerLastName }}</div>
+              <div class="email">{{ row.partnerUserId }}</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Amount Template -->
+        <ng-template appTableColumn="amount" let-row>
+          <div class="amount-cell" [class.positive]="row.transactionType === 'deposit' || row.transactionType === 'purchase'" [class.negative]="row.transactionType === 'withdrawal'">
+            <div class="amount">
+              {{ row.transactionType === 'withdrawal' ? '-' : '+' }}{{ formatCurrency(row.amount, row.currency) }}
+            </div>
+            <div class="total">Total: {{ formatCurrency(row.total, row.currency) }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Transaction Type Template -->
+        <ng-template appTableColumn="transactionType" let-row>
+          <div class="data-cell">
+            <span>{{ row.transactionType | capitalize }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Fee Template -->
+        <ng-template appTableColumn="fee" let-row>
+          <div class="fee-cell">
+            <div class="fee">{{ formatCurrency(row.fee, row.currency) }}</div>
+          </div>
+        </ng-template>
+
+        <!-- Date Created Template -->
+        <ng-template appTableColumn="dateCreated" let-row>
+          <div class="date-cell">
+            <mat-icon class="date-icon">schedule</mat-icon>
+            <span>{{ formatDate(row.dateCreated) }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Last Updated Date Template -->
+        <ng-template appTableColumn="lastUpdated" let-row>
+          <div class="date-cell">
+            <mat-icon class="date-icon">schedule</mat-icon>
+            <span>{{ formatDate(row.lastUpdated) }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Custom Actions Template -->
+        <ng-template appTableActions let-row>
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="actionsMenu"
+            (click)="$event.stopPropagation()"
+            matTooltip="Actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #actionsMenu="matMenu">
+            <!-- Change Status - Only for non-confirmed transactions -->
+            @if (canChangeStatus(row)) {
+              <button mat-menu-item (click)="changeStatus(row)">
+                <mat-icon class="menu-icon">swap_horiz</mat-icon>
+                <span>Change Status</span>
+              </button>
+            }
+            @if (!canChangeStatus(row)) {
+              <button mat-menu-item disabled>
+                <mat-icon class="menu-icon">check_circle</mat-icon>
+                <span>Transaction Confirmed</span>
+              </button>
+            }
+          </mat-menu>
+        </ng-template>
+
+      </app-data-table>
+    </div>
+
+  </div><!-- /.page-container -->
+</div>

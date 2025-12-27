@@ -1,0 +1,450 @@
+/**
+ * ===============================================
+ * NAVBAR STYLES
+ * Ejara Admin Panel - Top Navigation Bar
+ * ===============================================
+ */
+
+.navbar {
+  @apply fixed z-50;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border-neutral);
+  height: 72px;
+
+  .navbar-container {
+    @apply h-full px-[24px] flex items-center justify-between;
+    max-width: 100%;
+  }
+
+  // ============================================
+  // LEFT SECTION
+  // ============================================
+
+  .navbar-left {
+    @apply flex items-center gap-[24px] flex-1;
+    max-width: 600px;
+
+    .navbar-logo {
+      @apply flex items-center flex-shrink-0;
+      
+      .logo-image {
+        @apply h-[32px] w-auto;
+        object-fit: contain;
+      }
+    }
+
+    .search-container {
+      @apply relative flex items-center flex-1 max-w-[400px];
+      
+      .search-icon {
+        @apply absolute left-[16px] w-[20px] h-[20px] text-[var(--color-text-tertiary)] pointer-events-none;
+      }
+
+      .search-input {
+        font-family: var(--font-family-sans);
+        @apply w-full h-[40px] pl-[44px] pr-[60px] rounded-[12px];
+        @apply border border-solid border-[var(--color-border-neutral)];
+        @apply bg-[var(--color-background-secondary)];
+        @apply text-[14px] leading-[20px] text-[var(--color-text-primary)];
+        transition: all 200ms ease;
+
+        &::placeholder {
+          @apply text-[var(--color-text-tertiary)];
+        }
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-primary-500);
+          background-color: var(--color-background);
+          box-shadow: 0 0 0 3px var(--color-primary-100);
+        }
+      }
+
+      .search-shortcut {
+        @apply absolute right-[12px] px-[8px] py-[2px] rounded-[6px];
+        @apply bg-[var(--color-neutral-100)] text-[var(--color-text-tertiary)];
+        @apply text-[11px];
+        font-weight: 500;
+        font-family: var(--font-family-mono);
+        pointer-events: none;
+      }
+    }
+  }
+
+  // ============================================
+  // RIGHT SECTION
+  // ============================================
+
+  .navbar-right {
+    @apply flex items-center gap-[12px];
+
+    .navbar-item {
+      @apply relative;
+    }
+
+    .icon-button {
+      @apply relative w-[40px] h-[40px] flex items-center justify-center rounded-[12px];
+      @apply text-[var(--color-text-secondary)] cursor-pointer;
+      @apply border border-solid border-transparent;
+      background-color: transparent;
+      transition: all 200ms ease;
+
+      .icon {
+        @apply w-[20px] h-[20px];
+      }
+
+      &:hover {
+        @apply bg-[var(--color-background-secondary)] text-[var(--color-text-primary)];
+      }
+
+      &:active,
+      &.active {
+        @apply bg-[var(--color-primary-100)] text-[var(--color-primary-600)];
+        border-color: var(--color-primary-200);
+      }
+
+      .notification-badge {
+        @apply absolute top-[6px] right-[6px] w-[16px] h-[16px];
+        @apply flex items-center justify-center rounded-full;
+        @apply bg-[var(--color-error-600)];
+        @apply text-[10px];
+        font-weight: 700;
+        color: var(--color-background);
+        font-family: var(--font-family-sans);
+      }
+    }
+
+    .navbar-divider {
+      @apply w-[1px] h-[32px] bg-[var(--color-border-neutral)];
+      margin: 0 8px;
+    }
+
+    // Profile Button
+    .profile-button {
+      @apply flex items-center gap-[12px] h-[48px] px-[12px] rounded-[12px];
+      @apply border border-solid border-transparent;
+      @apply cursor-pointer;
+      background-color: transparent;
+      transition: all 200ms ease;
+
+      &:hover {
+        @apply bg-[var(--color-background-secondary)];
+      }
+
+      &.active {
+        @apply bg-[var(--color-primary-100)];
+        border-color: var(--color-primary-200);
+      }
+
+      .profile-avatar {
+        @apply w-[32px] h-[32px] rounded-full overflow-hidden flex-shrink-0;
+        @apply bg-[var(--color-primary-500)];
+        
+        .avatar-image {
+          @apply w-full h-full object-cover;
+        }
+
+        .avatar-initials {
+          @apply w-full h-full flex items-center justify-center;
+          @apply text-[12px];
+          font-weight: 600;
+          color: var(--color-background);
+          font-family: var(--font-family-sans);
+        }
+      }
+
+      .profile-info {
+        @apply flex flex-col items-start;
+
+        .profile-name {
+          font-family: var(--font-family-sans);
+          font-weight: 500;
+          @apply text-[14px] leading-[16px] text-[var(--color-text-primary)];
+        }
+
+        .profile-role {
+          font-family: var(--font-family-sans);
+          @apply text-[12px] leading-[14px] text-[var(--color-text-tertiary)] mt-[2px];
+        }
+      }
+
+      .chevron-icon {
+        @apply w-[16px] h-[16px] text-[var(--color-text-tertiary)] ml-[4px];
+        transition: transform 200ms ease;
+      }
+
+      &.active .chevron-icon {
+        @apply rotate-180;
+      }
+    }
+  }
+
+  // ============================================
+  // DROPDOWN STYLES
+  // ============================================
+
+  .dropdown {
+    @apply absolute mt-[8px] w-[320px] rounded-[16px];
+    @apply bg-[var(--color-background)] border border-solid border-[var(--color-border-neutral)];
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    right:0;
+    animation: dropdownSlideIn 0.2s ease-out;
+    z-index: 1000;
+
+    @keyframes dropdownSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .dropdown-header {
+      @apply flex items-center justify-between p-[16px] border-b border-solid border-[var(--color-border-neutral)];
+
+      .dropdown-title {
+        font-family: var(--font-family-display);
+        font-weight: 700;
+        @apply text-[16px] leading-[20px] text-[var(--color-text-primary)];
+      }
+
+      .mark-all-btn {
+        font-family: var(--font-family-sans);
+        font-weight: 500;
+        @apply text-[12px] text-[var(--color-primary-600)] cursor-pointer;
+        background: none;
+        border: none;
+        transition: color 200ms ease;
+
+        &:hover {
+          @apply text-[var(--color-primary-700)];
+        }
+      }
+    }
+
+    .dropdown-divider {
+      @apply h-[1px] bg-[var(--color-border-neutral)];
+    }
+
+    .dropdown-footer {
+      @apply p-[12px] border-t border-solid border-[var(--color-border-neutral)];
+
+      .view-all-link {
+        font-family: var(--font-family-sans);
+        font-weight: 500;
+        @apply text-[14px] text-[var(--color-primary-600)] text-center block;
+        transition: color 200ms ease;
+
+        &:hover {
+          @apply text-[var(--color-primary-700)];
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // NOTIFICATIONS DROPDOWN
+  // ============================================
+
+  .notifications-panel {
+    .notifications-list {
+      @apply max-h-[400px] overflow-y-auto;
+
+      .notification-item {
+        @apply flex items-start gap-[12px] p-[16px];
+        @apply border-b border-solid border-[var(--color-border-neutral)];
+        transition: background-color 200ms ease;
+        cursor: pointer;
+
+        &:last-child {
+          @apply border-b-0;
+        }
+
+        &:hover {
+          @apply bg-[var(--color-background-secondary)];
+        }
+
+        &.unread {
+          @apply bg-[var(--color-primary-50)];
+        }
+
+        .notification-icon {
+          @apply w-[36px] h-[36px] rounded-full flex items-center justify-center flex-shrink-0;
+          
+          svg {
+            @apply w-[20px] h-[20px];
+          }
+
+          &[data-type="user"] {
+            @apply bg-[var(--color-info-100)] text-[var(--color-info-700)];
+          }
+
+          &[data-type="transaction"] {
+            @apply bg-[var(--color-success-100)] text-[var(--color-success-700)];
+          }
+
+          &[data-type="system"] {
+            @apply bg-[var(--color-warning-100)] text-[var(--color-warning-700)];
+          }
+        }
+
+        .notification-content {
+          @apply flex-1;
+
+          .notification-title {
+            font-family: var(--font-family-sans);
+            font-weight: 600;
+            @apply text-[14px] leading-[16px] text-[var(--color-text-primary)] mb-[4px];
+          }
+
+          .notification-message {
+            font-family: var(--font-family-sans);
+            @apply text-[13px] leading-[18px] text-[var(--color-text-secondary)] mb-[6px];
+          }
+
+          .notification-time {
+            font-family: var(--font-family-sans);
+            @apply text-[11px] text-[var(--color-text-tertiary)];
+          }
+        }
+
+        .mark-read-btn {
+          @apply w-[24px] h-[24px] flex items-center justify-center rounded-[6px];
+          @apply text-[var(--color-text-tertiary)] cursor-pointer;
+          background: none;
+          border: none;
+          transition: all 200ms ease;
+
+          svg {
+            @apply w-[16px] h-[16px];
+          }
+
+          &:hover {
+            @apply bg-[var(--color-primary-100)] text-[var(--color-primary-600)];
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // PROFILE DROPDOWN
+  // ============================================
+
+  .profile-menu {
+    @apply w-[280px];
+
+    .dropdown-user-info {
+      @apply p-[16px] flex items-center gap-[12px];
+
+      .user-avatar-large {
+        @apply w-[48px] h-[48px] rounded-full overflow-hidden flex-shrink-0;
+        @apply bg-[var(--color-primary-500)];
+
+        .avatar-image {
+          @apply w-full h-full object-cover;
+        }
+
+        .avatar-initials {
+          @apply w-full h-full flex items-center justify-center;
+          @apply text-[18px];
+          font-weight: 600;
+            color: var(--color-background);
+          font-family: var(--font-family-sans);
+        }
+      }
+
+      .user-details {
+        @apply flex-1 overflow-hidden;
+
+        .user-name {
+          font-family: var(--font-family-sans);
+          font-weight: 600;
+          @apply text-[14px] leading-[18px] text-[var(--color-text-primary)] truncate;
+        }
+
+        .user-email {
+          font-family: var(--font-family-sans);
+          @apply text-[12px] leading-[16px] text-[var(--color-text-tertiary)] truncate mt-[2px];
+        }
+      }
+    }
+
+    .dropdown-menu-items {
+      @apply py-[8px];
+
+      .menu-item {
+        @apply w-full flex items-center gap-[12px] px-[16px] py-[10px];
+        @apply text-left cursor-pointer;
+        font-family: var(--font-family-sans);
+        font-weight: 500;
+        @apply text-[14px] text-[var(--color-text-secondary)];
+        background: none;
+        border: none;
+        transition: all 200ms ease;
+
+        .menu-icon {
+          @apply w-[18px] h-[18px] flex-shrink-0;
+        }
+
+        &:hover {
+          @apply bg-[var(--color-background-secondary)] text-[var(--color-text-primary)];
+        }
+
+        &.logout-item {
+          @apply flex text-[var(--color-error-600)];
+
+          &:hover {
+            @apply bg-[var(--color-error-50)] text-[var(--color-error-700)];
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+
+@media (max-width: 768px) {
+  .navbar {
+    height: 64px;
+
+    .navbar-container {
+      @apply px-[16px];
+    }
+
+    .navbar-left {
+      @apply gap-[12px];
+
+      .search-container {
+        @apply hidden; // Hide search on mobile
+      }
+    }
+
+    .navbar-right {
+      .profile-info {
+        @apply hidden; // Hide name/role on mobile
+      }
+
+      .navbar-divider {
+        @apply hidden;
+      }
+    }
+
+    .dropdown {
+      @apply w-[calc(100vw-32px)] right-[16px];
+    }
+
+    .profile-menu {
+      @apply w-[calc(100vw-32px)];
+    }
+  }
+}

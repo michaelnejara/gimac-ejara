@@ -1,0 +1,250 @@
+<div class="partner-customers-modal">
+  <!-- Modal Header -->
+  <div class="modal-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>Partner Customers</h2>
+        <p class="partner-name">{{ partnerName }}</p>
+      </div>
+    </div>
+    <button 
+      mat-icon-button 
+      class="close-btn" 
+      (click)="closeModal()"
+      matTooltip="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="modal-body">
+    
+    <!-- Filters Section -->
+    <div class="filters-section" [class.collapsed]="!filtersExpanded">
+      <div class="filters-header">
+        <div class="filters-header-left">
+          <button 
+            mat-icon-button 
+            class="toggle-btn"
+            (click)="toggleFilters()"
+            [matTooltip]="filtersExpanded ? 'Collapse filters' : 'Expand filters'">
+            <mat-icon>{{ filtersExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+          
+          <div class="filters-title">
+            <mat-icon>filter_list</mat-icon>
+            <span>Filters</span>
+            @if (countActiveFilters() > 0) {
+              <mat-chip class="active-filters-chip">{{ countActiveFilters() }}</mat-chip>
+            }
+            @if (hasUnappliedFilters) {
+              <mat-chip class="unapplied-chip">Not Applied</mat-chip>
+            }
+          </div>
+        </div>
+
+        <div class="filters-header-right">
+          @if (filtersExpanded) {
+            <button 
+              mat-button 
+              class="clear-header-btn"
+              (click)="resetFilters()"
+              [disabled]="countActiveFilters() === 0">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="filters-content-wrapper" [class.show]="filtersExpanded">
+        <form [formGroup]="filterForm" class="filters-form">
+          <div class="filters-grid">
+            
+            <!-- Keyword Search -->
+            <mat-form-field appearance="fill" class="filter-field keyword-field">
+              <mat-label>Search</mat-label>
+              <input 
+                matInput 
+                formControlName="keyword"
+                placeholder="Search name, email, or phone">
+              <mat-icon matPrefix>search</mat-icon>
+            </mat-form-field>
+
+            <!-- Customer Name -->
+            <mat-form-field appearance="fill" class="filter-field">
+              <mat-label>Customer Name</mat-label>
+              <input 
+                matInput 
+                formControlName="customerName"
+                placeholder="Enter customer name">
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field appearance="fill" class="filter-field">
+              <mat-label>Email</mat-label>
+              <input 
+                matInput 
+                type="email"
+                formControlName="email"
+                placeholder="Enter email address">
+              <mat-icon matPrefix>email</mat-icon>
+            </mat-form-field>
+
+            <!-- Phone -->
+            <mat-form-field appearance="fill" class="filter-field">
+              <mat-label>Phone Number</mat-label>
+              <input 
+                matInput 
+                formControlName="phone"
+                placeholder="Enter phone number">
+              <mat-icon matPrefix>phone</mat-icon>
+            </mat-form-field>
+
+            <!-- Country Code -->
+            <mat-form-field appearance="fill" class="filter-field">
+              <mat-label>Country</mat-label>
+              <mat-select formControlName="countryCode">
+                @for (country of countryCodes; track country.code) {
+                  <mat-option [value]="country.code">{{ country.name }}</mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>public</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Filter Actions -->
+          <div class="filter-actions">
+            <button 
+              mat-stroked-button 
+              type="button"
+              class="clear-btn"
+              (click)="resetFilters()"
+              [disabled]="countActiveFilters() === 0">
+              <mat-icon>clear_all</mat-icon>
+              Clear Filters
+            </button>
+
+            <button 
+              mat-raised-button 
+              color="primary"
+              type="button"
+              class="apply-btn"
+              (click)="applyFilters()"
+              [disabled]="!hasUnappliedFilters">
+              <mat-icon>check</mat-icon>
+              Apply Filters
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    @if (error$ | async; as error) {
+      <div class="error-alert">
+        <mat-icon>error_outline</mat-icon>
+        <div class="error-text">
+          <h4>Error Loading Customers</h4>
+          <p>{{ error }}</p>
+        </div>
+        <button mat-button (click)="loadCustomers()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      </div>
+    }
+
+    <!-- Data Table -->
+    <div class="table-section">
+      <app-data-table
+        [data]="(customers$ | async) || []"
+        [config]="tableConfig"
+        (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)">
+        
+        <!-- Customer Info Template -->
+        <ng-template appTableColumn="customerInfo" let-row>
+          <div class="customer-cell">
+            <div class="customer-avatar">
+              {{ getCustomerInitials(row) }}
+            </div>
+            <div class="customer-info">
+              <div class="name">{{ row.firstName }} {{ row.lastName }}</div>
+              <div class="customer-id">ID: {{ row.id }}</div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Email Template -->
+        <ng-template appTableColumn="email" let-row>
+          <div class="email-cell">
+            <mat-icon class="email-icon">email</mat-icon>
+            <span>{{ row.email }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Phone Template -->
+        <ng-template appTableColumn="phone" let-row>
+          <div class="phone-cell">
+            <mat-icon class="phone-icon">phone</mat-icon>
+            <span>{{ row.phone }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Date Created Template -->
+        <ng-template appTableColumn="dateCreated" let-row>
+          <div class="date-cell">
+            <mat-icon class="date-icon">event</mat-icon>
+            <span>{{ formatDate(row.dateCreated) }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Actions Template -->
+        <ng-template appTableActions let-row>
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="actionsMenu"
+            (click)="$event.stopPropagation()"
+            matTooltip="Actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #actionsMenu="matMenu">
+            <button mat-menu-item (click)="viewCustomerBonds(row)">
+              <mat-icon class="menu-icon">account_balance</mat-icon>
+              <span>View Customer Bonds</span>
+            </button>
+          </mat-menu>
+        </ng-template>
+
+      </app-data-table>
+    </div>
+
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer">
+    <div class="footer-info">
+      @if (pagination$ | async; as pagination) {
+        <span class="pagination-info">
+          Showing {{ (pagination.currentPage - 1) * pagination.limit + 1 }} 
+          to {{ Math.min(pagination.currentPage * pagination.limit, pagination.total) }} 
+          of {{ pagination.total }} customers
+        </span>
+      }
+    </div>
+    <button 
+      mat-raised-button 
+      color="primary"
+      class="close-footer-btn"
+      (click)="closeModal()">
+      <mat-icon>close</mat-icon>
+      Close
+    </button>
+  </div>
+</div>

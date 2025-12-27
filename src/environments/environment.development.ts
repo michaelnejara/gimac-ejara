@@ -15,8 +15,8 @@ export const environment = {
         enableRemoteLogging: false
     },
 
-    nellyCoin: {
-        apiUrl: 'https://testbox-nellys-coin-v2.ejaraapis.xyz',
+    nellysCoin: {
+        apiUrl: 'https://testbox-nellys-coin-v2.ejaraapis.xyz/api/v1',
         clientKey: '2ead6d590b',
         clientSecret: 'sJtJPkBlX!VBq1HEnjqAz0o7D',
     },
@@ -25,4 +25,10 @@ export const environment = {
         clientKey: '3de2fbdb78',
         clientSecret: '93Kyno#2uFDOMY*HWC2OpeuR(',  
     },
+    gimacTbB2B: {
+        apiUrl: 'https://testbox-tokenized-bonds.ejaraapis.xyz/api',
+        clientKey: '9de009d90b',
+        clientSecret: 'B0]zMDdCBkUQUMGth]NpX!*mw',
+        useMockData: false
+    }
 };
